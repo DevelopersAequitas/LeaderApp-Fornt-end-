@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/helpers/session_manager.dart';
+import '../../../core/widgets/widgets.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_state.dart';
 import '../model/role_model.dart';
@@ -85,6 +87,26 @@ class _LoginViewState extends State<LoginView> implements LoginViewContract {
       iconColor: Color(0xFFFBC02D),
     ),
   ];
+
+  /// Getter to dynamically fetch all preconfigured and custom roles.
+  List<RoleModel> get _allRoles {
+    final customRoles = SessionManager().dynamicRoleLabels.map((label) {
+      final email = '${label.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
+      return RoleModel(
+        title: label,
+        description: 'Custom Dynamic Role · Configured by Super Admin',
+        email: email,
+        icon: Icons.tune_rounded,
+        iconBgColor: AppColors.successBg,
+        iconColor: AppColors.success,
+      );
+    });
+
+    return [
+      ..._roles,
+      ...customRoles,
+    ];
+  }
 
   @override
   void initState() {
@@ -279,7 +301,7 @@ class _LoginViewState extends State<LoginView> implements LoginViewContract {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF8B9CB4),
+                              color: AppColors.textSecondary,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -334,59 +356,19 @@ class _LoginViewState extends State<LoginView> implements LoginViewContract {
                           ),
                           const SizedBox(height: 28),
                           // Action trigger Send OTP Button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: ElevatedButton(
-                              onPressed: (_isFormValid && !_isLoading)
-                                  ? () => _presenter.submit()
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                disabledBackgroundColor: const Color(
-                                  0xFFBDC7D5,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2.5,
-                                      ),
-                                    )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: const [
-                                        Text(
-                                          'Send OTP',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Icon(
-                                          Icons.arrow_forward_rounded,
-                                          color: Colors.white,
-                                          size: 18,
-                                        ),
-                                      ],
-                                    ),
-                            ),
+                          PrimaryButton(
+                            label: 'Send OTP',
+                            onPressed: (_isFormValid && !_isLoading)
+                                ? () => _presenter.submit()
+                                : null,
+                            isLoading: _isLoading,
+                            trailingIcon: Icons.arrow_forward_rounded,
                           ),
                           const SizedBox(height: 36),
                           // Auto-Fill Role Utility Panel
                           CustomPaint(
                             painter: DashedBorderPainter(
-                              color: const Color(0xFFDDE3ED),
+                              color: AppColors.dashedBorder,
                               borderRadius: 16,
                             ),
                             child: Padding(
@@ -407,23 +389,23 @@ class _LoginViewState extends State<LoginView> implements LoginViewContract {
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w800,
-                                          color: Color(0xFF8B9CB4),
+                                          color: AppColors.textSecondary,
                                           letterSpacing: 0.5,
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 12),
-                                  // Loop through all 7 auto-fill roles
+                                  // Loop through all auto-fill roles
                                   ListView.separated(
                                     shrinkWrap: true,
                                     physics:
                                         const NeverScrollableScrollPhysics(),
-                                    itemCount: _roles.length,
+                                    itemCount: _allRoles.length,
                                     separatorBuilder: (_, _) =>
                                         const SizedBox(height: 10),
                                     itemBuilder: (context, index) {
-                                      final role = _roles[index];
+                                      final role = _allRoles[index];
                                       return _buildRoleCard(role);
                                     },
                                   ),
@@ -455,7 +437,7 @@ class _LoginViewState extends State<LoginView> implements LoginViewContract {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? AppColors.primary : const Color(0xFFEDEFF3),
+            color: isSelected ? AppColors.primary : AppColors.border,
             width: isSelected ? 2.0 : 1.0,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -490,22 +472,14 @@ class _LoginViewState extends State<LoginView> implements LoginViewContract {
                         ),
                       ),
                       if (isSelected)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
+                        const StatusPill(
+                          label: 'Selected',
+                          backgroundColor: AppColors.primary,
+                          textColor: Colors.white,
+                          fontSize: 10,
+                          padding: EdgeInsets.symmetric(
                             horizontal: 8,
                             vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'Selected',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                            ),
                           ),
                         ),
                     ],

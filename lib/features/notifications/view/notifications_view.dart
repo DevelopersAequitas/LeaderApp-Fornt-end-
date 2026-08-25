@@ -6,6 +6,7 @@ import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
 import '../model/notification_model.dart';
 import '../presenter/notifications_presenter.dart';
+import '../../../core/widgets/widgets.dart';
 
 /// Screen component rendering user notifications.
 class NotificationsView extends StatefulWidget {
@@ -70,30 +71,9 @@ class _NotificationsViewState extends State<NotificationsView>
   // --- UI Widget Builders ---
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFF0F2541),
-      elevation: 0,
-      leading: Container(
-        margin: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          shape: BoxShape.circle,
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.chevron_left, color: Colors.white, size: 24),
-          onPressed: () => Navigator.of(context).pop(),
-          padding: EdgeInsets.zero,
-        ),
-      ),
-      title: const Text(
-        'Notifications',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-      ),
-      centerTitle: false,
+    return const CustomAppBar(
+      title: 'Notifications',
+      showBackButton: true,
     );
   }
 

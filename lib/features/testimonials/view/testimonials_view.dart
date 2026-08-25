@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/widgets.dart';
 import '../bloc/testimonials_bloc.dart';
 import '../bloc/testimonials_state.dart';
 import '../presenter/testimonials_presenter.dart';
@@ -65,59 +66,6 @@ class _TestimonialsViewState extends State<TestimonialsView>
     );
   }
 
-  Widget _buildSummaryBox({
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              color: Colors.grey.shade500,
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterPill(String label, int? rating) {
-    final isSelected = _selectedFilter == rating;
-    return GestureDetector(
-      onTap: () => _presenter.filterByRating(rating),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey.shade500,
-            fontWeight: FontWeight.w800,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildTestimonialCard(TestimonialModel testimonial) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -125,7 +73,7 @@ class _TestimonialsViewState extends State<TestimonialsView>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -139,17 +87,11 @@ class _TestimonialsViewState extends State<TestimonialsView>
         children: [
           Row(
             children: [
-              CircleAvatar(
+              InitialsAvatar(
+                name: testimonial.fromName,
                 radius: 20,
-                backgroundColor: const Color(0xFF162D4A),
-                child: Text(
-                  testimonial.fromInitials,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                  ),
-                ),
+                backgroundColor: AppColors.primary,
+                fontSize: 13,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -185,16 +127,9 @@ class _TestimonialsViewState extends State<TestimonialsView>
                   ],
                 ),
               ),
-              Row(
-                children: List.generate(5, (index) {
-                  return Icon(
-                    Icons.star_rounded,
-                    color: index < testimonial.rating
-                        ? const Color(0xFFC7923E)
-                        : Colors.grey.shade300,
-                    size: 16,
-                  );
-                }),
+              StarRatingDisplay(
+                rating: testimonial.rating,
+                size: 16,
               ),
             ],
           ),
@@ -232,48 +167,20 @@ class _TestimonialsViewState extends State<TestimonialsView>
           _presenter.handleStateChange(state);
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFFF9FAFC),
-          appBar: AppBar(
-            backgroundColor: AppColors.primary,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Peer Testimonials',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Mumbai Tech Sunrise - 3 endorsements',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+          backgroundColor: AppColors.background,
+          appBar: CustomAppBar(
+            title: 'Peer Testimonials',
+            subtitle: 'Mumbai Tech Sunrise - 3 endorsements',
+            showBackButton: true,
             actions: [
               IconButton(
-                icon: const Icon(Icons.search_rounded, color: Colors.white),
+                icon: const Icon(Icons.search_rounded),
                 onPressed: () {},
               ),
-              const SizedBox(width: 8),
             ],
           ),
           body: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                )
+              ? const CenteredLoadingIndicator()
               : Column(
                   children: [
                     const SizedBox(height: 16),
@@ -284,26 +191,41 @@ class _TestimonialsViewState extends State<TestimonialsView>
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFEDEFF3)),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Row(
                         children: [
-                          _buildSummaryBox(
-                            value: '3',
-                            label: 'endorsements',
-                            color: const Color(0xFF00796B),
+                          Expanded(
+                            child: StatCard(
+                              value: '3',
+                              label: 'endorsements',
+                              valueColor: AppColors.chartSecondary,
+                              labelColor: Colors.grey.shade500,
+                              valueFontSize: 18,
+                              padding: EdgeInsets.zero,
+                            ),
                           ),
                           Container(width: 1, height: 32, color: Colors.grey.shade200),
-                          _buildSummaryBox(
-                            value: '5★',
-                            label: 'avg rating',
-                            color: const Color(0xFFC7923E),
+                          Expanded(
+                            child: StatCard(
+                              value: '5★',
+                              label: 'avg rating',
+                              valueColor: AppColors.warning,
+                              labelColor: Colors.grey.shade500,
+                              valueFontSize: 18,
+                              padding: EdgeInsets.zero,
+                            ),
                           ),
                           Container(width: 1, height: 32, color: Colors.grey.shade200),
-                          _buildSummaryBox(
-                            value: '3',
-                            label: '5-star',
-                            color: const Color(0xFF2E7D32),
+                          Expanded(
+                            child: StatCard(
+                              value: '3',
+                              label: '5-star',
+                              valueColor: AppColors.success,
+                              labelColor: Colors.grey.shade500,
+                              valueFontSize: 18,
+                              padding: EdgeInsets.zero,
+                            ),
                           ),
                         ],
                       ),
@@ -312,13 +234,18 @@ class _TestimonialsViewState extends State<TestimonialsView>
                     // Rating Filter pills row
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          _buildFilterPill('All', null),
-                          _buildFilterPill('5', 5),
-                          _buildFilterPill('4', 4),
-                          _buildFilterPill('3', 3),
-                        ],
+                      child: HorizontalSelectionChips(
+                        options: const ['All', '5★', '4★', '3★'],
+                        selectedOption: _selectedFilter == null
+                            ? 'All'
+                            : '${_selectedFilter}★',
+                        onSelected: (option) {
+                          final rating = option == 'All'
+                              ? null
+                              : int.parse(option.replaceAll('★', ''));
+                          _presenter.filterByRating(rating);
+                        },
+                        unselectedTextColor: Colors.grey.shade500,
                       ),
                     ),
                     const SizedBox(height: 8),

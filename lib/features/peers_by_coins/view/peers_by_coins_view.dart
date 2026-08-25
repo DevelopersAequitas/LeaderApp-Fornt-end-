@@ -5,6 +5,7 @@ import '../bloc/peers_by_coins_bloc.dart';
 import '../bloc/peers_by_coins_state.dart';
 import '../presenter/peers_by_coins_presenter.dart';
 import '../model/coin_balance_model.dart';
+import '../../../core/widgets/widgets.dart';
 
 class PeersByCoinsView extends StatefulWidget {
   const PeersByCoinsView({super.key});
@@ -118,23 +119,23 @@ class _PeersByCoinsViewState extends State<PeersByCoinsView>
     // Top rank badge colors
     Color badgeColor = const Color(0xFF78909C);
     if (peer.rank == 1) {
-      badgeColor = const Color(0xFFD87D32);
+      badgeColor = AppColors.warning;
     } else if (peer.rank == 2) {
-      badgeColor = const Color(0xFF32567D);
+      badgeColor = AppColors.chartPrimary;
     } else if (peer.rank == 3) {
-      badgeColor = const Color(0xFF2E7D32);
+      badgeColor = AppColors.success;
     }
 
     final isRank1 = peer.rank == 1;
-    final coinsBoxBg = isRank1 ? const Color(0xFFFFF3E0) : const Color(0xFFEDF2FA);
-    final coinsBoxBorder = isRank1 ? const Color(0xFFFFE0B2) : const Color(0xFFDDE3ED);
-    final coinsBoxTextColor = isRank1 ? const Color(0xFFD87D32) : const Color(0xFF32567D);
+    final coinsBoxBg = isRank1 ? AppColors.warningBg : AppColors.selectionBg;
+    final coinsBoxBorder = isRank1 ? AppColors.warningBorder : AppColors.dashedBorder;
+    final coinsBoxTextColor = isRank1 ? AppColors.warning : AppColors.chartPrimary;
 
-    final statusBg = peer.status == 'Active' ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
-    final statusTextColor = peer.status == 'Active' ? const Color(0xFF2E7D32) : const Color(0xFFC62828);
+    final statusBg = peer.status == 'Active' ? AppColors.successBg : AppColors.dangerBg;
+    final statusTextColor = peer.status == 'Active' ? AppColors.success : AppColors.danger;
 
-    final sourceBorder = peer.source == 'Direct' ? const Color(0xFF81C784) : const Color(0xFF64B5F6);
-    final sourceTextColor = peer.source == 'Direct' ? const Color(0xFF2E7D32) : const Color(0xFF1565C0);
+    final sourceBorder = peer.source == 'Direct' ? AppColors.successBorder : AppColors.infoBorder;
+    final sourceTextColor = peer.source == 'Direct' ? AppColors.success : AppColors.info;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -142,7 +143,7 @@ class _PeersByCoinsViewState extends State<PeersByCoinsView>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -162,7 +163,7 @@ class _PeersByCoinsViewState extends State<PeersByCoinsView>
                 children: [
                   CircleAvatar(
                     radius: 22,
-                    backgroundColor: const Color(0xFF162D4A),
+                    backgroundColor: AppColors.primary,
                     child: Text(
                       peer.initials,
                       style: const TextStyle(
@@ -306,7 +307,7 @@ class _PeersByCoinsViewState extends State<PeersByCoinsView>
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFEDEFF3)),
+          const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 12),
           // Stats Row Grid
           Row(
@@ -332,42 +333,16 @@ class _PeersByCoinsViewState extends State<PeersByCoinsView>
           _presenter.handleStateChange(state);
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFFF9FAFC),
-          appBar: AppBar(
-            backgroundColor: AppColors.primary,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Peers by Coins',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Mumbai Tech Sunrise',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+          backgroundColor: AppColors.background,
+          appBar: CustomAppBar(
+            title: 'Peers by Coins',
+            subtitle: 'Mumbai Tech Sunrise',
+            showBackButton: true,
             actions: [
               IconButton(
-                icon: const Icon(Icons.search_rounded, color: Colors.white),
+                icon: const Icon(Icons.search_rounded),
                 onPressed: () {},
               ),
-              const SizedBox(width: 8),
             ],
           ),
           body: _isLoading

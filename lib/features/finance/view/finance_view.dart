@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/widgets.dart';
 import '../bloc/finance_bloc.dart';
 import '../bloc/finance_state.dart';
 import '../model/finance_model.dart';
@@ -83,7 +84,7 @@ class _FinanceViewState extends State<FinanceView>
   Widget _buildMockDashboardBackground() {
     return Container(
       padding: const EdgeInsets.all(24),
-      color: const Color(0xFFF9FAFC),
+      color: AppColors.background,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -130,53 +131,12 @@ class _FinanceViewState extends State<FinanceView>
   }
 
   Widget _buildRestrictedCard(FinancePermissionModel permission) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 24,
-            spreadRadius: 4,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return RestrictedAccessCard(
+      title: 'Access Restricted',
+      message: '',
+      contentOverride: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF2F2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFFFE3E3), width: 1.5),
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.lock_outline_rounded,
-                color: Color(0xFFD32F2F),
-                size: 28,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Access Restricted',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.text,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 16),
           Text.rich(
             TextSpan(
               style: TextStyle(
@@ -185,16 +145,16 @@ class _FinanceViewState extends State<FinanceView>
                 fontWeight: FontWeight.w500,
                 height: 1.5,
               ),
-              children: const [
-                TextSpan(text: 'As a '),
+              children: [
+                const TextSpan(text: 'As a '),
                 TextSpan(
-                  text: 'Chair',
-                  style: TextStyle(
+                  text: permission.role,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     color: AppColors.text,
                   ),
                 ),
-                TextSpan(
+                const TextSpan(
                   text:
                       ', you do not have permissions to access the Finance dashboard. Access is limited to Founder, Director, and Executive levels.',
                 ),
@@ -206,7 +166,7 @@ class _FinanceViewState extends State<FinanceView>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF7F8FA),
+              color: AppColors.secondaryBg,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -236,7 +196,7 @@ class _FinanceViewState extends State<FinanceView>
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: const Color(0xFFE1DDF6),
+                              color: AppColors.chartLine,
                               width: 1.0,
                             ),
                           ),
@@ -339,7 +299,7 @@ class _FinanceViewState extends State<FinanceView>
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: const Color(0xFFE8EEF8),
+                      color: AppColors.selectionBg,
                       width: 1.5,
                     ),
                   ),
@@ -349,7 +309,7 @@ class _FinanceViewState extends State<FinanceView>
                       Text(
                         rate.label,
                         style: const TextStyle(
-                          color: Color(0xFF8B9CB4),
+                          color: AppColors.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -367,7 +327,7 @@ class _FinanceViewState extends State<FinanceView>
                       Text(
                         rate.description,
                         style: const TextStyle(
-                          color: Color(0xFF8B9CB4),
+                          color: AppColors.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -376,7 +336,7 @@ class _FinanceViewState extends State<FinanceView>
                       Text(
                         rate.status,
                         style: const TextStyle(
-                          color: Color(0xFFB58E3D),
+                          color: AppColors.warning,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -500,12 +460,12 @@ class _FinanceViewState extends State<FinanceView>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF3F5F9),
+                            color: AppColors.secondaryBg,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
                             item.icon,
-                            color: const Color(0xFF1E3A60),
+                            color: AppColors.chartPrimary,
                             size: 18,
                           ),
                         ),
@@ -533,9 +493,9 @@ class _FinanceViewState extends State<FinanceView>
                               width: 72,
                               height: 36,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF7F8FA),
+                                color: AppColors.secondaryBg,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFE8EEF8)),
+                                border: Border.all(color: AppColors.selectionBg),
                               ),
                               alignment: Alignment.center,
                               child: const Text(
@@ -551,7 +511,7 @@ class _FinanceViewState extends State<FinanceView>
                         : Text(
                             item.directReferralCut,
                             style: const TextStyle(
-                              color: Color(0xFF8B9CB4),
+                              color: AppColors.textSecondary,
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
                             ),
@@ -567,9 +527,9 @@ class _FinanceViewState extends State<FinanceView>
                               width: 72,
                               height: 36,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF7F8FA),
+                                color: AppColors.secondaryBg,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFE8EEF8)),
+                                border: Border.all(color: AppColors.selectionBg),
                               ),
                               alignment: Alignment.center,
                               child: const Text(
@@ -585,7 +545,7 @@ class _FinanceViewState extends State<FinanceView>
                         : Text(
                             item.appJoinCut,
                             style: const TextStyle(
-                              color: Color(0xFF8B9CB4),
+                              color: AppColors.textSecondary,
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
                             ),
@@ -613,7 +573,7 @@ class _FinanceViewState extends State<FinanceView>
                 child: _buildMetricCard(
                   value: _metrics!.totalRevenue,
                   label: 'Total Revenue',
-                  valueColor: const Color(0xFF0F7A50),
+                  valueColor: AppColors.success,
                 ),
               ),
               const SizedBox(width: 16),
@@ -633,7 +593,7 @@ class _FinanceViewState extends State<FinanceView>
                 child: _buildMetricCard(
                   value: '${_metrics!.dealsClosed}',
                   label: 'Deals Closed',
-                  valueColor: const Color(0xFFB58E3D),
+                  valueColor: AppColors.warning,
                 ),
               ),
               const SizedBox(width: 16),
@@ -641,7 +601,7 @@ class _FinanceViewState extends State<FinanceView>
                 child: _buildMetricCard(
                   value: _metrics!.commissionDue,
                   label: 'Commission Due',
-                  valueColor: const Color(0xFF102640),
+                  valueColor: AppColors.primary,
                 ),
               ),
             ],
@@ -661,7 +621,7 @@ class _FinanceViewState extends State<FinanceView>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.01),
@@ -685,7 +645,7 @@ class _FinanceViewState extends State<FinanceView>
           Text(
             label,
             style: const TextStyle(
-              color: Color(0xFF8B9CB4),
+              color: AppColors.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -704,7 +664,7 @@ class _FinanceViewState extends State<FinanceView>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,7 +692,7 @@ class _FinanceViewState extends State<FinanceView>
             minY: 0.0,
             maxY: 600.0,
             yLabels: const [0, 150, 300, 450, 600],
-            lineColor: const Color(0xFF0F7A50),
+            lineColor: AppColors.success,
             showMarTooltip: true,
           ),
         ],
@@ -749,7 +709,7 @@ class _FinanceViewState extends State<FinanceView>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -777,7 +737,7 @@ class _FinanceViewState extends State<FinanceView>
             minY: 35.0,
             maxY: 140.0,
             yLabels: const [35, 70, 105, 140],
-            lineColor: const Color(0xFFB58E3D),
+            lineColor: AppColors.warning,
             showMarTooltip: false,
           ),
         ],
@@ -794,12 +754,7 @@ class _FinanceViewState extends State<FinanceView>
           _presenter.handleStateChange(state);
         },
         child: _isLoading || _permission == null
-            ? const SizedBox(
-                height: 300,
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              )
+            ? const CenteredLoadingIndicator(height: 300)
             : _permission!.isRestricted
             ? SizedBox(
                 height: 580,
@@ -942,11 +897,11 @@ class _SplineChartPainter extends CustomPainter {
 
     final gridPaint = Paint()
       // Faint grey grid lines (slightly darker than before for visibility)
-      ..color = const Color(0xFFE4E7ED)
+      ..color = AppColors.border
       ..strokeWidth = 1.0;
 
     final baselinePaint = Paint()
-      ..color = const Color(0xFFE4E7ED)
+      ..color = AppColors.border
       ..strokeWidth = 1.5;
 
     // Draw vertical dashed grid lines for X axis coordinates
@@ -976,7 +931,7 @@ class _SplineChartPainter extends CustomPainter {
       textPainter.text = TextSpan(
         text: '${label.toInt()}',
         style: const TextStyle(
-          color: Color(0xFF8B9CB4),
+          color: AppColors.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w500,
         ),
@@ -1102,7 +1057,7 @@ class _SplineChartPainter extends CustomPainter {
       textPainter.text = TextSpan(
         text: points[i].month,
         style: const TextStyle(
-          color: Color(0xFF8B9CB4),
+          color: AppColors.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w500,
         ),
@@ -1116,7 +1071,7 @@ class _SplineChartPainter extends CustomPainter {
 
     if (showMarTooltip && pixelPoints.length > 1) {
       final indicatorPaint = Paint()
-        ..color = const Color(0xFFC0D1EB)
+        ..color = AppColors.dashedBorder
         ..strokeWidth = 1.0;
       canvas.drawLine(
         Offset(pixelPoints[1].dx, 0),
@@ -1146,7 +1101,7 @@ class _SplineChartPainter extends CustomPainter {
         ..color = Colors.white
         ..style = PaintingStyle.fill;
       final tooltipBorderPaint = Paint()
-        ..color = const Color(0xFFEDEFF3)
+        ..color = AppColors.border
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0;
 
@@ -1157,7 +1112,7 @@ class _SplineChartPainter extends CustomPainter {
       textPainter.text = const TextSpan(
         text: 'Mar',
         style: TextStyle(
-          color: Color(0xFF8B9CB4),
+          color: AppColors.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),

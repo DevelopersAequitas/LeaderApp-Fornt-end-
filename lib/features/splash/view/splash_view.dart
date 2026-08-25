@@ -140,7 +140,7 @@ class _SplashViewState extends State<SplashView>
                 radius: 1.3,
                 colors: [
                   AppColors.primary, // Dark Blue: #102640
-                  Color(0xFF07111D), // Deep Midnight Blue
+                  AppColors.darkMidnight, // Deep Midnight Blue
                 ],
               ),
             ),

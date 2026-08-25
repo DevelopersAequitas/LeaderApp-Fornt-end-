@@ -4,6 +4,7 @@ import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/widgets/widgets.dart';
 import '../bloc/peers_bloc.dart';
 import '../bloc/peers_state.dart';
 import '../model/peer_model.dart';
@@ -114,155 +115,28 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
 
   // --- UI Widget Helpers ---
 
-  Widget _buildSegmentControls() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F5F9),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          // Peers (8) Segment
-          Expanded(
-            child: InkWell(
-              onTap: () => _presenter.changeSubTab(0),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: _activeSubTab == 0
-                      ? AppColors.primary
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'Peers (${_peers.length})',
-                  style: TextStyle(
-                    color: _activeSubTab == 0
-                        ? Colors.white
-                        : const Color(0xFF8B9CB4),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Celebrations Segment
-          Expanded(
-            child: InkWell(
-              onTap: () => _presenter.changeSubTab(1),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: _activeSubTab == 1
-                      ? AppColors.primary
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.cake_rounded,
-                      size: 16,
-                      color: _activeSubTab == 1
-                          ? Colors.white
-                          : const Color(0xFF8B9CB4),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Celebrations',
-                      style: TextStyle(
-                        color: _activeSubTab == 1
-                            ? Colors.white
-                            : const Color(0xFF8B9CB4),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(String status) {
-    final isSelected = _selectedStatus == status;
-    return InkWell(
-      onTap: () => _presenter.filterStatus(status),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          status,
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF8B9CB4),
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSortChip(String metric) {
-    final isSelected = _selectedSort == metric;
-    return InkWell(
-      onTap: () => _presenter.sortMetric(metric),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          metric,
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF8B9CB4),
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildPeerCard(PeerModel peer) {
     // Dynamic value display badge matching selection
     String badgeText = '';
-    Color badgeColor = const Color(0xFFE8F0FE);
+    Color badgeColor = AppColors.infoBg;
     Color badgeTextColor = AppColors.primary;
 
     if (_selectedSort == 'Impact') {
       badgeText = '${peer.impactCount} lives';
-      badgeColor = const Color(0xFFE8F5E9);
-      badgeTextColor = const Color(0xFF2E7D32);
+      badgeColor = AppColors.successBg;
+      badgeTextColor = AppColors.success;
     } else if (_selectedSort == 'Deals') {
       badgeText = peer.dealsFormatted;
-      badgeColor = const Color(0xFFFFF3E0);
-      badgeTextColor = const Color(0xFFFF9800);
+      badgeColor = AppColors.warningBg;
+      badgeTextColor = AppColors.warning;
     } else if (_selectedSort == 'Coins') {
       badgeText = '${peer.coins} coins';
-      badgeColor = const Color(0xFFFEFDE7);
-      badgeTextColor = const Color(0xFFFBC02D);
+      badgeColor = AppColors.coinBg;
+      badgeTextColor = AppColors.coinColor;
     } else if (_selectedSort == 'Attendance') {
       badgeText = '${peer.attendance} attendance';
-      badgeColor = const Color(0xFFF3E5F5);
-      badgeTextColor = const Color(0xFF8E24AA);
+      badgeColor = AppColors.attendanceBg;
+      badgeTextColor = AppColors.attendanceColor;
     }
 
     return GestureDetector(
@@ -275,7 +149,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEDEFF3)),
+          border: Border.all(color: AppColors.border),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.02),
@@ -288,19 +162,13 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Initials Avatar
-            CircleAvatar(
+            InitialsAvatar(
+              name: peer.name,
               radius: 24,
               backgroundColor: peer.status == 'At Risk'
-                  ? const Color(0xFFD57D72)
-                  : const Color(0xFF102640),
-              child: Text(
-                peer.initials,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                ),
-              ),
+                  ? AppColors.danger
+                  : AppColors.primary,
+              fontSize: 15,
             ),
             const SizedBox(width: 16),
             // Content metadata
@@ -373,7 +241,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
             const SizedBox(width: 8),
             const Icon(
               Icons.chevron_right_rounded,
-              color: Color(0xFF8B9CB4),
+              color: AppColors.textSecondary,
               size: 20,
             ),
           ],
@@ -391,7 +259,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -421,14 +289,26 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
             ),
           ),
           const SizedBox(height: 16),
-          _buildRoleManagementRow('Change Chair (per circle)', () {}),
+          _buildRoleManagementRow(
+            'Change Chair (per circle)',
+            () => Navigator.of(context).pushNamed(AppRoutes.roleManagement),
+          ),
           const SizedBox(height: 12),
-          _buildRoleManagementRow('Change Circle Director', () {}),
+          _buildRoleManagementRow(
+            'Change Circle Director',
+            () => Navigator.of(context).pushNamed(AppRoutes.roleManagement),
+          ),
           if (isSuperAdmin) ...[
             const SizedBox(height: 12),
-            _buildRoleManagementRow('Change Industry Director', () {}),
+            _buildRoleManagementRow(
+              'Change Industry Director',
+              () => Navigator.of(context).pushNamed(AppRoutes.roleManagement),
+            ),
             const SizedBox(height: 12),
-            _buildRoleManagementRow('Change District Exec', () {}),
+            _buildRoleManagementRow(
+              'Change District Exec',
+              () => Navigator.of(context).pushNamed(AppRoutes.roleManagement),
+            ),
           ],
         ],
       ),
@@ -450,7 +330,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
         ElevatedButton(
           onPressed: onManage,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFEDF2FA),
+            backgroundColor: AppColors.selectionBg,
             foregroundColor: AppColors.primary,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -478,59 +358,27 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
         // Search peers box
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-          child: TextField(
+          child: SearchTextField(
             controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search peers...',
-              hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-              prefixIcon: Icon(
-                Icons.search_rounded,
-                color: Colors.grey.shade400,
-                size: 22,
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
-              filled: true,
-              fillColor: Colors.white,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(
-                  color: AppColors.primary,
-                  width: 1.5,
-                ),
-              ),
-            ),
+            hintText: 'Search peers...',
           ),
         ),
         // Filter rows (All, Active, At Risk)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-          child: Row(
-            children: [
-              _buildStatusChip('All'),
-              const SizedBox(width: 8),
-              _buildStatusChip('Active'),
-              const SizedBox(width: 8),
-              _buildStatusChip('At Risk'),
-            ],
+          child: HorizontalSelectionChips(
+            options: const ['All', 'Active', 'At Risk'],
+            selectedOption: _selectedStatus,
+            onSelected: (status) => _presenter.filterStatus(status),
           ),
         ),
         // Sort rows (Impact, Deals, Coins, Attendance)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-          child: Row(
-            children: [
-              _buildSortChip('Impact'),
-              const SizedBox(width: 4),
-              _buildSortChip('Deals'),
-              const SizedBox(width: 4),
-              _buildSortChip('Coins'),
-              const SizedBox(width: 4),
-              _buildSortChip('Attendance'),
-            ],
+          child: HorizontalSelectionChips(
+            options: const ['Impact', 'Deals', 'Coins', 'Attendance'],
+            selectedOption: _selectedSort,
+            onSelected: (metric) => _presenter.sortMetric(metric),
           ),
         ),
         const SizedBox(height: 12),
@@ -541,7 +389,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
             child: Text(
               'No peers found matching your criteria.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF8B9CB4), fontSize: 14),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
           )
         else
@@ -555,17 +403,17 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
   Widget _buildCelebrationCard(CelebrationModel celebration) {
     final isBirthday = celebration.type == 'birthday';
     final cardBgColor = isBirthday
-        ? const Color(0xFFFDF2F2)
-        : const Color(0xFFE8F5E9);
+        ? AppColors.dangerBg
+        : AppColors.successBg;
     final cardIconColor = isBirthday
-        ? const Color(0xFFC62828)
-        : const Color(0xFF2E7D32);
+        ? AppColors.danger
+        : AppColors.success;
     final btnBgColor = isBirthday
-        ? const Color(0xFFFFEBEE)
-        : const Color(0xFFE8F5E9);
+        ? AppColors.dangerBg
+        : AppColors.successBg;
     final btnTextColor = isBirthday
-        ? const Color(0xFFC62828)
-        : const Color(0xFF2E7D32);
+        ? AppColors.danger
+        : AppColors.success;
     final btnLabel = isBirthday ? 'Wish 🎂' : 'Wish 🤝';
 
     return Container(
@@ -574,7 +422,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
@@ -777,7 +625,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFEDEFF3)),
+            border: Border.all(color: AppColors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -786,7 +634,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF4F6F9),
+                  color: AppColors.secondaryBg,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(19),
                     topRight: Radius.circular(19),
@@ -812,22 +660,22 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFF9F2),
+                          color: AppColors.warningBg,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFFFEBD5)),
+                          border: Border.all(color: AppColors.warningBorder),
                         ),
                         child: Column(
                           children: const [
                             Icon(
                               Icons.cake_outlined,
-                              color: Color(0xFFD97706),
+                              color: AppColors.warning,
                               size: 24,
                             ),
                             SizedBox(height: 8),
                             Text(
                               'Birthday',
                               style: TextStyle(
-                                color: Color(0xFFB45309),
+                                color: AppColors.warning,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -836,7 +684,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
                             Text(
                               '12 Mar',
                               style: TextStyle(
-                                color: Color(0xFF78350F),
+                                color: AppColors.warning,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -851,22 +699,22 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF0FDF4),
+                          color: AppColors.successBg,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFDCFCE7)),
+                          border: Border.all(color: AppColors.successBorder),
                         ),
                         child: Column(
                           children: const [
                             Icon(
                               Icons.album_outlined,
-                              color: Color(0xFF15803D),
+                              color: AppColors.success,
                               size: 24,
                             ),
                             SizedBox(height: 8),
                             Text(
                               'Anniversary',
                               style: TextStyle(
-                                color: Color(0xFF15803D),
+                                color: AppColors.success,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -875,7 +723,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
                             Text(
                               '18 Jun',
                               style: TextStyle(
-                                color: Color(0xFF14532D),
+                                color: AppColors.success,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -897,7 +745,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFEDEFF3)),
+            border: Border.all(color: AppColors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -906,7 +754,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF4F6F9),
+                  color: AppColors.secondaryBg,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(19),
                     topRight: Radius.circular(19),
@@ -938,9 +786,9 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
               ),
               // Meetings List
               _buildCountryDirectorMeetingRow('1', 'Aug', 'Monthly Circle Meeting', '7:30 AM · Grand Ballroom, Mumbai', 'Confirmed'),
-              const Divider(height: 1, color: Color(0xFFEDEFF3)),
+              const Divider(height: 1, color: AppColors.border),
               _buildCountryDirectorMeetingRow('5', 'Sep', 'Monthly Circle Meeting', '7:30 AM · The Leela, Mumbai', 'Open'),
-              const Divider(height: 1, color: Color(0xFFEDEFF3)),
+              const Divider(height: 1, color: AppColors.border),
               _buildCountryDirectorMeetingRow('3', 'Oct', 'Monthly Circle Meeting', '7:30 AM · Grand Ballroom, Mumbai', 'Planned'),
             ],
           ),
@@ -961,11 +809,11 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
     Color statusText = Colors.grey.shade600;
 
     if (status == 'Confirmed') {
-      statusBg = const Color(0xFFE8F5E9);
-      statusText = const Color(0xFF2E7D32);
+      statusBg = AppColors.successBg;
+      statusText = AppColors.success;
     } else if (status == 'Open') {
-      statusBg = const Color(0xFFE8F0FE);
-      statusText = const Color(0xFF1565C0);
+      statusBg = AppColors.infoBg;
+      statusText = AppColors.info;
     }
 
     return Padding(
@@ -977,7 +825,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFF0F2541),
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -1060,19 +908,17 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
         },
         child: Column(
           children: [
-            _buildSegmentControls(),
+            SegmentedControl(
+              labels: ['Peers (${_peers.length})', 'Celebrations'],
+              icons: const [null, Icons.cake_rounded],
+              activeIndex: _activeSubTab,
+              onSegmentChanged: (index) => _presenter.changeSubTab(index),
+            ),
             _isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(64.0),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  )
+                ? const CenteredLoadingIndicator(height: 300)
                 : _activeSubTab == 0
-                ? _buildPeersListTab()
-                : _buildCelebrationsTab(),
+                    ? _buildPeersListTab()
+                    : _buildCelebrationsTab(),
           ],
         ),
       ),

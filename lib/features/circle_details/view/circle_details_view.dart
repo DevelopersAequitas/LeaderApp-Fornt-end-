@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../teams/model/teams_model.dart';
+import '../../../core/widgets/widgets.dart';
 
 /// Screen displaying comprehensive details about a specific Circle.
 class CircleDetailsView extends StatefulWidget {
@@ -115,63 +116,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
     },
   ];
 
-  Widget _buildAppBar() {
-    return Container(
-      color: AppColors.primary,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.08),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Circle Details',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    widget.circle.name,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildHeroCard() {
     final circle = widget.circle;
@@ -179,7 +124,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A60), Color(0xFF102640)],
+          colors: [AppColors.chartPrimary, AppColors.primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -215,7 +160,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
                     Text(
                       '${circle.category}, IT & Digital Services · ${circle.location}',
                       style: const TextStyle(
-                        color: Color(0xFF8B9CB4),
+                        color: AppColors.textSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
@@ -229,13 +174,13 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE2F4EC),
+                            color: AppColors.successLightBg,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
                             'Active',
                             style: TextStyle(
-                              color: Color(0xFF0F7A50),
+                              color: AppColors.successDark,
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
                             ),
@@ -279,7 +224,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
                           value: circle.healthPercentage / 100,
                           strokeWidth: 5,
                           backgroundColor: Colors.white.withOpacity(0.1),
-                          color: const Color(0xFF00C853),
+                          color: AppColors.healthGreen,
                         ),
                       ),
                       Text(
@@ -296,7 +241,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
                   const Text(
                     'HEALTH',
                     style: TextStyle(
-                      color: Color(0xFF8B9CB4),
+                      color: AppColors.textSecondary,
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
@@ -337,7 +282,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
           Text(
             label,
             style: const TextStyle(
-              color: Color(0xFF8B9CB4),
+              color: AppColors.textSecondary,
               fontSize: 10,
               fontWeight: FontWeight.w500,
             ),
@@ -355,7 +300,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -363,7 +308,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
           const Text(
             'CIRCLE LEADERSHIP',
             style: TextStyle(
-              color: Color(0xFF8B9CB4),
+              color: AppColors.textSecondary,
               fontSize: 10,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
@@ -389,7 +334,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFEDF2FA),
+          color: AppColors.leaderCardBg,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -398,7 +343,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
             Text(
               label,
               style: const TextStyle(
-                color: Color(0xFF8B9CB4),
+                color: AppColors.textSecondary,
                 fontSize: 9,
                 fontWeight: FontWeight.w800,
               ),
@@ -433,7 +378,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
       ),
       padding: const EdgeInsets.all(4),
       child: Row(
@@ -447,14 +392,14 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF1E3A60)
+                      ? AppColors.chartPrimary
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   tabs[idx],
                   style: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF8B9CB4),
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
@@ -487,12 +432,12 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
           _buildHealthProgressBar(
             'Overall',
             circle.healthPercentage,
-            const Color(0xFF1E3A60),
+            AppColors.chartPrimary,
           ),
           const SizedBox(height: 12),
-          _buildHealthProgressBar('Attendance', 83, const Color(0xFF0F7A50)),
+          _buildHealthProgressBar('Attendance', 83, AppColors.successDark),
           const SizedBox(height: 12),
-          _buildHealthProgressBar('Engagement', 75, const Color(0xFFB58E3D)),
+          _buildHealthProgressBar('Engagement', 75, AppColors.engagementGold),
           const SizedBox(height: 28),
           const Text(
             'Sub-Industries',
@@ -506,7 +451,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
           const Text(
             'Open: 4 · Active: 3',
             style: TextStyle(
-              color: Color(0xFF8B9CB4),
+              color: AppColors.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -557,7 +502,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
           child: LinearProgressIndicator(
             value: value / 100,
             color: color,
-            backgroundColor: const Color(0xFFE8ECEF),
+            backgroundColor: AppColors.progressBg,
             minHeight: 6,
           ),
         ),
@@ -578,11 +523,11 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFFEDEFF3)),
+            side: const BorderSide(color: AppColors.border),
           ),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: const Color(0xFF1E3A60),
+              backgroundColor: AppColors.chartPrimary,
               child: Text(
                 peer['initials']!,
                 style: const TextStyle(
@@ -650,7 +595,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
           const Text(
             'Not yet filled from Technology, IT & Digital Services',
             style: TextStyle(
-              color: Color(0xFF8B9CB4),
+              color: AppColors.textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -690,13 +635,13 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFE2F4EC),
+                color: AppColors.successLightBg,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 count,
                 style: const TextStyle(
-                  color: Color(0xFF0F7A50),
+                  color: AppColors.successDark,
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                 ),
@@ -708,16 +653,16 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: isActive
-                  ? const Color(0xFFE2F4EC)
-                  : const Color(0xFFEDF2FA),
+                  ? AppColors.successLightBg
+                  : AppColors.leaderCardBg,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               status,
               style: TextStyle(
                 color: isActive
-                    ? const Color(0xFF0F7A50)
-                    : const Color(0xFF8B9CB4),
+                    ? AppColors.successDark
+                    : AppColors.textSecondary,
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
               ),
@@ -751,13 +696,13 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF1E3A60) : const Color(0xFFF3F5F9),
+                      color: isSelected ? AppColors.chartPrimary : AppColors.secondaryBg,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       filter,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : const Color(0xFF8B9CB4),
+                        color: isSelected ? Colors.white : AppColors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                       ),
@@ -778,16 +723,16 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
           itemBuilder: (context, idx) {
             final ev = filteredEvents[idx];
             
-            Color bg = const Color(0xFFE8F0FE);
-            Color fg = const Color(0xFF1565C0);
+            Color bg = AppColors.infoBg;
+            Color fg = AppColors.info;
             IconData icon = Icons.mic_none_rounded;
             if (ev['title']!.contains('Summit') || ev['title']!.contains('Assembly')) {
-              bg = const Color(0xFFFFF4EB);
-              fg = const Color(0xFFD97706);
+              bg = AppColors.warningLightBg;
+              fg = AppColors.warningDark;
               icon = Icons.adjust_rounded;
             } else if (ev['title']!.contains('Pitch')) {
-              bg = const Color(0xFFE2F4EC);
-              fg = const Color(0xFF0F7A50);
+              bg = AppColors.successLightBg;
+              fg = AppColors.successDark;
               icon = Icons.adjust_rounded;
             }
 
@@ -796,7 +741,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: Color(0xFFEDEFF3)),
+                side: const BorderSide(color: AppColors.border),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -833,7 +778,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
                           Text(
                             '${ev['date']} · ${ev['time']} · ${ev['location']}',
                             style: const TextStyle(
-                              color: Color(0xFF8B9CB4),
+                              color: AppColors.textSecondary,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -859,28 +804,26 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFC),
-      body: Column(
-        children: [
-          _buildAppBar(),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeroCard(),
-                  _buildCircleLeadership(),
-                  _buildTabSelector(),
-                  if (_activeSubTab == 0) _buildOverviewTab(),
-                  if (_activeSubTab == 1) _buildPeersTab(),
-                  if (_activeSubTab == 2) _buildSubIndustriesTab(),
-                  if (_activeSubTab == 3) _buildEventsTab(),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            ),
-          ),
-        ],
+      backgroundColor: AppColors.background,
+      appBar: CustomAppBar(
+        title: 'Circle Details',
+        subtitle: widget.circle.name,
+        showBackButton: true,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeroCard(),
+            _buildCircleLeadership(),
+            _buildTabSelector(),
+            if (_activeSubTab == 0) _buildOverviewTab(),
+            if (_activeSubTab == 1) _buildPeersTab(),
+            if (_activeSubTab == 2) _buildSubIndustriesTab(),
+            if (_activeSubTab == 3) _buildEventsTab(),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -896,7 +839,7 @@ class _SubIndustryChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFEDF2FA),
+        color: AppColors.leaderCardBg,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

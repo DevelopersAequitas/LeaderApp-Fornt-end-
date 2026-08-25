@@ -7,6 +7,7 @@ import '../bloc/peer_profile_event.dart';
 import '../bloc/peer_profile_state.dart';
 import '../model/peer_profile_model.dart';
 import '../presenter/peer_profile_presenter.dart';
+import '../../../core/widgets/widgets.dart';
 
 /// Screen component rendering a comprehensive Peer Profile view.
 class PeerProfileView extends StatefulWidget {
@@ -83,30 +84,9 @@ class _PeerProfileViewState extends State<PeerProfileView>
   // --- UI Widget Builders ---
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFF0F2541),
-      elevation: 0,
-      leading: Container(
-        margin: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          shape: BoxShape.circle,
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.chevron_left, color: Colors.white, size: 24),
-          onPressed: () => Navigator.of(context).pop(),
-          padding: EdgeInsets.zero,
-        ),
-      ),
-      title: const Text(
-        'Peer Profile',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-      ),
-      centerTitle: false,
+    return const CustomAppBar(
+      title: 'Peer Profile',
+      showBackButton: true,
     );
   }
 
@@ -131,7 +111,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
-              color: Color(0xFF0F2541),
+              color: AppColors.primary,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(23),
                 topRight: Radius.circular(23),
@@ -203,7 +183,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFB48A3A),
+                        color: AppColors.warning,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -234,13 +214,13 @@ class _PeerProfileViewState extends State<PeerProfileView>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
+                        color: AppColors.successBg,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         widget.peer.status,
                         style: const TextStyle(
-                          color: Color(0xFF2E7D32),
+                          color: AppColors.success,
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                         ),
@@ -918,7 +898,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
         child: Center(
           child: Text(
             'No testimonials submitted.',
-            style: TextStyle(color: Color(0xFF8B9CB4), fontSize: 14),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
         ),
       );
@@ -937,7 +917,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -950,7 +930,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
                 // Initials Avatar
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: const Color(0xFF0F2541),
+                  backgroundColor: AppColors.primary,
                   child: Text(
                     testimonial.authorInitials,
                     style: const TextStyle(
@@ -992,7 +972,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
                     testimonial.rating,
                     (_) => const Icon(
                       Icons.star_rate_rounded,
-                      color: Color(0xFFFBC02D),
+                      color: AppColors.coinColor,
                       size: 16,
                     ),
                   ),
@@ -1000,7 +980,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
               ],
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFEDEFF3)),
+          const Divider(height: 1, color: AppColors.border),
           // Body Content Block
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -1028,7 +1008,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
           _presenter.handleStateChange(state);
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFFF9FAFC),
+          backgroundColor: AppColors.background,
           appBar: _buildAppBar(),
           body: _isLoading
               ? const Center(

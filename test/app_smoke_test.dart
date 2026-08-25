@@ -164,10 +164,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpAndSettle();
 
-
-
     // 9b. Verify we are on the Peers tab and segment control is visible
-    expect(find.text('Peers (8)'), findsOneWidget);
+    expect(find.text('Peers (11)'), findsOneWidget);
     expect(find.text('Celebrations'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
 
@@ -175,13 +173,13 @@ void main() {
     expect(find.text('Priya Sharma'), findsOneWidget);
     expect(find.text('38 lives'), findsOneWidget);
 
-    // 9d. Tap on the 'Deals' metric chip to check sorting and badge update (using direct InkWell onTap)
+    // 9d. Tap on the 'Deals' metric chip to check sorting and badge update (using direct GestureDetector onTap)
     final dealsChipFinder = find.ancestor(
       of: find.text('Deals'),
-      matching: find.byType(InkWell),
+      matching: find.byType(GestureDetector),
     );
-    final dealsInkWell = tester.widget<InkWell>(dealsChipFinder);
-    dealsInkWell.onTap!();
+    final dealsGestureDetector = tester.widget<GestureDetector>(dealsChipFinder);
+    dealsGestureDetector.onTap!();
     await tester.pump();
     await tester.pumpAndSettle();
     expect(find.text('₹1.10Cr'), findsOneWidget); // Priya's deals badge is visible
@@ -247,13 +245,13 @@ void main() {
     expect(find.textContaining('Priya\'s introduction led to a ₹28k deal'), findsOneWidget);
 
     // 9f-4. Tap back button to return to Peers Tab list
-    final backBtnFinder = find.byIcon(Icons.chevron_left);
+    final backBtnFinder = find.byIcon(Icons.chevron_left_rounded);
     await tester.tap(backBtnFinder);
     await tester.pump();
     await tester.pumpAndSettle();
 
     // Verify we are back on the Peers list
-    expect(find.text('Peers (8)'), findsOneWidget);
+    expect(find.text('Peers (11)'), findsOneWidget);
 
     // 9g. Tap 'Celebrations' segment to switch tab (using direct InkWell onTap)
     final celebrationsSegmentFinder = find.ancestor(
@@ -439,7 +437,7 @@ void main() {
     expect(find.text('0 notifications'), findsOneWidget);
 
     // 9ab. Tap back button to return to Dashboard
-    final backBtnFinder2 = find.byIcon(Icons.chevron_left);
+    final backBtnFinder2 = find.byIcon(Icons.chevron_left_rounded);
     await tester.tap(backBtnFinder2);
     await tester.pump();
     await tester.pumpAndSettle();

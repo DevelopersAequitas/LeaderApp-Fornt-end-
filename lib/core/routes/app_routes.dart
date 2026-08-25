@@ -12,6 +12,7 @@ import '../../features/referrals/view/referrals_view.dart';
 import '../../features/peers_by_coins/view/peers_by_coins_view.dart';
 import '../../features/teams/model/teams_model.dart';
 import '../../features/circle_details/view/circle_details_view.dart';
+import '../../features/role_management/view/role_management_view.dart';
 
 /// Centralized routing configuration for the Leader App.
 abstract class AppRoutes {
@@ -47,6 +48,9 @@ abstract class AppRoutes {
 
   /// Circle Details route
   static const String circleDetails = '/circle-details';
+
+  /// Role Management route
+  static const String roleManagement = '/role-management';
 
   /// Route generator to handle app navigation transitions.
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -107,6 +111,11 @@ abstract class AppRoutes {
         final circle = settings.arguments as CircleTeamModel;
         return MaterialPageRoute(
           builder: (_) => CircleDetailsView(circle: circle),
+          settings: settings,
+        );
+      case roleManagement:
+        return MaterialPageRoute(
+          builder: (_) => const RoleManagementView(),
           settings: settings,
         );
       default:

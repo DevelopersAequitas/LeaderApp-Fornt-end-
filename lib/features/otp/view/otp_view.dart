@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/widgets.dart';
 import '../bloc/otp_bloc.dart';
 import '../bloc/otp_state.dart';
 import '../presenter/otp_presenter.dart';
@@ -288,9 +289,9 @@ class _OtpViewState extends State<OtpView> implements OtpViewContract {
                                   width: 48,
                                   height: 48,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF3F5F9),
+                                    color: AppColors.secondaryBg,
                                     borderRadius: BorderRadius.circular(16),
-                                   ),
+                                  ),
                                   child: const Icon(
                                     Icons.chevron_left_rounded,
                                     color: AppColors.text,
@@ -442,13 +443,13 @@ class _OtpViewState extends State<OtpView> implements OtpViewContract {
                                     Icon(
                                       Icons.arrow_back_rounded,
                                       size: 16,
-                                      color: Color(0xFF8B9CB4),
+                                      color: AppColors.textSecondary,
                                     ),
                                     SizedBox(width: 8),
                                     Text(
                                       'Change number',
                                       style: TextStyle(
-                                        color: Color(0xFF8B9CB4),
+                                        color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 14,
                                       ),
@@ -460,11 +461,7 @@ class _OtpViewState extends State<OtpView> implements OtpViewContract {
                           ),
                           const SizedBox(height: 24),
                           if (_isLoading)
-                            const Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.primary,
-                              ),
-                            ),
+                            const CenteredLoadingIndicator(height: 50),
                         ],
                       ),
                     ),

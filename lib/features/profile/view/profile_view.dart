@@ -4,6 +4,7 @@ import '../../../core/helpers/session_manager.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/widgets.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_state.dart';
 import '../model/profile_model.dart';
@@ -86,80 +87,6 @@ class _ProfileViewState extends State<ProfileView>
 
   // --- UI Widget Helpers ---
 
-  Widget _buildAppBar() {
-    return Container(
-      color: AppColors.primary,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            InkWell(
-              onTap: () => Navigator.of(context).pop(),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.chevron_left_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            const Text(
-              'Profile',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroStatCard(String value, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1B2E46), // Translucent dark blue card
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF8B9CB4),
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildHeroSection(UserProfileModel profile) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -171,31 +98,16 @@ class _ProfileViewState extends State<ProfileView>
       child: Column(
         children: [
           // SM Initials Badge
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFF253B59),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.12),
-                width: 1,
-              ),
+          InitialsAvatar(
+            name: SessionManager().currentSession.name,
+            radius: 40,
+            backgroundColor: const Color(0xFF253B59),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.12),
+              width: 1,
             ),
-            alignment: Alignment.center,
-            child: Text(
-              SessionManager().currentSession.name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .take(2)
-                  .join()
-                  .toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            fontSize: 28,
           ),
           const SizedBox(height: 16),
           // Name
@@ -213,7 +125,9 @@ class _ProfileViewState extends State<ProfileView>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                SessionManager().currentSession.role.label.toUpperCase(),
+                (SessionManager().currentSession.customRoleLabel ??
+                        SessionManager().currentSession.role.label)
+                    .toUpperCase(),
                 style: const TextStyle(
                   color: Color(0xFF4CAF50), // Design match green
                   fontSize: 11,
@@ -246,47 +160,32 @@ class _ProfileViewState extends State<ProfileView>
           Row(
             children: [
               Expanded(
-                child: _buildHeroStatCard(profile.regionalScope, 'SCOPE'),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildHeroStatCard(
-                  '${profile.capabilitiesCount}',
-                  'PERMS',
+                child: StatCard(
+                  value: profile.regionalScope,
+                  label: 'SCOPE',
+                  backgroundColor: const Color(0xFF1B2E46),
+                  valueFontSize: 13,
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(child: _buildHeroStatCard(profile.memberSince, 'SINCE')),
+              Expanded(
+                child: StatCard(
+                  value: '${profile.capabilitiesCount}',
+                  label: 'PERMS',
+                  backgroundColor: const Color(0xFF1B2E46),
+                  valueFontSize: 13,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatCard(
+                  value: profile.memberSince,
+                  label: 'SINCE',
+                  backgroundColor: const Color(0xFF1B2E46),
+                  valueFontSize: 13,
+                ),
+              ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccountDetailRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey.shade400, size: 20),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey.shade500,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.text,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-            ),
           ),
         ],
       ),
@@ -307,40 +206,40 @@ class _ProfileViewState extends State<ProfileView>
           ),
         ),
         const SizedBox(height: 8),
-        _buildAccountDetailRow(
-          Icons.person_outline_rounded,
-          'Full Name',
-          profile.name,
+        DetailRow(
+          icon: Icons.person_outline_rounded,
+          label: 'Full Name',
+          value: profile.name,
         ),
         Divider(color: Colors.grey.shade100, height: 1),
-        _buildAccountDetailRow(
-          Icons.phone_outlined,
-          'Mobile Phone',
-          profile.phone,
+        DetailRow(
+          icon: Icons.phone_outlined,
+          label: 'Mobile Phone',
+          value: profile.phone,
         ),
         Divider(color: Colors.grey.shade100, height: 1),
-        _buildAccountDetailRow(
-          Icons.mail_outline_rounded,
-          'Email Address',
-          profile.email,
+        DetailRow(
+          icon: Icons.mail_outline_rounded,
+          label: 'Email Address',
+          value: profile.email,
         ),
         Divider(color: Colors.grey.shade100, height: 1),
-        _buildAccountDetailRow(
-          Icons.map_outlined,
-          'Regional Scope',
-          profile.regionalScope,
+        DetailRow(
+          icon: Icons.map_outlined,
+          label: 'Regional Scope',
+          value: profile.regionalScope,
         ),
         Divider(color: Colors.grey.shade100, height: 1),
-        _buildAccountDetailRow(
-          Icons.calendar_today_outlined,
-          'Member Since',
-          profile.memberSince,
+        DetailRow(
+          icon: Icons.calendar_today_outlined,
+          label: 'Member Since',
+          value: profile.memberSince,
         ),
         Divider(color: Colors.grey.shade100, height: 1),
-        _buildAccountDetailRow(
-          Icons.lock_outline_rounded,
-          'Permissions Status',
-          '${profile.capabilitiesCount} capabilities granted',
+        DetailRow(
+          icon: Icons.lock_outline_rounded,
+          label: 'Permissions Status',
+          value: '${profile.capabilitiesCount} capabilities granted',
         ),
       ],
     );
@@ -362,11 +261,6 @@ class _ProfileViewState extends State<ProfileView>
         ),
         const SizedBox(height: 12),
         ...circles.map((circleName) {
-          final initials = circleName
-              .split(' ')
-              .map((w) => w[0])
-              .join()
-              .toUpperCase();
           final String location = circleName.contains('Mumbai')
               ? 'Mumbai'
               : 'Bengaluru';
@@ -383,24 +277,14 @@ class _ProfileViewState extends State<ProfileView>
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isFounder
-                          ? const Color(0xFF1B4D3E)
-                          : const Color(0xFF102640),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      initials,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                  InitialsAvatar(
+                    name: circleName,
+                    radius: 22,
+                    backgroundColor: isFounder
+                        ? const Color(0xFF1B4D3E)
+                        : const Color(0xFF102640),
+                    borderRadius: BorderRadius.circular(12),
+                    fontSize: 13,
                   ),
                   const SizedBox(width: 12),
                   // Circle Metadata
@@ -430,24 +314,7 @@ class _ProfileViewState extends State<ProfileView>
                     ),
                   ),
                   // Active status pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Active',
-                      style: TextStyle(
-                        color: Color(0xFF2E7D32),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
+                  StatusPill.active(label: 'Active'),
                 ],
               ),
             ),
@@ -529,29 +396,66 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  Widget _buildSignOutButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: OutlinedButton.icon(
-        onPressed: () => _presenter.signOut(),
-        icon: const Icon(
-          Icons.logout_rounded,
-          color: Colors.redAccent,
-          size: 18,
-        ),
-        label: const Text(
-          'Sign Out',
-          style: TextStyle(
-            color: Colors.redAccent,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.redAccent, width: 1.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildRoleManagementTile() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDEFF3)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.of(context).pushNamed(AppRoutes.roleManagement),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.admin_panel_settings_rounded,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Role Management Matrix',
+                        style: TextStyle(
+                          color: AppColors.text,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Control capabilities & permissions across all roles',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.grey.shade400,
+                  size: 24,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -570,21 +474,17 @@ class _ProfileViewState extends State<ProfileView>
           backgroundColor: const Color(0xFFF9FAFC),
           body: Column(
             children: [
-              _buildAppBar(),
+              const CustomAppBar(
+                title: 'Profile',
+                showBackButton: true,
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   child: Container(
                     color: const Color(0xFFF9FAFC),
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
                     child: _isLoading || _profile == null
-                        ? const SizedBox(
-                            height: 300,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          )
+                        ? const CenteredLoadingIndicator(height: 300)
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -606,9 +506,18 @@ class _ProfileViewState extends State<ProfileView>
                                     else
                                       _buildCirclesManaged(_profile!),
                                     const SizedBox(height: 28),
+                                    if (SessionManager().currentRole ==
+                                        UserRole.superAdmin)
+                                      _buildRoleManagementTile(),
                                     _buildWarningCard(),
                                     const SizedBox(height: 24),
-                                    _buildSignOutButton(),
+                                    PrimaryButton(
+                                      label: 'Sign Out',
+                                      onPressed: () => _presenter.signOut(),
+                                      isOutlined: true,
+                                      color: Colors.redAccent,
+                                      leadingIcon: Icons.logout_rounded,
+                                    ),
                                     const SizedBox(height: 24),
                                   ],
                                 ),

@@ -98,20 +98,20 @@ class _ReportsViewState extends State<ReportsView>
               _buildExportButton(
                 label: 'Export Peers',
                 icon: Icons.description_outlined,
-                bgColor: const Color(0xFFE8F0FE),
-                textColor: const Color(0xFF1A73E8),
+                bgColor: AppColors.infoBg,
+                textColor: AppColors.info,
               ),
               _buildExportButton(
                 label: 'Export Financials',
                 icon: Icons.credit_card_rounded,
-                bgColor: const Color(0xFFE6F4EA),
-                textColor: const Color(0xFF137333),
+                bgColor: AppColors.successBg,
+                textColor: AppColors.success,
               ),
               _buildExportButton(
                 label: 'Global Export',
                 icon: Icons.public_rounded,
-                bgColor: const Color(0xFFFCE8E6),
-                textColor: const Color(0xFFC5221F),
+                bgColor: AppColors.dangerBg,
+                textColor: AppColors.danger,
               ),
             ],
           ),
@@ -139,14 +139,14 @@ class _ReportsViewState extends State<ReportsView>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFEDEFF3)),
+              border: Border.all(color: AppColors.border),
             ),
             child: const ReportsSplineChart(
               points: _mockAttendanceTrend,
               minY: 0.0,
               maxY: 100.0,
               yLabels: [0, 25, 50, 75, 100],
-              lineColor: Color(0xFF1E3A60),
+              lineColor: AppColors.chartPrimary,
             ),
           ),
         ],
@@ -305,7 +305,7 @@ class _ReportsViewState extends State<ReportsView>
                   style: TextStyle(
                     color: _activeSubTab == 1
                         ? Colors.white
-                        : const Color(0xFF8B9CB4),
+                        : AppColors.textSecondary,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
@@ -328,14 +328,14 @@ class _ReportsViewState extends State<ReportsView>
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF7ED),
+              color: AppColors.warningBg,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFFFEDD5), width: 1.5),
+              border: Border.all(color: AppColors.warningBorder, width: 1.5),
             ),
             alignment: Alignment.center,
             child: const Icon(
               Icons.description_outlined,
-              color: Color(0xFFD97706),
+              color: AppColors.warning,
               size: 22,
             ),
           ),
@@ -384,7 +384,7 @@ class _ReportsViewState extends State<ReportsView>
                 decoration: BoxDecoration(
                   color: _selectedType == 'Weekly'
                       ? AppColors.primary
-                      : const Color(0xFFE8EEF8).withOpacity(0.5),
+                      : AppColors.selectionBg.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
@@ -412,7 +412,7 @@ class _ReportsViewState extends State<ReportsView>
                 decoration: BoxDecoration(
                   color: _selectedType == 'Monthly'
                       ? AppColors.primary
-                      : const Color(0xFFE8EEF8).withOpacity(0.5),
+                      : AppColors.selectionBg.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
@@ -437,7 +437,7 @@ class _ReportsViewState extends State<ReportsView>
   Widget _buildSubmitTab() {
     final isContentEmpty = _contentController.text.trim().isEmpty;
     final btnBgColor = isContentEmpty
-        ? const Color(0xFF8B9CB4).withOpacity(0.7)
+        ? AppColors.textSecondary.withOpacity(0.7)
         : AppColors.primary;
 
     return Padding(
@@ -459,9 +459,9 @@ class _ReportsViewState extends State<ReportsView>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F5F9),
+              color: AppColors.secondaryBg,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200, width: 1.5),
+              border: Border.all(color: AppColors.border, width: 1.5),
             ),
             child: Text(
               _circleName,
@@ -499,10 +499,10 @@ class _ReportsViewState extends State<ReportsView>
               ),
               contentPadding: const EdgeInsets.all(16.0),
               filled: true,
-              fillColor: const Color(0xFFF3F5F9),
+              fillColor: AppColors.secondaryBg,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                borderSide: BorderSide(color: AppColors.border, width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -553,11 +553,11 @@ class _ReportsViewState extends State<ReportsView>
   Widget _buildReportHistoryCard(ReportModel report) {
     final isActioned = report.status.toLowerCase() == 'actioned';
     final statusBgColor = isActioned
-        ? const Color(0xFFE2F4EC)
-        : const Color(0xFFFEF3C7);
+        ? AppColors.successBg
+        : AppColors.warningBg;
     final statusTextColor = isActioned
-        ? const Color(0xFF0F7A50)
-        : const Color(0xFFD97706);
+        ? AppColors.success
+        : AppColors.warning;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -565,7 +565,7 @@ class _ReportsViewState extends State<ReportsView>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDEFF3)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.01),
@@ -587,13 +587,13 @@ class _ReportsViewState extends State<ReportsView>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8EEF8),
+                  color: AppColors.selectionBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   report.type,
                   style: const TextStyle(
-                    color: Color(0xFF1E3A60),
+                    color: AppColors.chartPrimary,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
@@ -760,7 +760,7 @@ class _ReportsViewState extends State<ReportsView>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFEDEFF3)),
+              border: Border.all(color: AppColors.border),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.01),
@@ -777,12 +777,12 @@ class _ReportsViewState extends State<ReportsView>
                     width: 56,
                     height: 56,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE8EEF8),
+                      color: AppColors.selectionBg,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.cloud_download_rounded,
-                      color: Color(0xFF1E3A60),
+                      color: AppColors.chartPrimary,
                       size: 28,
                     ),
                   ),
@@ -808,7 +808,7 @@ class _ReportsViewState extends State<ReportsView>
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Divider(color: Color(0xFFEDEFF3), height: 1),
+                const Divider(color: AppColors.border, height: 1),
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -832,7 +832,7 @@ class _ReportsViewState extends State<ReportsView>
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3A60),
+                    backgroundColor: AppColors.chartPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -860,10 +860,10 @@ class _ReportsViewState extends State<ReportsView>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFE8EEF8) : Colors.white,
+        color: isSelected ? AppColors.selectionBg : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelected ? const Color(0xFF1E3A60) : const Color(0xFFEDEFF3),
+          color: isSelected ? AppColors.chartPrimary : AppColors.border,
           width: 1.5,
         ),
       ),
@@ -871,7 +871,7 @@ class _ReportsViewState extends State<ReportsView>
         children: [
           Icon(
             label.contains('PDF') ? Icons.picture_as_pdf_rounded : Icons.table_chart_rounded,
-            color: const Color(0xFF1E3A60),
+            color: AppColors.chartPrimary,
             size: 28,
           ),
           const SizedBox(height: 12),
@@ -930,7 +930,7 @@ class _ReportsViewState extends State<ReportsView>
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E3A60),
+                          color: AppColors.chartPrimary,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -1073,11 +1073,11 @@ class _ReportsSplineChartPainter extends CustomPainter {
     final double chartHeight = size.height - bottomPadding;
 
     final gridPaint = Paint()
-      ..color = const Color(0xFFE4E7ED)
+      ..color = AppColors.border
       ..strokeWidth = 1.0;
 
     final baselinePaint = Paint()
-      ..color = const Color(0xFFE4E7ED)
+      ..color = AppColors.border
       ..strokeWidth = 1.5;
 
     // Draw vertical dashed grid lines for X axis coordinates
@@ -1107,7 +1107,7 @@ class _ReportsSplineChartPainter extends CustomPainter {
       textPainter.text = TextSpan(
         text: '${label.toInt()}',
         style: const TextStyle(
-          color: Color(0xFF8B9CB4),
+          color: AppColors.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w500,
         ),
@@ -1233,7 +1233,7 @@ class _ReportsSplineChartPainter extends CustomPainter {
       textPainter.text = TextSpan(
         text: points[i].month,
         style: const TextStyle(
-          color: Color(0xFF8B9CB4),
+          color: AppColors.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w500,
         ),

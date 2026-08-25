@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/widgets.dart';
 import '../bloc/teams_bloc.dart';
 import '../bloc/teams_state.dart';
 import '../model/teams_model.dart';
@@ -95,7 +96,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
   Widget _buildMockDashboardBackground() {
     return Container(
       padding: const EdgeInsets.all(24),
-      color: const Color(0xFFF9FAFC),
+      color: AppColors.background,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -142,53 +143,12 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
   }
 
   Widget _buildRestrictedCard(TeamsPermissionModel permission) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 24,
-            spreadRadius: 4,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return RestrictedAccessCard(
+      title: 'Access Restricted',
+      message: '',
+      contentOverride: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF2F2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFFFE3E3), width: 1.5),
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.lock_outline_rounded,
-                color: Color(0xFFD32F2F),
-                size: 28,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Access Restricted',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.text,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 16),
           Text.rich(
             TextSpan(
               style: TextStyle(
@@ -197,16 +157,16 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
                 fontWeight: FontWeight.w500,
                 height: 1.5,
               ),
-              children: const [
-                TextSpan(text: 'As a '),
+              children: [
+                const TextSpan(text: 'As a '),
                 TextSpan(
-                  text: 'Chair',
-                  style: TextStyle(
+                  text: permission.role,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     color: AppColors.text,
                   ),
                 ),
-                TextSpan(
+                const TextSpan(
                   text:
                       ', you do not have permissions to access the Teams dashboard. Access is limited to Founder, Director, and Executive levels.',
                 ),
@@ -218,7 +178,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF7F8FA),
+              color: AppColors.secondaryBg,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -311,7 +271,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
             child: Text(
               'No circles found matching your criteria.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF8B9CB4), fontSize: 14),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
           )
         else
@@ -341,7 +301,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
         Text(
           label,
           style: const TextStyle(
-            color: Color(0xFF8B9CB4),
+            color: AppColors.textSecondary,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -384,13 +344,13 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
                 _buildFlatMetricItem(
                   value: '$totalCircles',
                   label: 'Total Circles',
-                  valueColor: const Color(0xFF1E3A60),
+                  valueColor: AppColors.chartPrimary,
                 ),
                 const SizedBox(height: 20),
                 _buildFlatMetricItem(
                   value: '$avgHealth%',
                   label: 'Avg Health',
-                  valueColor: const Color(0xFFB58E3D),
+                  valueColor: AppColors.engagementGold,
                 ),
               ],
             ),
@@ -402,13 +362,13 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
                 _buildFlatMetricItem(
                   value: '$totalPeers',
                   label: 'Total Peers',
-                  valueColor: const Color(0xFF0F7A50),
+                  valueColor: AppColors.successDark,
                 ),
                 const SizedBox(height: 20),
                 _buildFlatMetricItem(
                   value: totalRevenue,
                   label: 'Total Revenue',
-                  valueColor: const Color(0xFF1E3A60),
+                  valueColor: AppColors.chartPrimary,
                 ),
               ],
             ),
@@ -455,12 +415,12 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF1E3A60) : Colors.white,
+                  color: isSelected ? AppColors.chartPrimary : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF1E3A60)
-                        : const Color(0xFFEDEFF3),
+                        ? AppColors.chartPrimary
+                        : AppColors.border,
                     width: 1.5,
                   ),
                   boxShadow: isSelected
@@ -476,7 +436,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : const Color(0xFF8B9CB4),
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                   ),
@@ -492,28 +452,9 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: TextField(
+      child: SearchTextField(
         controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Search circles by name, founder, industry, city...',
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: Colors.grey.shade400,
-            size: 20,
-          ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
-          filled: true,
-          fillColor: Colors.white,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.grey.shade200, width: 1.5),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-          ),
-        ),
+        hintText: 'Search circles by name, founder, industry, city...',
       ),
     );
   }
@@ -536,47 +477,23 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            _getSectionTitle(),
-            style: const TextStyle(
-              color: AppColors.text,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
+          Expanded(
+            child: Text(
+              _getSectionTitle(),
+              style: const TextStyle(
+                color: AppColors.text,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
-          Row(
-            children: [
-              _buildFilterStatusChip('All'),
-              const SizedBox(width: 8),
-              _buildFilterStatusChip('Active'),
-              const SizedBox(width: 8),
-              _buildFilterStatusChip('At Risk'),
-            ],
+          const SizedBox(width: 8),
+          HorizontalSelectionChips(
+            options: const ['All', 'Active', 'At Risk'],
+            selectedOption: _selectedStatus,
+            onSelected: (status) => _presenter.filterCirclesStatus(status),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterStatusChip(String status) {
-    final isSelected = _selectedStatus == status;
-    return InkWell(
-      onTap: () => _presenter.filterCirclesStatus(status),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E3A60) : const Color(0xFFF3F5F9),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          status,
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF8B9CB4),
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
       ),
     );
   }
@@ -584,14 +501,14 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
   Widget _buildCircleCard(CircleTeamModel circle) {
     final isActive = circle.status.toLowerCase() == 'active';
     final progressColor = isActive
-        ? const Color(0xFF0F7A50)
-        : const Color(0xFFB58E3D);
+        ? AppColors.successDark
+        : AppColors.engagementGold;
     final statusBgColor = isActive
-        ? const Color(0xFFE2F4EC)
-        : const Color(0xFFFCECEB);
+        ? AppColors.successLightBg
+        : AppColors.dangerBg;
     final statusTextColor = isActive
-        ? const Color(0xFF0F7A50)
-        : const Color(0xFFD32F2F);
+        ? AppColors.successDark
+        : AppColors.danger;
 
     return GestureDetector(
       onTap: () {
@@ -605,7 +522,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEDEFF3)),
+          border: Border.all(color: AppColors.border),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.02),
@@ -665,7 +582,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
               child: LinearProgressIndicator(
                 value: circle.healthPercentage / 100,
                 color: progressColor,
-                backgroundColor: const Color(0xFFE8ECEF),
+                backgroundColor: AppColors.progressBg,
                 minHeight: 6,
               ),
             ),
@@ -705,15 +622,15 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
                     ),
                     decoration: BoxDecoration(
                       color: isPlus
-                          ? const Color(0xFFF3F5F9)
-                          : const Color(0xFFE8EEF8),
+                          ? AppColors.secondaryBg
+                          : AppColors.selectionBg,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       tag,
                       style: TextStyle(
                         color: isPlus
-                            ? const Color(0xFF8B9CB4)
+                            ? AppColors.textSecondary
                             : AppColors.primary,
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
@@ -724,7 +641,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
               ),
             ),
             const SizedBox(height: 12),
-            const Divider(color: Color(0xFFEDEFF3), height: 1),
+            const Divider(color: AppColors.border, height: 1),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -796,12 +713,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
           _presenter.handleStateChange(state);
         },
         child: _isLoading || _permission == null
-            ? const SizedBox(
-                height: 300,
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              )
+            ? const CenteredLoadingIndicator(height: 300)
             : _permission!.isRestricted
             ? SizedBox(
                 height: 580,

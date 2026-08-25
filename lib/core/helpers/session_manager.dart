@@ -10,6 +10,7 @@ class UserSession {
   final List<String> managedCircles;
   final String memberSince;
   final int capabilitiesCount;
+  final String? customRoleLabel;
 
   const UserSession({
     required this.name,
@@ -20,6 +21,7 @@ class UserSession {
     required this.managedCircles,
     required this.memberSince,
     required this.capabilitiesCount,
+    this.customRoleLabel,
   });
 }
 
@@ -146,5 +148,64 @@ class SessionManager {
   /// Clears the session upon sign out.
   void clearSession() {
     _currentSession = _predefinedSessions['arjun@peersglobal.in']!;
+  }
+
+  /// Dynamically added custom roles.
+  static final List<String> _dynamicRoleLabels = [];
+
+  List<String> get dynamicRoleLabels => _dynamicRoleLabels;
+
+  void addDynamicRole(String label) {
+    final trimLabel = label.trim();
+    if (trimLabel.isEmpty) return;
+    if (!_dynamicRoleLabels.contains(trimLabel)) {
+      _dynamicRoleLabels.add(trimLabel);
+      
+      final email = '${trimLabel.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
+      _predefinedSessions[email] = UserSession(
+        name: 'Custom $trimLabel',
+        email: email,
+        phone: '+919999999000',
+        role: UserRole.circleChair,
+        regionalScope: 'Own Circle',
+        managedCircles: ['Mumbai Tech Sunrise'],
+        memberSince: 'Aug 2026',
+        capabilitiesCount: 8,
+        customRoleLabel: trimLabel,
+      );
+    }
+  }
+
+  void removeDynamicRole(String label) {
+    final trimLabel = label.trim();
+    _dynamicRoleLabels.remove(trimLabel);
+    final email = '${trimLabel.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
+    _predefinedSessions.remove(email);
+  }
+
+  void renameDynamicRole(String oldLabel, String newLabel) {
+    final trimOld = oldLabel.trim();
+    final trimNew = newLabel.trim();
+    if (trimNew.isEmpty) return;
+    final index = _dynamicRoleLabels.indexOf(trimOld);
+    if (index != -1) {
+      _dynamicRoleLabels[index] = trimNew;
+      
+      final oldEmail = '${trimOld.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
+      final newEmail = '${trimNew.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
+      
+      _predefinedSessions.remove(oldEmail);
+      _predefinedSessions[newEmail] = UserSession(
+        name: 'Custom $trimNew',
+        email: newEmail,
+        phone: '+919999999000',
+        role: UserRole.circleChair,
+        regionalScope: 'Own Circle',
+        managedCircles: ['Mumbai Tech Sunrise'],
+        memberSince: 'Aug 2026',
+        capabilitiesCount: 8,
+        customRoleLabel: trimNew,
+      );
+    }
   }
 }
