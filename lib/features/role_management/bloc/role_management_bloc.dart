@@ -1,12 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../data/repositories/role_matrix_repository.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../model/role_permission_model.dart';
 import 'role_management_event.dart';
 import 'role_management_state.dart';
 
-/// Business Logic Component for managing application roles and permissions matrix.
+/// Business Logic Component for managing application roles and permissions matrix via Clean Architecture.
 class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> {
-  RoleManagementBloc() : super(const RoleManagementState()) {
+  final RoleMatrixRepository _roleMatrixRepository;
+
+  RoleManagementBloc({RoleMatrixRepository? roleMatrixRepository})
+      : _roleMatrixRepository = roleMatrixRepository ?? RoleMatrixRepositoryImpl(),
+        super(const RoleManagementState()) {
     on<LoadRoleManagementData>(_onLoadRoleManagementData);
     on<ToggleCapability>(_onToggleCapability);
     on<AddRole>(_onAddRole);
@@ -15,104 +20,23 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
     on<SaveChangesRequested>(_onSaveChangesRequested);
   }
 
-  void _onLoadRoleManagementData(
+  Future<void> _onLoadRoleManagementData(
     LoadRoleManagementData event,
     Emitter<RoleManagementState> emit,
-  ) {
+  ) async {
     emit(state.copyWith(isLoading: true, errorMessage: '', saveSuccess: false));
 
-    // Seed default permissions for system roles (excluding Super Admin).
-    final seededPermissions = <RolePermissionModel>[
-      const RolePermissionModel(
-        role: RoleModel(
-          id: 'circleChair',
-          label: 'Circle Chair',
-          isSystemRole: true,
+    try {
+      final response = await _roleMatrixRepository.getRoleMatrix();
+      emit(
+        state.copyWith(
+          isLoading: false,
+          rolesPermissions: response.data?.roles ?? const [],
         ),
-        enabledCapabilityIds: [
-          'access_dashboard',
-          'access_teams',
-          'view_peers',
-          'request_actions',
-        ],
-      ),
-      const RolePermissionModel(
-        role: RoleModel(
-          id: 'circleFounder',
-          label: 'Circle Founder',
-          isSystemRole: true,
-        ),
-        enabledCapabilityIds: [
-          'access_dashboard',
-          'access_teams',
-          'view_peers',
-          'request_actions',
-          'view_reports',
-        ],
-      ),
-      const RolePermissionModel(
-        role: RoleModel(
-          id: 'circleDirector',
-          label: 'Circle Director',
-          isSystemRole: true,
-        ),
-        enabledCapabilityIds: [
-          'access_dashboard',
-          'access_teams',
-          'view_peers',
-          'request_actions',
-          'view_reports',
-        ],
-      ),
-      const RolePermissionModel(
-        role: RoleModel(
-          id: 'industryDirector',
-          label: 'Industry Director',
-          isSystemRole: true,
-        ),
-        enabledCapabilityIds: [
-          'access_dashboard',
-          'access_teams',
-          'view_peers',
-          'request_actions',
-          'view_reports',
-          'regional_data',
-        ],
-      ),
-      const RolePermissionModel(
-        role: RoleModel(
-          id: 'districtExecDirector',
-          label: 'District Exec Director',
-          isSystemRole: true,
-        ),
-        enabledCapabilityIds: [
-          'access_dashboard',
-          'access_teams',
-          'view_peers',
-          'request_actions',
-          'view_reports',
-          'regional_data',
-        ],
-      ),
-      const RolePermissionModel(
-        role: RoleModel(
-          id: 'countryDirector',
-          label: 'Country Director',
-          isSystemRole: true,
-        ),
-        enabledCapabilityIds: [
-          'access_dashboard',
-          'access_teams',
-          'view_peers',
-          'request_actions',
-          'view_reports',
-          'regional_data',
-          'access_finance',
-        ],
-      ),
-    ];
-
-    emit(state.copyWith(isLoading: false, rolesPermissions: seededPermissions));
+      );
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
   }
 
   void _onToggleCapability(
@@ -135,71 +59,51 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
     emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
   }
 
-  void _onAddRole(AddRole event, Emitter<RoleManagementState> emit) {
+  Future<void> _onAddRole(AddRole event, Emitter<RoleManagementState> emit) async {
     final trimLabel = event.label.trim();
     if (trimLabel.isEmpty) return;
-    final uniqueId = 'custom_${DateTime.now().millisecondsSinceEpoch}';
-    final newRole = RoleModel(
-      id: uniqueId,
-      label: trimLabel,
-      isSystemRole: true,
-    );
 
-    final newPermissionMap = RolePermissionModel(
-      role: newRole,
-      enabledCapabilityIds: const ['access_dashboard', 'view_peers'], // default rights
-    );
+    try {
+      final response = await _roleMatrixRepository.createRole(
+        label: trimLabel,
+        enabledCapabilities: const ['access_dashboard', 'view_peers'],
+      );
 
-    final updatedList = List<RolePermissionModel>.from(state.rolesPermissions)
-      ..add(newPermissionMap);
-
-    SessionManager().addDynamicRole(trimLabel);
-
-    emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+      if (response.data != null) {
+        final updatedList = List<RolePermissionModel>.from(state.rolesPermissions)
+          ..add(response.data!);
+        SessionManager().addDynamicRole(trimLabel);
+        emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+      }
+    } catch (_) {}
   }
 
-  void _onEditRole(EditRole event, Emitter<RoleManagementState> emit) {
-    String oldLabel = '';
-    for (final rp in state.rolesPermissions) {
-      if (rp.role.id == event.roleId) {
-        oldLabel = rp.role.label;
-        break;
-      }
-    }
-
+  Future<void> _onEditRole(EditRole event, Emitter<RoleManagementState> emit) async {
     final trimNewLabel = event.newLabel.trim();
-    if (oldLabel.isNotEmpty && trimNewLabel.isNotEmpty) {
-      SessionManager().renameDynamicRole(oldLabel, trimNewLabel);
-    }
+    if (trimNewLabel.isEmpty) return;
 
-    final updatedList = state.rolesPermissions.map((rp) {
-      if (rp.role.id == event.roleId) {
-        return rp.copyWith(role: rp.role.copyWith(label: trimNewLabel));
-      }
-      return rp;
-    }).toList();
+    try {
+      await _roleMatrixRepository.updateRole(event.roleId, label: trimNewLabel);
+      final updatedList = state.rolesPermissions.map((rp) {
+        if (rp.role.id == event.roleId) {
+          return rp.copyWith(role: rp.role.copyWith(label: trimNewLabel));
+        }
+        return rp;
+      }).toList();
 
-    emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+      emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+    } catch (_) {}
   }
 
-  void _onDeleteRole(DeleteRole event, Emitter<RoleManagementState> emit) {
-    String label = '';
-    for (final rp in state.rolesPermissions) {
-      if (rp.role.id == event.roleId) {
-        label = rp.role.label;
-        break;
-      }
-    }
+  Future<void> _onDeleteRole(DeleteRole event, Emitter<RoleManagementState> emit) async {
+    try {
+      await _roleMatrixRepository.deleteRole(event.roleId);
+      final updatedList = state.rolesPermissions
+          .where((rp) => rp.role.id != event.roleId)
+          .toList();
 
-    if (label.isNotEmpty) {
-      SessionManager().removeDynamicRole(label);
-    }
-
-    final updatedList = state.rolesPermissions
-        .where((rp) => rp.role.id != event.roleId)
-        .toList();
-
-    emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+      emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+    } catch (_) {}
   }
 
   Future<void> _onSaveChangesRequested(
@@ -208,8 +112,12 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
   ) async {
     emit(state.copyWith(isSaving: true, errorMessage: '', saveSuccess: false));
     try {
-      // Simulate remote API call to persist settings
-      await Future.delayed(const Duration(seconds: 1));
+      for (final rp in state.rolesPermissions) {
+        await _roleMatrixRepository.updateRoleCapabilities(
+          roleId: rp.role.id,
+          enabledCapabilities: rp.enabledCapabilityIds,
+        );
+      }
       emit(state.copyWith(isSaving: false, saveSuccess: true));
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));

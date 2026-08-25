@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../bloc/splash_bloc.dart';
@@ -120,7 +121,11 @@ class _SplashViewState extends State<SplashView>
   @override
   void navigateToHome() {
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      if (SessionManager().isAuthenticated) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      } else {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      }
     }
   }
 

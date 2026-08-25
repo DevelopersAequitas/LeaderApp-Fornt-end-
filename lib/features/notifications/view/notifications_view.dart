@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../bloc/notifications_bloc.dart';
-import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
 import '../model/notification_model.dart';
 import '../presenter/notifications_presenter.dart';
@@ -285,7 +284,7 @@ class _NotificationsViewState extends State<NotificationsView>
                 Text(
                   notification.description,
                   style: TextStyle(
-                    color: AppColors.text.withOpacity(0.7),
+                    color: AppColors.text.withValues(alpha: 0.7),
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     height: 1.3,

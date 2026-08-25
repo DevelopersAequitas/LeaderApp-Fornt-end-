@@ -1,7 +1,11 @@
 import '../enums/user_role.dart';
+import '../models/leader_permissions.dart';
+import '../storage/secure_storage_service.dart';
+import '../storage/hive_cache_service.dart';
 
 /// A session profile model describing a logged-in user.
 class UserSession {
+  final String id;
   final String name;
   final String email;
   final String phone;
@@ -11,8 +15,10 @@ class UserSession {
   final String memberSince;
   final int capabilitiesCount;
   final String? customRoleLabel;
+  final String? avatarUrl;
 
   const UserSession({
+    this.id = '',
     required this.name,
     required this.email,
     required this.phone,
@@ -22,99 +28,135 @@ class UserSession {
     required this.memberSince,
     required this.capabilitiesCount,
     this.customRoleLabel,
+    this.avatarUrl,
   });
+
+  factory UserSession.fromJson(Map<String, dynamic> json) {
+    final rawRole = json['role'] as String? ?? 'circleChair';
+    UserRole resolvedRole = UserRole.circleChair;
+    for (final r in UserRole.values) {
+      if (r.name.toLowerCase() == rawRole.toLowerCase() ||
+          r.label.toLowerCase() == rawRole.toLowerCase()) {
+        resolvedRole = r;
+        break;
+      }
+    }
+
+    final managedList = <String>[];
+    if (json['managed_circles'] is List) {
+      for (final item in json['managed_circles']) {
+        if (item is Map && item['name'] != null) {
+          managedList.add(item['name'].toString());
+        } else if (item is String) {
+          managedList.add(item);
+        }
+      }
+    }
+
+    return UserSession(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] as String? ?? 'User',
+      email: json['email'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      role: resolvedRole,
+      regionalScope: json['regional_scope'] as String? ?? 'Own Circle',
+      managedCircles: managedList,
+      memberSince: json['member_since'] as String? ?? 'Aug 2026',
+      capabilitiesCount: (json['capabilities_count'] as int?) ?? 14,
+      customRoleLabel: json['custom_role_label'] as String?,
+      avatarUrl: json['avatar_url'] as String?,
+    );
+  }
 }
 
-/// Singleton manager for tracking the active user's session and role-based permissions.
+/// Singleton manager for tracking the active user's session, tokens, and role-based permissions
+/// with hardware-encrypted secure storage and offline document caching.
 class SessionManager {
   static final SessionManager _instance = SessionManager._internal();
-
-  factory SessionManager() {
-    return _instance;
-  }
-
+  factory SessionManager() => _instance;
   SessionManager._internal();
 
-  /// Predefined profiles matching the auto-fill options on the sign-in screen.
-  static final Map<String, UserSession> _predefinedSessions = {
-    'arjun@peersglobal.in': const UserSession(
-      name: 'Arjun Patel',
-      email: 'arjun@peersglobal.in',
-      phone: '+919876543209',
-      role: UserRole.circleChair,
-      regionalScope: 'Own Circle',
-      managedCircles: ['Mumbai Tech Sunrise'],
-      memberSince: 'Jan 2023',
-      capabilitiesCount: 14,
-    ),
-    'sanjana@peersglobal.in': const UserSession(
-      name: 'Sanjana Mehta',
-      email: 'sanjana@peersglobal.in',
-      phone: '+919876543201',
-      role: UserRole.circleFounder,
-      regionalScope: 'Own Circle(s)',
-      managedCircles: ['Mumbai Tech Sunrise', 'Pune Tech Innovators'],
-      memberSince: 'Mar 2022',
-      capabilitiesCount: 26,
-    ),
-    'rohit@peersglobal.in': const UserSession(
-      name: 'Rohit Sharma',
-      email: 'rohit@peersglobal.in',
-      phone: '+919876543202',
-      role: UserRole.circleDirector,
-      regionalScope: 'Own Circle(s)',
-      managedCircles: [
-        'Mumbai Tech Sunrise',
-        'Pune Manufacturing Hub',
-        'Pune Tech Hub',
-      ],
-      memberSince: 'Nov 2022',
-      capabilitiesCount: 20,
-    ),
-    'kavitha@peersglobal.in': const UserSession(
-      name: 'Kavitha Rao',
-      email: 'kavitha@peersglobal.in',
-      phone: '+919876543212',
-      role: UserRole.industryDirector,
-      regionalScope: 'Assigned Industries',
-      managedCircles: ['Mumbai Tech Sunrise', 'Tech Sunrise Industry'],
-      memberSince: 'Apr 2021',
-      capabilitiesCount: 30,
-    ),
-    'vikram@peersglobal.in': const UserSession(
-      name: 'Vikram Malhotra',
-      email: 'vikram@peersglobal.in',
-      phone: '+919876543204',
-      role: UserRole.districtExecDirector,
-      regionalScope: 'One District',
-      managedCircles: ['Mumbai Tech Sunrise', 'Pune Digital Node', 'Goa Creators Circle'],
-      memberSince: 'May 2022',
-      capabilitiesCount: 42,
-    ),
-    'meera@peersglobal.in': const UserSession(
-      name: 'Meera Sen',
-      email: 'meera@peersglobal.in',
-      phone: '+919876543205',
-      role: UserRole.countryDirector,
-      regionalScope: 'Entire Country',
-      managedCircles: ['All National Circles'],
-      memberSince: 'Sep 2020',
-      capabilitiesCount: 60,
-    ),
-    'admin@peersglobal.in': const UserSession(
-      name: 'Super Admin',
-      email: 'admin@peersglobal.in',
-      phone: '+919876543200',
-      role: UserRole.superAdmin,
-      regionalScope: 'Global',
-      managedCircles: ['All Platform Circles'],
-      memberSince: 'Jan 2020',
-      capabilitiesCount: 99,
-    ),
-  };
+  String? _authToken;
+  String? _refreshToken;
+  LeaderPermissions _permissions = const LeaderPermissions();
+
+  /// Gets the current Bearer token.
+  String? get authToken => _authToken;
+
+  /// Gets the refresh token.
+  String? get refreshToken => _refreshToken;
+
+  /// Whether the user has an active authenticated session.
+  bool get isAuthenticated => _authToken != null && _authToken!.isNotEmpty;
+
+  /// Gets the current dynamic permissions matrix.
+  LeaderPermissions get permissions => _permissions;
+
+  /// Loads the persisted session and tokens from encrypted secure storage on app startup.
+  Future<bool> loadPersistedSession() async {
+    try {
+      final token = await SecureStorageService().getAuthToken();
+      if (token == null || token.isEmpty) {
+        return false;
+      }
+
+      final session = await SecureStorageService().getUserSession();
+      final permissions = await SecureStorageService().getPermissions();
+      final refreshToken = await SecureStorageService().getRefreshToken();
+
+      _authToken = token;
+      _refreshToken = refreshToken;
+      if (session != null) {
+        _currentSession = session;
+      }
+      if (permissions != null) {
+        _permissions = permissions;
+      } else {
+        _resolvePredefinedPermissions(_currentSession.role);
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Sets the authentication tokens and permissions from API response and persists them securely.
+  Future<void> setAuthSession({
+    required String token,
+    String? refreshToken,
+    required UserSession session,
+    LeaderPermissions? permissions,
+  }) async {
+    _authToken = token;
+    _refreshToken = refreshToken;
+    _currentSession = session;
+    if (permissions != null) {
+      _permissions = permissions;
+    } else {
+      _resolvePredefinedPermissions(session.role);
+    }
+
+    // Persist securely to device storage
+    await SecureStorageService().saveAuthSession(
+      token: token,
+      refreshToken: refreshToken,
+      session: session,
+      permissions: _permissions,
+    );
+  }
 
   /// The active user session. Defaults to Circle Chair (Arjun Patel).
-  UserSession _currentSession = _predefinedSessions['arjun@peersglobal.in']!;
+  UserSession _currentSession = const UserSession(
+    id: '',
+    name: 'Leader',
+    email: '',
+    phone: '',
+    role: UserRole.circleChair,
+    regionalScope: 'District',
+    managedCircles: [],
+    memberSince: '',
+    capabilitiesCount: 14,
+  );
 
   /// Gets the current user session details.
   UserSession get currentSession => _currentSession;
@@ -122,37 +164,168 @@ class SessionManager {
   /// Gets the current active role.
   UserRole get currentRole => _currentSession.role;
 
+  /// Clears the session and wipes all secure storage tokens upon sign out.
+  Future<void> clearSession() async {
+    _authToken = null;
+    _refreshToken = null;
+    _permissions = const LeaderPermissions();
+    _currentSession = const UserSession(
+      id: '',
+      name: 'Leader',
+      email: '',
+      phone: '',
+      role: UserRole.circleChair,
+      regionalScope: 'District',
+      managedCircles: [],
+      memberSince: '',
+      capabilitiesCount: 14,
+    );
+
+    // Delete tokens and clear offline document cache
+    await SecureStorageService().clearAll();
+    await HiveCacheService().clearAll();
+  }
+
   /// Initializes the session based on the email/phone used to log in.
   void initializeSession(String emailOrPhone) {
     final cleanInput = emailOrPhone.trim().toLowerCase();
-    
-    // Look up in our predefined list of email mock users
-    if (_predefinedSessions.containsKey(cleanInput)) {
-      _currentSession = _predefinedSessions[cleanInput]!;
-      return;
-    }
-
-    // Fallback/dynamic session setup for custom emails
     _currentSession = UserSession(
-      name: 'User (${cleanInput.split('@').first})',
-      email: cleanInput,
-      phone: '+919999999999',
-      role: UserRole.circleChair, // Default to Circle Chair
-      regionalScope: 'Own Circle',
-      managedCircles: ['Mumbai Tech Sunrise'],
-      memberSince: 'Aug 2026',
+      name: cleanInput.contains('@') ? cleanInput.split('@').first : cleanInput,
+      email: cleanInput.contains('@') ? cleanInput : '',
+      phone: !cleanInput.contains('@') ? cleanInput : '',
+      role: UserRole.circleChair,
+      regionalScope: 'District',
+      managedCircles: const [],
+      memberSince: '',
       capabilitiesCount: 10,
     );
+    _resolvePredefinedPermissions(UserRole.circleChair);
   }
 
-  /// Clears the session upon sign out.
-  void clearSession() {
-    _currentSession = _predefinedSessions['arjun@peersglobal.in']!;
+  void _resolvePredefinedPermissions(UserRole role) {
+    switch (role) {
+      case UserRole.circleChair:
+        _permissions = const LeaderPermissions(
+          canAccessDashboard: true,
+          canViewOverallRevenue: false,
+          canReviewPendingPeers: true,
+          canAccessPeersTab: true,
+          canAddEditPeer: false,
+          canSendWishes: true,
+          canAccessTeamsTab: false,
+          canAccessFinanceTab: false,
+          canAccessReportsTab: true,
+          canSubmitReports: true,
+          canAccessRoleManagement: false,
+        );
+        break;
+      case UserRole.circleFounder:
+      case UserRole.circleDirector:
+        _permissions = const LeaderPermissions(
+          canAccessDashboard: true,
+          canViewOverallRevenue: true,
+          canReviewPendingPeers: true,
+          canAccessPeersTab: true,
+          canAddEditPeer: true,
+          canSendWishes: true,
+          canAccessTeamsTab: true,
+          canManageCircles: true,
+          canAccessFinanceTab: true,
+          canAccessReportsTab: true,
+          canSubmitReports: true,
+          canExportPeerData: true,
+          canAccessRoleManagement: false,
+        );
+        break;
+      case UserRole.industryDirector:
+        _permissions = const LeaderPermissions(
+          canAccessDashboard: true,
+          canViewOverallRevenue: true,
+          canReviewPendingPeers: false,
+          canAccessPeersTab: true,
+          canAddEditPeer: false,
+          canSendWishes: true,
+          canAccessTeamsTab: true,
+          canManageCircles: true,
+          canAccessFinanceTab: true,
+          canAccessReportsTab: true,
+          canSubmitReports: false,
+          canExportPeerData: true,
+          canAccessRoleManagement: false,
+          canViewRegionalScope: true,
+        );
+        break;
+      case UserRole.districtExecDirector:
+        _permissions = const LeaderPermissions(
+          canAccessDashboard: true,
+          canViewOverallRevenue: true,
+          canReviewPendingPeers: true,
+          canAccessPeersTab: true,
+          canAddEditPeer: true,
+          canSendWishes: true,
+          canAccessTeamsTab: true,
+          canManageCircles: true,
+          canAssignCircleChair: true,
+          canAccessFinanceTab: true,
+          canModifyFinanceSettings: true,
+          canAccessReportsTab: true,
+          canSubmitReports: false,
+          canExportPeerData: true,
+          canExportFinancialData: true,
+          canAccessRoleManagement: false,
+          canViewRegionalScope: true,
+        );
+        break;
+      case UserRole.countryDirector:
+        _permissions = const LeaderPermissions(
+          canAccessDashboard: true,
+          canViewOverallRevenue: true,
+          canReviewPendingPeers: false,
+          canAccessPeersTab: true,
+          canAddEditPeer: true,
+          canSendWishes: true,
+          canAccessTeamsTab: true,
+          canManageCircles: true,
+          canAssignCircleChair: true,
+          canAccessFinanceTab: true,
+          canModifyFinanceSettings: true,
+          canIssueCoins: true,
+          canAccessReportsTab: true,
+          canSubmitReports: false,
+          canExportPeerData: true,
+          canExportFinancialData: true,
+          canAccessRoleManagement: false,
+          canViewRegionalScope: true,
+        );
+        break;
+      case UserRole.superAdmin:
+        _permissions = const LeaderPermissions(
+          canAccessDashboard: true,
+          canViewOverallRevenue: true,
+          canReviewPendingPeers: true,
+          canAccessPeersTab: true,
+          canAddEditPeer: true,
+          canSendWishes: true,
+          canAccessTeamsTab: true,
+          canManageCircles: true,
+          canAssignCircleChair: true,
+          canAccessFinanceTab: true,
+          canModifyFinanceSettings: true,
+          canIssueCoins: true,
+          canAccessReportsTab: true,
+          canSubmitReports: true,
+          canExportPeerData: true,
+          canExportFinancialData: true,
+          canExportGlobalData: true,
+          canAccessRoleManagement: true,
+          canViewRegionalScope: true,
+        );
+        break;
+    }
   }
 
-  /// Dynamically added custom roles.
+  /// Dynamic custom roles created at runtime.
   static final List<String> _dynamicRoleLabels = [];
-
   List<String> get dynamicRoleLabels => _dynamicRoleLabels;
 
   void addDynamicRole(String label) {
@@ -160,52 +333,17 @@ class SessionManager {
     if (trimLabel.isEmpty) return;
     if (!_dynamicRoleLabels.contains(trimLabel)) {
       _dynamicRoleLabels.add(trimLabel);
-      
-      final email = '${trimLabel.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
-      _predefinedSessions[email] = UserSession(
-        name: 'Custom $trimLabel',
-        email: email,
-        phone: '+919999999000',
-        role: UserRole.circleChair,
-        regionalScope: 'Own Circle',
-        managedCircles: ['Mumbai Tech Sunrise'],
-        memberSince: 'Aug 2026',
-        capabilitiesCount: 8,
-        customRoleLabel: trimLabel,
-      );
     }
   }
 
   void removeDynamicRole(String label) {
-    final trimLabel = label.trim();
-    _dynamicRoleLabels.remove(trimLabel);
-    final email = '${trimLabel.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
-    _predefinedSessions.remove(email);
+    _dynamicRoleLabels.remove(label.trim());
   }
 
   void renameDynamicRole(String oldLabel, String newLabel) {
-    final trimOld = oldLabel.trim();
-    final trimNew = newLabel.trim();
-    if (trimNew.isEmpty) return;
-    final index = _dynamicRoleLabels.indexOf(trimOld);
-    if (index != -1) {
-      _dynamicRoleLabels[index] = trimNew;
-      
-      final oldEmail = '${trimOld.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
-      final newEmail = '${trimNew.replaceAll(' ', '').toLowerCase()}@peersglobal.in';
-      
-      _predefinedSessions.remove(oldEmail);
-      _predefinedSessions[newEmail] = UserSession(
-        name: 'Custom $trimNew',
-        email: newEmail,
-        phone: '+919999999000',
-        role: UserRole.circleChair,
-        regionalScope: 'Own Circle',
-        managedCircles: ['Mumbai Tech Sunrise'],
-        memberSince: 'Aug 2026',
-        capabilitiesCount: 8,
-        customRoleLabel: trimNew,
-      );
+    final index = _dynamicRoleLabels.indexOf(oldLabel.trim());
+    if (index != -1 && newLabel.trim().isNotEmpty) {
+      _dynamicRoleLabels[index] = newLabel.trim();
     }
   }
 }

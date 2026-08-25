@@ -4,7 +4,7 @@ import '../model/impacter_model.dart';
 
 @immutable
 class DashboardState {
-  /// True when mock data is fetching.
+  /// True when remote API data is fetching.
   final bool isLoading;
 
   /// Loaded dashboard metrics figures.

@@ -9,6 +9,7 @@ class ReportsState {
   final String circleName;
   final String reportContent;
   final List<ReportModel> submittedReports;
+  final List<ReportsChartPoint> attendanceTrend;
   final bool isSubmitting;
   final bool isSuccess;
   final String errorMessage;
@@ -18,9 +19,10 @@ class ReportsState {
     this.isLoading = false,
     this.activeSubTab = 0,
     this.selectedType = 'Monthly',
-    this.circleName = 'Mumbai Tech Sunrise',
+    this.circleName = '',
     this.reportContent = '',
     this.submittedReports = const [],
+    this.attendanceTrend = const [],
     this.isSubmitting = false,
     this.isSuccess = false,
     this.errorMessage = '',
@@ -34,6 +36,7 @@ class ReportsState {
     String? circleName,
     String? reportContent,
     List<ReportModel>? submittedReports,
+    List<ReportsChartPoint>? attendanceTrend,
     bool? isSubmitting,
     bool? isSuccess,
     String? errorMessage,
@@ -46,6 +49,7 @@ class ReportsState {
       circleName: circleName ?? this.circleName,
       reportContent: reportContent ?? this.reportContent,
       submittedReports: submittedReports ?? this.submittedReports,
+      attendanceTrend: attendanceTrend ?? this.attendanceTrend,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isSuccess: isSuccess ?? this.isSuccess,
       errorMessage: errorMessage ?? this.errorMessage,

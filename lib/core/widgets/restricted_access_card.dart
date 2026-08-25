@@ -29,7 +29,7 @@ class RestrictedAccessCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 24,
             spreadRadius: 4,
             offset: const Offset(0, 8),
@@ -75,7 +75,7 @@ class RestrictedAccessCard extends StatelessWidget {
                 message,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: AppColors.text.withOpacity(0.7),
+                  color: AppColors.text.withValues(alpha: 0.7),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   height: 1.5,

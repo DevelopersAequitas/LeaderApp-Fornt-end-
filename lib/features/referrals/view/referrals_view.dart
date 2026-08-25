@@ -97,7 +97,7 @@ class _ReferralsViewState extends State<ReferralsView>
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -304,7 +304,6 @@ class _ReferralsViewState extends State<ReferralsView>
           backgroundColor: AppColors.background,
           appBar: const CustomAppBar(
             title: 'Peers by Referrals',
-            subtitle: 'Mumbai Tech Sunrise',
             showBackButton: true,
           ),
           body: _isLoading

@@ -76,7 +76,7 @@ class _TestimonialsViewState extends State<TestimonialsView>
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -137,7 +137,7 @@ class _TestimonialsViewState extends State<TestimonialsView>
           Text(
             '"${testimonial.content}"',
             style: TextStyle(
-              color: AppColors.text.withOpacity(0.85),
+              color: AppColors.text.withValues(alpha: 0.85),
               fontSize: 13,
               fontStyle: FontStyle.italic,
               height: 1.4,
@@ -170,7 +170,7 @@ class _TestimonialsViewState extends State<TestimonialsView>
           backgroundColor: AppColors.background,
           appBar: CustomAppBar(
             title: 'Peer Testimonials',
-            subtitle: 'Mumbai Tech Sunrise - 3 endorsements',
+            subtitle: '${_bloc.state.allTestimonials.length} endorsements',
             showBackButton: true,
             actions: [
               IconButton(
@@ -238,7 +238,7 @@ class _TestimonialsViewState extends State<TestimonialsView>
                         options: const ['All', '5★', '4★', '3★'],
                         selectedOption: _selectedFilter == null
                             ? 'All'
-                            : '${_selectedFilter}★',
+                            : '$_selectedFilter★',
                         onSelected: (option) {
                           final rating = option == 'All'
                               ? null

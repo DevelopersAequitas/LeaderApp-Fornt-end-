@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../model/profile_model.dart';
 import 'profile_event.dart';
@@ -16,19 +15,44 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(isLoading: true, errorMessage: ''));
 
     final session = SessionManager().currentSession;
-    final mockProfile = UserProfileModel(
-      name: session.name,
-      phone: session.phone,
-      email: session.email,
-      regionalScope: session.regionalScope,
-      memberSince: session.memberSince,
-      capabilitiesCount: session.capabilitiesCount,
-      managedCircleName: session.managedCircles.join(' & '),
-      managedCirclePeers: session.role == UserRole.circleFounder ? 112 : 56,
-      managedCircleStatus: 'Active',
+    final permissions = SessionManager().permissions;
+
+    final enabledCaps = <String>[];
+    if (permissions.canAccessDashboard) enabledCaps.add('Dashboard Analytics');
+    if (permissions.canAccessPeersTab) enabledCaps.add('Peer Directory & Profiles');
+    if (permissions.canSendWishes) enabledCaps.add('Peer Wishes & Celebrations');
+    if (permissions.canAddEditPeer) enabledCaps.add('Add / Edit Peer Records');
+    if (permissions.canAccessTeamsTab) enabledCaps.add('Circles & Teams Management');
+    if (permissions.canManageCircles) enabledCaps.add('Circle Leadership Operations');
+    if (permissions.canAssignCircleChair) enabledCaps.add('Assign Circle Chairs');
+    if (permissions.canAccessFinanceTab) enabledCaps.add('Financial Analytics & Dues');
+    if (permissions.canModifyFinanceSettings) enabledCaps.add('Financial Settings Control');
+    if (permissions.canIssueCoins) enabledCaps.add('Coin Issuance & Rewards');
+    if (permissions.canAccessReportsTab) enabledCaps.add('Reports & Attendance Analytics');
+    if (permissions.canSubmitReports) enabledCaps.add('Submit Leadership Reports');
+    if (permissions.canExportPeerData || permissions.canExportFinancialData) {
+      enabledCaps.add('Export Analytics (PDF/Excel)');
+    }
+    if (permissions.canAccessRoleManagement) enabledCaps.add('Role & Permission Matrix Control');
+    if (permissions.canViewRegionalScope) enabledCaps.add('Regional & National Scope');
+
+    final roleLabel = session.customRoleLabel ?? session.role.label;
+
+    final profile = UserProfileModel(
+      id: session.id,
+      name: session.name.isNotEmpty ? session.name : 'Leader',
+      phone: session.phone.isNotEmpty ? session.phone : 'Not Provided',
+      email: session.email.isNotEmpty ? session.email : 'No Email',
+      roleLabel: roleLabel,
+      regionalScope: session.regionalScope.isNotEmpty ? session.regionalScope : 'Assigned Scope',
+      memberSince: session.memberSince.isNotEmpty ? session.memberSince : '2026',
+      capabilitiesCount: enabledCaps.isNotEmpty ? enabledCaps.length : session.capabilitiesCount,
+      managedCircles: session.managedCircles,
+      enabledCapabilityNames: enabledCaps,
+      avatarUrl: session.avatarUrl ?? '',
     );
 
-    emit(state.copyWith(isLoading: false, userProfile: mockProfile));
+    emit(state.copyWith(isLoading: false, userProfile: profile));
   }
 
   Future<void> _onTriggerSignOut(
@@ -37,9 +61,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     emit(state.copyWith(isLoading: true, errorMessage: ''));
     try {
-      // Simulate remote API call to clear session
-      await Future.delayed(const Duration(milliseconds: 800));
-      SessionManager().clearSession();
+      await SessionManager().clearSession();
       emit(state.copyWith(isLoading: false, isSignedOut: true));
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));

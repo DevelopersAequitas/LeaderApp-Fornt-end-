@@ -1,12 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../data/repositories/auth_repository.dart';
 import 'login_event.dart';
 import 'login_state.dart';
 
-/// Business Logic Component for managing user sign-in forms.
+/// Business Logic Component for managing user sign-in forms with real API integration.
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc() : super(const LoginState()) {
+  final AuthRepository _authRepository;
+
+  LoginBloc({AuthRepository? authRepository})
+      : _authRepository = authRepository ?? AuthRepositoryImpl(),
+        super(const LoginState()) {
     on<EmailOrPhoneChanged>(_onEmailOrPhoneChanged);
-    on<RoleSelected>(_onRoleSelected);
     on<SubmitLogin>(_onSubmitLogin);
   }
 
@@ -25,18 +29,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     );
   }
 
-  void _onRoleSelected(RoleSelected event, Emitter<LoginState> emit) {
-    final email = event.role.email;
-    emit(
-      state.copyWith(
-        emailOrPhone: email,
-        isFormValid: _isValidEmailOrPhone(email),
-        errorMessage: '',
-        isOtpSent: false,
-      ),
-    );
-  }
-
   Future<void> _onSubmitLogin(
     SubmitLogin event,
     Emitter<LoginState> emit,
@@ -46,9 +38,17 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(state.copyWith(isLoading: true, errorMessage: '', isOtpSent: false));
 
     try {
-      // Simulate remote API call to send OTP (e.g. 1.5 seconds)
-      await Future.delayed(const Duration(milliseconds: 1500));
-      emit(state.copyWith(isLoading: false, isOtpSent: true));
+      final response = await _authRepository.sendOtp(state.emailOrPhone);
+      if (response.success) {
+        emit(state.copyWith(isLoading: false, isOtpSent: true));
+      } else {
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errorMessage: response.message ?? 'Failed to send OTP.',
+          ),
+        );
+      }
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }

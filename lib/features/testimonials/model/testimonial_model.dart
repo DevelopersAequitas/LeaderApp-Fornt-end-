@@ -21,4 +21,35 @@ class TestimonialModel {
     required this.content,
     required this.date,
   });
+
+  factory TestimonialModel.fromJson(Map<String, dynamic> json) {
+    final fromName = json['author_name'] as String? ?? json['from_name'] as String? ?? 'Peer';
+    final nameParts = fromName.split(' ');
+    final fromInitials = nameParts.length > 1
+        ? '${nameParts[0][0]}${nameParts[1][0]}'
+        : fromName.substring(0, fromName.length >= 2 ? 2 : 1).toUpperCase();
+
+    return TestimonialModel(
+      id: json['id']?.toString() ?? '',
+      fromName: fromName,
+      toName: json['target_peer_name'] as String? ?? json['to_name'] as String? ?? '',
+      fromCompany: json['author_role'] as String? ?? json['from_company'] as String? ?? '',
+      toCompany: json['circle_name'] as String? ?? json['to_company'] as String? ?? '',
+      fromInitials: fromInitials,
+      rating: json['rating'] as int? ?? 5,
+      content: json['content'] as String? ?? '',
+      date: json['date'] as String? ?? json['created_at'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'author_name': fromName,
+        'target_peer_name': toName,
+        'author_role': fromCompany,
+        'circle_name': toCompany,
+        'rating': rating,
+        'content': content,
+        'date': date,
+      };
 }

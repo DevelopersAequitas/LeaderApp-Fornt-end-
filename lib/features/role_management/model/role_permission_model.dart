@@ -10,6 +10,20 @@ class RoleModel {
     this.isSystemRole = false,
   });
 
+  factory RoleModel.fromJson(Map<String, dynamic> json) {
+    return RoleModel(
+      id: json['id']?.toString() ?? json['role_key']?.toString() ?? '',
+      label: json['label'] as String? ?? 'Role',
+      isSystemRole: json['is_system_role'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'label': label,
+        'is_system_role': isSystemRole,
+      };
+
   RoleModel copyWith({
     String? label,
   }) {
@@ -34,6 +48,22 @@ class AppCapability {
     required this.category,
     required this.description,
   });
+
+  factory AppCapability.fromJson(Map<String, dynamic> json) {
+    return AppCapability(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] as String? ?? '',
+      category: json['category'] as String? ?? 'General',
+      description: json['description'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'category': category,
+        'description': description,
+      };
 
   /// Default predefined list of system capabilities.
   static List<AppCapability> get defaultCapabilities => const [
@@ -128,6 +158,27 @@ class RolePermissionModel {
     required this.role,
     required this.enabledCapabilityIds,
   });
+
+  factory RolePermissionModel.fromJson(Map<String, dynamic> json) {
+    final enabledCaps = <String>[];
+    if (json['enabled_capabilities'] is List) {
+      for (final cap in json['enabled_capabilities']) {
+        enabledCaps.add(cap.toString());
+      }
+    }
+
+    return RolePermissionModel(
+      role: RoleModel.fromJson(json),
+      enabledCapabilityIds: enabledCaps,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': role.id,
+        'label': role.label,
+        'is_system_role': role.isSystemRole,
+        'enabled_capabilities': enabledCapabilityIds,
+      };
 
   RolePermissionModel copyWith({
     RoleModel? role,

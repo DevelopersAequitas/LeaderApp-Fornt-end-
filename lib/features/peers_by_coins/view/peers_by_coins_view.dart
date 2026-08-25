@@ -146,7 +146,7 @@ class _PeersByCoinsViewState extends State<PeersByCoinsView>
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -246,7 +246,7 @@ class _PeersByCoinsViewState extends State<PeersByCoinsView>
                     Text(
                       'COINS',
                       style: TextStyle(
-                        color: coinsBoxTextColor.withOpacity(0.7),
+                        color: coinsBoxTextColor.withValues(alpha: 0.7),
                         fontSize: 8,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.2,
@@ -336,7 +336,7 @@ class _PeersByCoinsViewState extends State<PeersByCoinsView>
           backgroundColor: AppColors.background,
           appBar: CustomAppBar(
             title: 'Peers by Coins',
-            subtitle: 'Mumbai Tech Sunrise',
+            subtitle: '${_bloc.state.allPeers.length} peers ranked',
             showBackButton: true,
             actions: [
               IconButton(

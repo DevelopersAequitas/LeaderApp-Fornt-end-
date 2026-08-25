@@ -1,7 +1,6 @@
 import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
-import '../model/role_model.dart';
 
 /// Contract interface defining UI actions to be implemented by the Login View.
 abstract class LoginViewContract {
@@ -16,9 +15,6 @@ abstract class LoginViewContract {
 
   /// Invoked when form validation state changes.
   void onValidationChanged(bool isValid);
-
-  /// Invoked when a role auto-fill request is made.
-  void onAutoFillRequest(String credentials);
 }
 
 /// Presenter coordinating visual actions and inputs for the Sign-in process.
@@ -34,12 +30,6 @@ class LoginPresenter {
   /// Relays input modifications back to BLoC.
   void onEmailOrPhoneChanged(String value) {
     bloc.add(EmailOrPhoneChanged(value));
-  }
-
-  /// Handles role selection auto-fill events.
-  void onRoleSelected(RoleModel role) {
-    bloc.add(RoleSelected(role));
-    view.onAutoFillRequest(role.email);
   }
 
   /// Requests form submission.

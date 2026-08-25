@@ -1,13 +1,20 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../data/repositories/auth_repository.dart';
 import 'otp_event.dart';
 import 'otp_state.dart';
 
-/// Business Logic Component for managing OTP verification and countdown timer.
+/// Business Logic Component for managing OTP verification and countdown timer with real API.
 class OtpBloc extends Bloc<OtpEvent, OtpState> {
+  final String emailOrPhone;
+  final AuthRepository _authRepository;
   StreamSubscription<int>? _timerSubscription;
 
-  OtpBloc() : super(const OtpState()) {
+  OtpBloc({
+    required this.emailOrPhone,
+    AuthRepository? authRepository,
+  })  : _authRepository = authRepository ?? AuthRepositoryImpl(),
+        super(const OtpState()) {
     on<OtpInputChanged>(_onOtpInputChanged);
     on<SubmitOtpVerification>(_onSubmitOtpVerification);
     on<ResendOtpRequested>(_onResendOtpRequested);
@@ -18,7 +25,6 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
 
   void _startTimer() {
     _timerSubscription?.cancel();
-    // Emits 29 down to 0
     _timerSubscription = Stream.periodic(
       const Duration(seconds: 1),
       (tick) => 29 - tick,
@@ -32,7 +38,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
     emit(
       state.copyWith(
         otpCode: value,
-        isFormValid: value.length == 4,
+        isFormValid: value.length == 6,
         errorMessage: '',
       ),
     );
@@ -46,16 +52,15 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
     emit(state.copyWith(isLoading: true, errorMessage: '', isSuccess: false));
 
     try {
-      // Simulate remote API call to verify OTP
-      await Future.delayed(const Duration(milliseconds: 1000));
-      if (state.otpCode == '1234') {
+      final response = await _authRepository.verifyOtp(emailOrPhone, state.otpCode);
+      if (response.success) {
         _timerSubscription?.cancel();
         emit(state.copyWith(isLoading: false, isSuccess: true));
       } else {
         emit(
           state.copyWith(
             isLoading: false,
-            errorMessage: 'Incorrect OTP. Use 1234 for demo verification.',
+            errorMessage: response.message ?? 'Invalid OTP code.',
           ),
         );
       }
@@ -64,7 +69,10 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
     }
   }
 
-  void _onResendOtpRequested(ResendOtpRequested event, Emitter<OtpState> emit) {
+  Future<void> _onResendOtpRequested(
+    ResendOtpRequested event,
+    Emitter<OtpState> emit,
+  ) async {
     if (!state.canResend) return;
     emit(
       state.copyWith(
@@ -74,6 +82,9 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
       ),
     );
     _startTimer();
+    try {
+      await _authRepository.sendOtp(emailOrPhone);
+    } catch (_) {}
   }
 
   void _onTimerTicked(TimerTicked event, Emitter<OtpState> emit) {

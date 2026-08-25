@@ -1,13 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/enums/user_role.dart';
+import '../../../data/repositories/reports_repository.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../model/report_model.dart';
 import 'reports_event.dart';
 import 'reports_state.dart';
 
-/// Business Logic Component for managing leadership report creations and history.
+/// Business Logic Component for managing leadership report creations and history via Clean Architecture.
 class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
-  ReportsBloc() : super(const ReportsState()) {
+  final ReportsRepository _reportsRepository;
+
+  ReportsBloc({ReportsRepository? reportsRepository})
+      : _reportsRepository = reportsRepository ?? ReportsRepositoryImpl(),
+        super(const ReportsState()) {
     on<LoadReports>(_onLoadReports);
     on<ToggleReportSubTab>(_onToggleReportSubTab);
     on<ChangeReportType>(_onChangeReportType);
@@ -15,98 +19,28 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     on<SubmitReportForm>(_onSubmitReportForm);
   }
 
-  // Pre-load with mock reports as shown in the mockup
-  static const List<ReportModel> _mockReportsHistory = [
-    ReportModel(
-      type: 'Monthly',
-      status: 'Actioned',
-      date: 'Jul 1, 2026',
-      author: 'Arjun Patel · Mumbai Tech Sunrise',
-      content:
-          'Monthly summary: 56 active peers, 88% avg attendance, 11 referrals, 7 deals worth ₹1.34Cr. Recommend recognizing Priya Sharma as peer of the month.',
-    ),
-    ReportModel(
-      type: 'Monthly',
-      status: 'Submitted',
-      date: 'Jul 27, 2026',
-      author: 'Sneha Joshi · Pune Manufacturing Hub',
-      content:
-          'Pune circle had 82% attendance. New peer Rohan joined. Manufacturing sector discussions positive. Need support for venue booking next month.',
-    ),
-  ];
-
-  static const List<ReportModel> _mockHealthcareReports = [
-    ReportModel(
-      type: 'Monthly',
-      status: 'Actioned',
-      date: 'Jul 5, 2026',
-      author: 'Karthik Raja · Mumbai Health Circle',
-      content:
-          'Monthly summary: 34 active peers, 85% avg attendance, 5 referrals. Healthcare discussions centered on telemedicine apps.',
-    ),
-    ReportModel(
-      type: 'Monthly',
-      status: 'Submitted',
-      date: 'Jul 25, 2026',
-      author: 'Ramesh Kumar · Bangalore Wellness Node',
-      content:
-          'Bangalore wellness node had 90% attendance. Held a health checkup drive for 40 local peers.',
-    ),
-  ];
-
-  static const List<ReportModel> _mockStartupsReports = [
-    ReportModel(
-      type: 'Monthly',
-      status: 'Actioned',
-      date: 'Jul 10, 2026',
-      author: 'Rohan Gupta · Mumbai Startup Club',
-      content:
-          'Startup circle had 90% attendance. Pitch night was a success with 4 angel investors present.',
-    ),
-    ReportModel(
-      type: 'Monthly',
-      status: 'Submitted',
-      date: 'Jul 20, 2026',
-      author: 'Priya Sen · Delhi Fintech Node',
-      content:
-          'Monthly summary: 20 active peers, 85% attendance, 4 referrals. FinTech discussions positive. Preparing for incubator pitch next month.',
-    ),
-  ];
-
-  void _onLoadReports(LoadReports event, Emitter<ReportsState> emit) {
-    emit(state.copyWith(isLoading: true, errorMessage: ''));
-
-    final session = SessionManager().currentSession;
-    final role = session.role;
-
-    final activeCircle =
-        event.selectedCircle ?? state.selectedCircle ?? 'Technology';
-
-    final List<ReportModel> scopeReports;
-    if (activeCircle == 'Healthcare') {
-      scopeReports = _mockHealthcareReports;
-    } else if (activeCircle == 'Startups') {
-      scopeReports = _mockStartupsReports;
-    } else {
-      scopeReports = _mockReportsHistory;
+  Future<void> _onLoadReports(LoadReports event, Emitter<ReportsState> emit) async {
+    if (state.submittedReports.isEmpty) {
+      emit(state.copyWith(isLoading: true, errorMessage: ''));
     }
 
-    final List<ReportModel> visibleReports;
-    if (role == UserRole.circleChair || role == UserRole.circleFounder) {
-      visibleReports = scopeReports
-          .where((r) => r.author.startsWith(session.name))
-          .toList();
-    } else {
-      visibleReports = scopeReports;
-    }
+    final activeCircle = event.selectedCircle ?? state.selectedCircle ?? '';
 
-    emit(
-      state.copyWith(
-        isLoading: false,
-        submittedReports: visibleReports,
-        selectedCircle: activeCircle,
-      ),
-    );
+    try {
+      final reportsResponse = await _reportsRepository.getReports(circleId: activeCircle);
+      final trendResponse = await _reportsRepository.getAttendanceTrend(circleId: activeCircle);
+
+      emit(
+        state.copyWith(
+          isLoading: false,
+          submittedReports: reportsResponse.data ?? const [],
+          attendanceTrend: trendResponse.data ?? const [],
+          selectedCircle: activeCircle,
+        ),
+      );
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
   }
 
   void _onToggleReportSubTab(
@@ -141,28 +75,36 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     );
 
     try {
-      // Simulate remote API delay (800ms)
-      await Future.delayed(const Duration(milliseconds: 800));
-
       final session = SessionManager().currentSession;
-      final newReport = ReportModel(
+      final response = await _reportsRepository.submitReport(
+        circleId: state.circleName,
         type: state.selectedType,
-        status: 'Submitted',
-        date: 'Aug 11, 2026', // Mock active submission date
+        period: 'Aug 2026',
         content: state.reportContent,
-        author: '${session.name} · ${state.circleName}',
       );
 
-      final updatedList = [newReport, ...state.submittedReports];
+      if (response.success) {
+        final newReport = ReportModel(
+          type: state.selectedType,
+          status: 'Submitted',
+          date: 'Aug 25, 2026',
+          content: state.reportContent,
+          author: '${session.name} · ${state.circleName}',
+        );
 
-      emit(
-        state.copyWith(
-          isSubmitting: false,
-          isSuccess: true,
-          submittedReports: updatedList,
-          reportContent: '', // reset field
-        ),
-      );
+        final updatedList = [newReport, ...state.submittedReports];
+
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            isSuccess: true,
+            submittedReports: updatedList,
+            reportContent: '',
+          ),
+        );
+      } else {
+        emit(state.copyWith(isSubmitting: false, errorMessage: response.message ?? 'Submission failed.'));
+      }
     } catch (e) {
       emit(state.copyWith(isSubmitting: false, errorMessage: e.toString()));
     }
