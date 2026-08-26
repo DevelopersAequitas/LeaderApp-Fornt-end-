@@ -28,10 +28,27 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
 
     try {
       final response = await _roleMatrixRepository.getRoleMatrix();
+      final roles = response.data?.roles ?? const [];
+      for (final rp in roles) {
+        SessionManager().updateRoleCapabilitiesMatrix(
+          rp.role.id,
+          rp.enabledCapabilityIds,
+        );
+        SessionManager().updateRoleCapabilitiesMatrix(
+          rp.role.label,
+          rp.enabledCapabilityIds,
+        );
+        if (rp.role.roleKey != null && rp.role.roleKey!.isNotEmpty) {
+          SessionManager().updateRoleCapabilitiesMatrix(
+            rp.role.roleKey!,
+            rp.enabledCapabilityIds,
+          );
+        }
+      }
       emit(
         state.copyWith(
           isLoading: false,
-          rolesPermissions: response.data?.roles ?? const [],
+          rolesPermissions: roles,
         ),
       );
     } catch (e) {
@@ -117,6 +134,20 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
           roleId: rp.role.id,
           enabledCapabilities: rp.enabledCapabilityIds,
         );
+        SessionManager().updateRoleCapabilitiesMatrix(
+          rp.role.id,
+          rp.enabledCapabilityIds,
+        );
+        SessionManager().updateRoleCapabilitiesMatrix(
+          rp.role.label,
+          rp.enabledCapabilityIds,
+        );
+        if (rp.role.roleKey != null && rp.role.roleKey!.isNotEmpty) {
+          SessionManager().updateRoleCapabilitiesMatrix(
+            rp.role.roleKey!,
+            rp.enabledCapabilityIds,
+          );
+        }
       }
       emit(state.copyWith(isSaving: false, saveSuccess: true));
     } catch (e) {

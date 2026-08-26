@@ -39,23 +39,25 @@ class PeersRemoteDataSource {
   PeersRemoteDataSource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
   static bool _isValidUuid(String? str) {
-    if (str == null || str.isEmpty) return false;
-    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+    if (str == null || str.trim().isEmpty) return false;
+    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
     return uuidRegex.hasMatch(str.trim());
   }
 
-  /// Fetches filtered peers list.
+  /// Fetches peers list with pagination (sorting is handled client-side).
   Future<ApiResponse<List<PeerModel>>> getPeers({
     String? circleId,
     String? status,
-    String? sort,
     String? search,
+    int? page,
+    int? perPage,
   }) async {
     final params = <String, String>{};
-    if (_isValidUuid(circleId)) params['circle_id'] = circleId!;
+    if (_isValidUuid(circleId)) params['circle_id'] = circleId!.trim();
     if (status != null && status != 'All') params['status'] = status;
-    if (sort != null) params['sort'] = sort;
     if (search != null && search.isNotEmpty) params['search'] = search;
+    if (page != null) params['page'] = page.toString();
+    if (perPage != null) params['per_page'] = perPage.toString();
 
     return _apiClient.get<List<PeerModel>>(
       ApiEndpoints.peers,
@@ -72,13 +74,13 @@ class PeersRemoteDataSource {
   /// Fetches single peer profile details.
   Future<ApiResponse<PeerModel>> getPeerDetails(String id) async {
     if (!_isValidUuid(id)) {
-      return ApiResponse<PeerModel>(
+      return const ApiResponse<PeerModel>(
         success: false,
         message: 'Invalid peer identifier',
       );
     }
     return _apiClient.get<PeerModel>(
-      ApiEndpoints.peerDetails(id),
+      ApiEndpoints.peerDetails(id.trim()),
       fromJsonT: (json) => PeerModel.fromJson(json as Map<String, dynamic>),
     );
   }
@@ -86,7 +88,7 @@ class PeersRemoteDataSource {
   /// Fetches celebrations for the active circle.
   Future<ApiResponse<CelebrationsResponse>> getCelebrations({String? circleId}) async {
     final params = <String, String>{};
-    if (_isValidUuid(circleId)) params['circle_id'] = circleId!;
+    if (_isValidUuid(circleId)) params['circle_id'] = circleId!.trim();
 
     return _apiClient.get<CelebrationsResponse>(
       ApiEndpoints.peerCelebrations,
@@ -102,13 +104,13 @@ class PeersRemoteDataSource {
     String? message,
   }) async {
     if (!_isValidUuid(peerId)) {
-      return ApiResponse<Map<String, dynamic>>(
+      return const ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Invalid peer identifier',
       );
     }
     return _apiClient.post<Map<String, dynamic>>(
-      ApiEndpoints.peerSendWish(peerId),
+      ApiEndpoints.peerSendWish(peerId.trim()),
       body: {
         'type': type,
         'message': message ?? 'Wishing you the very best!',
@@ -127,7 +129,7 @@ class PeersRemoteDataSource {
       );
     }
     return _apiClient.get<List<PeerMeetingModel>>(
-      ApiEndpoints.peerMeetings(peerId),
+      ApiEndpoints.peerMeetings(peerId.trim()),
       fromJsonT: (json) {
         if (json is List) {
           return json.map((item) => PeerMeetingModel.fromJson(item as Map<String, dynamic>)).toList();
@@ -151,7 +153,7 @@ class PeersRemoteDataSource {
       );
     }
     return _apiClient.get<List<PeerActivityModel>>(
-      ApiEndpoints.peerActivities(peerId),
+      ApiEndpoints.peerActivities(peerId.trim()),
       queryParameters: {'page': page.toString(), 'limit': limit.toString()},
       fromJsonT: (json) {
         if (json is List) {

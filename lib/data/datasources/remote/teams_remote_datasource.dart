@@ -1,3 +1,5 @@
+import 'package:leaderapp/features/peers/model/peer_model.dart';
+
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
@@ -34,6 +36,10 @@ class TeamsRemoteDataSource {
       fromJsonT: (json) {
         if (json is List) {
           return json.map((item) => CircleTeamModel.fromJson(item as Map<String, dynamic>)).toList();
+        } else if (json is Map && json['data'] is List) {
+          return (json['data'] as List).map((item) => CircleTeamModel.fromJson(item as Map<String, dynamic>)).toList();
+        } else if (json is Map && json['circles'] is List) {
+          return (json['circles'] as List).map((item) => CircleTeamModel.fromJson(item as Map<String, dynamic>)).toList();
         }
         return <CircleTeamModel>[];
       },
@@ -44,7 +50,54 @@ class TeamsRemoteDataSource {
   Future<ApiResponse<CircleTeamModel>> getCircleDetails(String id) async {
     return _apiClient.get<CircleTeamModel>(
       ApiEndpoints.circleDetails(id),
-      fromJsonT: (json) => CircleTeamModel.fromJson(json as Map<String, dynamic>),
+      fromJsonT: (json) {
+        if (json is Map<String, dynamic>) {
+          if (json['data'] is Map<String, dynamic>) {
+            return CircleTeamModel.fromJson(json['data'] as Map<String, dynamic>);
+          }
+          return CircleTeamModel.fromJson(json);
+        }
+        return const CircleTeamModel(
+          name: '',
+          category: '',
+          location: '',
+          peersCount: 0,
+          healthPercentage: 0,
+          revenue: '₹0.0',
+          tags: [],
+          founderName: '',
+          directorName: '',
+          chairName: '',
+          status: 'Active',
+        );
+      },
+    );
+  }
+
+  /// Fetches dedicated circle peers for Module 2: GET /api/v1/teams/circles/{circle_id}/peers
+  Future<ApiResponse<List<PeerModel>>> getCirclePeers(
+    String circleId, {
+    String? status,
+    String? search,
+    String? sort,
+  }) async {
+    return _apiClient.get<List<PeerModel>>(
+      ApiEndpoints.circlePeers(circleId),
+      queryParameters: {
+        if (status != null && status != 'All') 'status': status,
+        if (search != null && search.isNotEmpty) 'search': search,
+        if (sort != null && sort.isNotEmpty) 'sort': sort,
+      },
+      fromJsonT: (json) {
+        if (json is List) {
+          return json.map((item) => PeerModel.fromJson(item as Map<String, dynamic>)).toList();
+        } else if (json is Map && json['data'] is List) {
+          return (json['data'] as List).map((item) => PeerModel.fromJson(item as Map<String, dynamic>)).toList();
+        } else if (json is Map && json['peers'] is List) {
+          return (json['peers'] as List).map((item) => PeerModel.fromJson(item as Map<String, dynamic>)).toList();
+        }
+        return <PeerModel>[];
+      },
     );
   }
 
@@ -52,7 +105,19 @@ class TeamsRemoteDataSource {
   Future<ApiResponse<CircleSubIndustriesResponse>> getSubIndustries(String circleId) async {
     return _apiClient.get<CircleSubIndustriesResponse>(
       ApiEndpoints.circleSubIndustries(circleId),
-      fromJsonT: (json) => CircleSubIndustriesResponse.fromJson(json as Map<String, dynamic>),
+      fromJsonT: (json) {
+        if (json is Map<String, dynamic>) {
+          if (json['data'] is Map<String, dynamic>) {
+            return CircleSubIndustriesResponse.fromJson(json['data'] as Map<String, dynamic>);
+          }
+          return CircleSubIndustriesResponse.fromJson(json);
+        }
+        return CircleSubIndustriesResponse(
+          circleId: circleId,
+          activeSubIndustries: const [],
+          openSubIndustries: const [],
+        );
+      },
     );
   }
 
@@ -72,58 +137,56 @@ class TeamsRemoteDataSource {
       fromJsonT: (json) {
         if (json is List) {
           return json.map((item) => CircleEventModel.fromJson(item as Map<String, dynamic>)).toList();
+        } else if (json is Map && json['data'] is List) {
+          return (json['data'] as List).map((item) => CircleEventModel.fromJson(item as Map<String, dynamic>)).toList();
+        } else if (json is Map && json['events'] is List) {
+          return (json['events'] as List).map((item) => CircleEventModel.fromJson(item as Map<String, dynamic>)).toList();
         }
         return <CircleEventModel>[];
       },
     );
   }
 
-  /// Fetches the master list of industries dynamically from API.
-  Future<ApiResponse<List<String>>> getIndustries() async {
-    // 1. Derive dynamically from live circles API (100% supported endpoint)
-    try {
-      final circlesRes = await getCircles();
-      if (circlesRes.success && circlesRes.data != null && circlesRes.data!.isNotEmpty) {
-        final dynamicIndustries = circlesRes.data!
-            .map((c) => c.category.trim())
-            .where((cat) => cat.isNotEmpty)
-            .toSet()
-            .toList();
-        if (dynamicIndustries.isNotEmpty) {
-          return ApiResponse<List<String>>(
-            success: true,
-            data: dynamicIndustries,
-            message: 'Derived dynamically from circles API',
-          );
+  /// Fetches the rich list of IndustryModel dynamically strictly from API.
+  Future<ApiResponse<List<IndustryModel>>> getIndustriesList() async {
+    return _apiClient.get<List<IndustryModel>>(
+      ApiEndpoints.teamsIndustries,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json
+              .map((item) => IndustryModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else if (json is Map && json['data'] is List) {
+          return (json['data'] as List)
+              .map((item) => IndustryModel.fromJson(item as Map<String, dynamic>))
+              .toList();
         }
-      }
-    } catch (_) {}
+        return <IndustryModel>[];
+      },
+    );
+  }
 
-    // 2. Fallback: dedicated industries endpoint if deployed
+  /// Fetches the list of industries dynamically strictly from API.
+  Future<ApiResponse<List<String>>> getIndustries() async {
     try {
-      final res = await _apiClient.get<List<String>>(
-        ApiEndpoints.teamsIndustries,
-        fromJsonT: (json) {
-          if (json is List) {
-            return json.map((item) {
-              if (item is Map) {
-                return (item['name'] ?? item['title'] ?? item['category'] ?? '').toString();
-              }
-              return item.toString();
-            }).where((s) => s.isNotEmpty).toList();
-          }
-          return <String>[];
-        },
-      );
+      final res = await getIndustriesList();
       if (res.success && res.data != null && res.data!.isNotEmpty) {
-        return res;
+        final names = res.data!
+            .map((i) => i.name.trim())
+            .where((n) => n.isNotEmpty)
+            .toList();
+        return ApiResponse<List<String>>(
+          success: true,
+          data: names,
+          message: res.message,
+        );
       }
     } catch (_) {}
 
-    return ApiResponse<List<String>>(
+    return const ApiResponse<List<String>>(
       success: true,
-      data: const ['Technology'],
-      message: 'Default industries',
+      data: <String>[],
+      message: 'No industries found',
     );
   }
 }

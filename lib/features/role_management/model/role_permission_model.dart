@@ -1,11 +1,12 @@
-/// Represents a dynamic role in the application.
 class RoleModel {
   final String id;
+  final String? roleKey;
   final String label;
   final bool isSystemRole;
 
   const RoleModel({
     required this.id,
+    this.roleKey,
     required this.label,
     this.isSystemRole = false,
   });
@@ -13,6 +14,7 @@ class RoleModel {
   factory RoleModel.fromJson(Map<String, dynamic> json) {
     return RoleModel(
       id: json['id']?.toString() ?? json['role_key']?.toString() ?? '',
+      roleKey: json['role_key'] as String?,
       label: json['label'] as String? ?? 'Role',
       isSystemRole: json['is_system_role'] as bool? ?? false,
     );
@@ -20,15 +22,18 @@ class RoleModel {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        if (roleKey != null) 'role_key': roleKey,
         'label': label,
         'is_system_role': isSystemRole,
       };
 
   RoleModel copyWith({
     String? label,
+    String? roleKey,
   }) {
     return RoleModel(
       id: id,
+      roleKey: roleKey ?? this.roleKey,
       label: label ?? this.label,
       isSystemRole: isSystemRole,
     );
@@ -167,8 +172,15 @@ class RolePermissionModel {
       }
     }
 
+    final RoleModel roleModel;
+    if (json['role'] is Map<String, dynamic>) {
+      roleModel = RoleModel.fromJson(json['role'] as Map<String, dynamic>);
+    } else {
+      roleModel = RoleModel.fromJson(json);
+    }
+
     return RolePermissionModel(
-      role: RoleModel.fromJson(json),
+      role: roleModel,
       enabledCapabilityIds: enabledCaps,
     );
   }

@@ -79,7 +79,13 @@ class _RoleManagementViewState extends State<RoleManagementView>
           children: [
             Icon(Icons.check_circle_rounded, color: Colors.white),
             SizedBox(width: 8),
-            Text('Role capabilities updated successfully!'),
+            Expanded(
+              child: Text(
+                'Role capabilities updated successfully!',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.green,

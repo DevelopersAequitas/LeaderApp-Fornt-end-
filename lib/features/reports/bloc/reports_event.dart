@@ -29,7 +29,14 @@ class ReportContentChanged extends ReportsEvent {
   const ReportContentChanged(this.content);
 }
 
+/// Dispatched when selecting a circle to submit report for.
+class ChangeSelectedCircle extends ReportsEvent {
+  final String circleName;
+  const ChangeSelectedCircle(this.circleName);
+}
+
 /// Dispatched when report form is submitted.
 class SubmitReportForm extends ReportsEvent {
   const SubmitReportForm();
 }
+

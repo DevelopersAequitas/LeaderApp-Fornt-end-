@@ -118,6 +118,8 @@ class _PeerProfileViewState extends State<PeerProfileView>
 
   @override
   Widget build(BuildContext context) {
+    final activePeer = _bloc.state.peer ?? widget.peer;
+
     return BlocProvider<PeerProfileBloc>.value(
       value: _bloc,
       child: BlocListener<PeerProfileBloc, PeerProfileState>(
@@ -136,7 +138,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      PeerProfileHeroCard(peer: widget.peer),
+                      PeerProfileHeroCard(peer: activePeer),
                       PeerProfileTabSelector(
                         activeIndex: _activeSubTab,
                         onTabSelected: (idx) => _presenter.changeSubTab(idx),
@@ -147,7 +149,7 @@ class _PeerProfileViewState extends State<PeerProfileView>
                       if (_activeSubTab == 0) ...[
                         if (_details != null)
                           PeerProfileOverviewSection(
-                            peer: widget.peer,
+                            peer: activePeer,
                             details: _details!,
                           ),
                       ] else if (_activeSubTab == 1) ...[

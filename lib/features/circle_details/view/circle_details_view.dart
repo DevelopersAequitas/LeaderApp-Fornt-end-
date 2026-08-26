@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
-import '../../../data/repositories/peers_repository.dart';
 import '../../../data/repositories/teams_repository.dart';
 import '../../peers/model/peer_model.dart';
 import '../../teams/model/teams_model.dart';
@@ -26,6 +25,7 @@ class CircleDetailsView extends StatefulWidget {
 }
 
 class _CircleDetailsViewState extends State<CircleDetailsView> {
+  late CircleTeamModel _circle;
   int _activeSubTab = 0; // 0: Overview, 1: Peers, 2: Sub-Industries, 3: Events
   String _selectedEventFilter = 'All';
 
@@ -41,19 +41,42 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
   @override
   void initState() {
     super.initState();
+    _circle = widget.circle;
+    _loadCircleDetails();
     _loadCirclePeers();
     _loadSubIndustries();
     _loadCircleEvents();
+  }
+
+  Future<void> _loadCircleDetails() async {
+    if (widget.circle.id.isEmpty) return;
+    try {
+      final res =
+          await TeamsRepositoryImpl().getCircleDetails(widget.circle.id);
+      if (mounted && res.success && res.data != null) {
+        setState(() {
+          _circle = res.data!;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadCirclePeers() async {
     setState(() => _isLoadingPeers = true);
     try {
       final res =
-          await PeersRepositoryImpl().getPeers(circleId: widget.circle.id);
+          await TeamsRepositoryImpl().getCirclePeers(widget.circle.id);
       if (mounted) {
+        final peers = (res.data ?? []).where((p) {
+          final cId = p.circleId;
+          if (cId != null && cId.isNotEmpty && cId != widget.circle.id) {
+            return false;
+          }
+          return true;
+        }).toList();
+
         setState(() {
-          _circlePeers = res.data ?? [];
+          _circlePeers = peers;
           _isLoadingPeers = false;
         });
       }
@@ -86,8 +109,15 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
         filter: _selectedEventFilter,
       );
       if (mounted) {
+        final events = (res.data ?? []).where((e) {
+          if (e.circleId.isNotEmpty && e.circleId != widget.circle.id) {
+            return false;
+          }
+          return true;
+        }).toList();
+
         setState(() {
-          _circleEvents = res.data ?? [];
+          _circleEvents = events;
           _isLoadingEvents = false;
         });
       }
@@ -102,15 +132,15 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
         title: 'Circle Details',
-        subtitle: widget.circle.name,
+        subtitle: _circle.name,
         showBackButton: true,
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CircleDetailsHeroCard(circle: widget.circle),
-            CircleLeadershipCard(circle: widget.circle),
+            CircleDetailsHeroCard(circle: _circle),
+            CircleLeadershipCard(circle: _circle),
             CircleDetailsTabSelector(
               activeTab: _activeSubTab,
               peersCount: _circlePeers.length,
@@ -118,7 +148,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
               onTabChanged: (idx) => setState(() => _activeSubTab = idx),
             ),
             if (_activeSubTab == 0)
-              CircleOverviewSection(circle: widget.circle),
+              CircleOverviewSection(circle: _circle),
             if (_activeSubTab == 1)
               CirclePeersSection(
                 peers: _circlePeers,
@@ -128,7 +158,7 @@ class _CircleDetailsViewState extends State<CircleDetailsView> {
               CircleSubIndustriesSection(
                 subIndustries: _subIndustries,
                 isLoading: _isLoadingSubIndustries,
-                categoryName: widget.circle.category,
+                categoryName: _circle.category,
               ),
             if (_activeSubTab == 3)
               CircleEventsSection(

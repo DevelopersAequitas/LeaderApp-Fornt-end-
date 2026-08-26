@@ -7,14 +7,11 @@ import '../bloc/finance_bloc.dart';
 import '../bloc/finance_state.dart';
 import '../model/finance_model.dart';
 import '../presenter/finance_presenter.dart';
-import 'widgets/commission_settings_bottom_sheet.dart';
-// import 'widgets/finance_action_buttons.dart';
 import 'widgets/finance_chart_section.dart';
 import 'widgets/finance_commission_rates.dart';
 import 'widgets/finance_commission_structure.dart';
 import 'widgets/finance_metrics_grid.dart';
 import 'widgets/finance_restricted_view.dart';
-import 'widgets/record_payment_bottom_sheet.dart';
 
 /// The View component of the Finance tab feature.
 class FinanceView extends StatefulWidget {
@@ -77,43 +74,6 @@ class _FinanceViewState extends State<FinanceView>
     setState(() => _isLoading = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
-    );
-  }
-
-  void _showRecordOfflinePaymentModal() {
-    RecordPaymentBottomSheet.show(
-      context,
-      selectedCircle: widget.selectedCircle,
-      onPaymentRecorded: () {
-        _presenter.load(selectedCircle: widget.selectedCircle);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Offline payment recorded successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      },
-      onError: onFinanceError,
-    );
-  }
-
-  void _showCommissionSettingsModal() {
-    CommissionSettingsBottomSheet.show(
-      context,
-      onRatesUpdated: () {
-        _presenter.load(selectedCircle: widget.selectedCircle);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Commission rates updated successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      },
-      onError: onFinanceError,
     );
   }
 

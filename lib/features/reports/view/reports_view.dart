@@ -33,6 +33,7 @@ class _ReportsViewState extends State<ReportsView>
   bool _isSubmitting = false;
   String _selectedType = 'Monthly';
   String _circleName = '';
+  List<String> _availableCircles = const [];
   List<ReportModel> _reports = const [];
   List<ReportsChartPoint> _attendanceTrend = const [];
 
@@ -81,6 +82,7 @@ class _ReportsViewState extends State<ReportsView>
       _attendanceTrend = _bloc.state.attendanceTrend;
       _selectedType = _bloc.state.selectedType;
       _circleName = _bloc.state.circleName;
+      _availableCircles = _bloc.state.availableCircles;
     });
   }
 
@@ -126,10 +128,7 @@ class _ReportsViewState extends State<ReportsView>
   @override
   Widget build(BuildContext context) {
     final role = SessionManager().currentRole;
-    final isCountryDirectorOrAdmin =
-        role == UserRole.countryDirector || role == UserRole.superAdmin;
-    final isReviewerOnly =
-        role == UserRole.industryDirector || role == UserRole.circleDirector;
+    final isSuperAdmin = role == UserRole.superAdmin;
 
     return BlocProvider<ReportsBloc>.value(
       value: _bloc,
@@ -143,14 +142,17 @@ class _ReportsViewState extends State<ReportsView>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (isCountryDirectorOrAdmin) ...[
-                      // Country Director / Super Admin View: Reports list & Export
+                    if (isSuperAdmin) ...[
+                      // Super Admin View: Reports list & Export
                       ReportsTabSelector(
                         activeIndex: _activeSubTab,
-                        onTabSelected: (idx) => setState(() => _activeSubTab = idx),
+                        onTabSelected: (idx) =>
+                            setState(() => _activeSubTab = idx),
                         firstTabLabel: 'Reports',
                         secondTabLabel: 'Export',
-                        secondTabBadge: _reports.isNotEmpty ? '${_reports.length}' : null,
+                        secondTabBadge: _reports.isNotEmpty
+                            ? '${_reports.length}'
+                            : null,
                       ),
                       const SizedBox(height: 4),
                       if (_activeSubTab == 0)
@@ -160,49 +162,27 @@ class _ReportsViewState extends State<ReportsView>
                           selectedCircle: widget.selectedCircle,
                           attendanceTrend: _attendanceTrend,
                         ),
-                    ] else if (isReviewerOnly) ...[
-                      // Reviewer (e.g. Industry Director / Circle Director): Review reports list
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1E3C72),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                'Submitted Reports (${_reports.length})',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ReportHistorySection(reports: _reports),
                     ] else ...[
-                      // Circle Founder / Circle Chair View: Submit Report & History
+                      // All Leadership Roles (CC, CF, CD, ID, DED): Submit Report & Scoped Reports History
                       ReportsTabSelector(
                         activeIndex: _activeSubTab,
                         onTabSelected: (idx) => _presenter.changeSubTab(idx),
                         firstTabLabel: 'Submit Report',
-                        secondTabLabel: 'History',
-                        secondTabBadge: _reports.isNotEmpty ? '${_reports.length}' : null,
+                        secondTabLabel: 'Reports',
+                        secondTabBadge: _reports.isNotEmpty
+                            ? '${_reports.length}'
+                            : null,
                       ),
                       const SizedBox(height: 4),
                       if (_activeSubTab == 0)
                         ReportSubmitSection(
                           selectedType: _selectedType,
-                          onTypeChanged: (type) => _presenter.changeReportType(type),
+                          onTypeChanged: (type) =>
+                              _presenter.changeReportType(type),
                           circleName: _circleName,
+                          availableCircles: _availableCircles,
+                          onCircleChanged: (circle) =>
+                              _presenter.changeCircle(circle),
                           contentController: _contentController,
                           isSubmitting: _isSubmitting,
                           onSubmit: () => _presenter.submit(),
@@ -217,4 +197,5 @@ class _ReportsViewState extends State<ReportsView>
       ),
     );
   }
+
 }

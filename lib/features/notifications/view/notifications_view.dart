@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/widgets.dart';
 import '../bloc/notifications_bloc.dart';
 import '../bloc/notifications_state.dart';
 import '../model/notification_model.dart';
 import '../presenter/notifications_presenter.dart';
-import '../../../core/widgets/widgets.dart';
+import 'widgets/notification_date_group.dart';
+import 'widgets/notifications_clear_dialog.dart';
+import 'widgets/notifications_filter_chips.dart';
+import 'widgets/notifications_summary_header.dart';
 
-/// Screen component rendering user notifications.
+/// Screen component rendering user notifications with date-wise grouping and Material 3 design.
 class NotificationsView extends StatefulWidget {
   const NotificationsView({super.key});
 
@@ -22,6 +26,7 @@ class _NotificationsViewState extends State<NotificationsView>
 
   bool _isLoading = false;
   List<NotificationModel> _notifications = const [];
+  String _selectedFilter = 'All';
 
   @override
   void initState() {
@@ -41,9 +46,7 @@ class _NotificationsViewState extends State<NotificationsView>
 
   @override
   void onNotificationsLoading() {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
   }
 
   @override
@@ -56,260 +59,94 @@ class _NotificationsViewState extends State<NotificationsView>
 
   @override
   void onNotificationsError(String error) {
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(error),
-        backgroundColor: Colors.redAccent,
-      ),
+      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
     );
   }
 
-  // --- UI Widget Builders ---
-
-  PreferredSizeWidget _buildAppBar() {
-    return const CustomAppBar(
-      title: 'Notifications',
-      showBackButton: true,
+  void _showClearAllDialog() {
+    NotificationsClearDialog.show(
+      context,
+      onConfirm: () => _presenter.clearAll(),
     );
   }
 
-  Widget _buildSummaryHeader() {
-    final unreadCount = _notifications.where((n) => n.isUnread).length;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        children: [
-          // Total & Unread summary text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${_notifications.length} notifications',
-                  style: const TextStyle(
-                    color: AppColors.text,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                if (unreadCount > 0) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '$unreadCount unread alerts',
-                    style: const TextStyle(
-                      color: Color(0xFFE27C00),
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // Mark all read button
-          if (_notifications.isNotEmpty) ...[
-            InkWell(
-              onTap: () => _presenter.markAllAsRead(),
-              borderRadius: BorderRadius.circular(8),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                child: Text(
-                  'Mark all read',
-                  style: TextStyle(
-                    color: Colors.indigo,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Clear all button
-            InkWell(
-              onTap: () => _presenter.clearAll(),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(
-                      Icons.delete_outline_outlined,
-                      color: Colors.redAccent,
-                      size: 14,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Clear all',
-                      style: TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+  List<NotificationModel> _getFilteredNotifications() {
+    switch (_selectedFilter) {
+      case 'Unread':
+        return _notifications.where((n) => n.isUnread).toList();
+      case 'Referrals':
+        return _notifications
+            .where((n) => n.type == NotificationType.referral)
+            .toList();
+      case 'Deals':
+        return _notifications
+            .where((n) => n.type == NotificationType.deal)
+            .toList();
+      case 'Meetings':
+        return _notifications
+            .where((n) => n.type == NotificationType.meeting)
+            .toList();
+      case 'Alerts':
+        return _notifications
+            .where((n) =>
+                n.type == NotificationType.alert ||
+                n.type == NotificationType.report)
+            .toList();
+      default:
+        return _notifications;
+    }
   }
 
-  Widget _buildNotificationCard(NotificationModel notification) {
-    Color iconBg = Colors.grey.shade100;
-    Color iconColor = Colors.grey;
-    IconData iconData = Icons.notifications_none;
-    String badgeLabel = 'INFO';
-    Color badgeBg = Colors.grey.shade100;
-    Color badgeTextColor = Colors.grey;
+  Map<String, List<NotificationModel>> _groupByDate(
+      List<NotificationModel> list) {
+    final Map<String, List<NotificationModel>> groups = {};
 
-    switch (notification.type) {
-      case NotificationType.referral:
-        iconBg = const Color(0xFFE8F0FE);
-        iconColor = const Color(0xFF1565C0);
-        iconData = Icons.campaign_outlined;
-        badgeLabel = 'REFERRAL';
-        badgeBg = const Color(0xFFE8F0FE);
-        badgeTextColor = const Color(0xFF1565C0);
-        break;
-      case NotificationType.deal:
-        iconBg = const Color(0xFFE8F5E9);
-        iconColor = const Color(0xFF2E7D32);
-        iconData = Icons.monetization_on_outlined;
-        badgeLabel = 'DEAL';
-        badgeBg = const Color(0xFFE8F5E9);
-        badgeTextColor = const Color(0xFF2E7D32);
-        break;
-      case NotificationType.alert:
-        iconBg = const Color(0xFFFFF2F2);
-        iconColor = const Color(0xFFD32F2F);
-        iconData = Icons.flash_on_outlined;
-        badgeLabel = 'ALERT';
-        badgeBg = const Color(0xFFFFF2F2);
-        badgeTextColor = const Color(0xFFD32F2F);
-        break;
-      case NotificationType.meeting:
-        iconBg = const Color(0xFFFFF7ED);
-        iconColor = const Color(0xFFD97706);
-        iconData = Icons.calendar_today_outlined;
-        badgeLabel = 'MEETING';
-        badgeBg = const Color(0xFFFFF7ED);
-        badgeTextColor = const Color(0xFFD97706);
-        break;
-      case NotificationType.report:
-        iconBg = const Color(0xFFF1F5F9);
-        iconColor = const Color(0xFF475569);
-        iconData = Icons.description_outlined;
-        badgeLabel = 'REPORT';
-        badgeBg = const Color(0xFFE2E8F0);
-        badgeTextColor = const Color(0xFF475569);
-        break;
+    for (final notif in list) {
+      final t = notif.time.toLowerCase();
+      String groupKey = 'Earlier';
+
+      if (t.contains('today') ||
+          t.contains('m ago') ||
+          t.contains('h ago') ||
+          t.contains('min') ||
+          t.contains('just now') ||
+          t.contains('sec')) {
+        groupKey = 'Today';
+      } else if (t.contains('yesterday') ||
+          t.contains('1d ago') ||
+          t.contains('1 day')) {
+        groupKey = 'Yesterday';
+      } else if (t.contains('2d ago') ||
+          t.contains('3d ago') ||
+          t.contains('4d ago') ||
+          t.contains('this week')) {
+        groupKey = 'This Week';
+      } else {
+        final commaIdx = notif.time.indexOf(',');
+        if (commaIdx != -1) {
+          final prefix = notif.time.substring(0, commaIdx).trim();
+          groupKey = prefix.isNotEmpty ? prefix : 'Earlier';
+        } else if (notif.time.isNotEmpty && notif.time != 'Recent') {
+          groupKey = notif.time;
+        } else {
+          groupKey = 'Earlier';
+        }
+      }
+
+      groups.putIfAbsent(groupKey, () => []).add(notif);
     }
 
-    return Container(
-      color: notification.isUnread ? const Color(0xFFF3F6FA) : Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Unread indicator dot
-          Container(
-            width: 8,
-            height: 8,
-            margin: const EdgeInsets.only(top: 14, right: 12),
-            decoration: BoxDecoration(
-              color: notification.isUnread ? const Color(0xFF1F3D68) : Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-          ),
-          // Soft-tinted Icon Box
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: Icon(iconData, color: iconColor, size: 20),
-          ),
-          const SizedBox(width: 16),
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
-                    Expanded(
-                      child: Text(
-                        notification.title,
-                        style: const TextStyle(
-                          color: AppColors.text,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Type Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: badgeBg,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        badgeLabel,
-                        style: TextStyle(
-                          color: badgeTextColor,
-                          fontSize: 8,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                // Description Subtitle
-                Text(
-                  notification.description,
-                  style: TextStyle(
-                    color: AppColors.text.withValues(alpha: 0.7),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                // Time
-                Text(
-                  notification.time,
-                  style: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return groups;
   }
 
   @override
   Widget build(BuildContext context) {
+    final filtered = _getFilteredNotifications();
+    final unreadCount = _notifications.where((n) => n.isUnread).length;
+    final dateGroups = _groupByDate(filtered);
+
     return BlocProvider<NotificationsBloc>.value(
       value: _bloc,
       child: BlocListener<NotificationsBloc, NotificationsState>(
@@ -317,36 +154,92 @@ class _NotificationsViewState extends State<NotificationsView>
           _presenter.handleStateChange(state);
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFFF9FAFC),
-          appBar: _buildAppBar(),
-          body: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
-                  ),
-                )
+          backgroundColor: AppColors.background,
+          appBar: const CustomAppBar(
+            title: 'Notifications',
+            showBackButton: true,
+          ),
+          body: _isLoading && _notifications.isEmpty
+              ? const CenteredLoadingIndicator(height: 300)
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildSummaryHeader(),
-                    const Divider(height: 1, color: Color(0xFFEDEFF3)),
+                    // Summary Header
+                    NotificationsSummaryHeader(
+                      totalCount: _notifications.length,
+                      unreadCount: unreadCount,
+                      onMarkAllRead: () => _presenter.markAllAsRead(),
+                      onClearAll: _showClearAllDialog,
+                    ),
+                    // Filter Chips
+                    if (_notifications.isNotEmpty) ...[
+                      NotificationsFilterChips(
+                        selectedFilter: _selectedFilter,
+                        onFilterSelected: (filter) {
+                          setState(() => _selectedFilter = filter);
+                        },
+                        allCount: _notifications.length,
+                        unreadCount: unreadCount,
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    // Notifications List by Date
                     Expanded(
-                      child: _notifications.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No notifications found.',
-                                style: TextStyle(
-                                  color: Color(0xFF8B9CB4),
-                                  fontSize: 14,
-                                ),
+                      child: filtered.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                      Icons.notifications_off_outlined,
+                                      color: AppColors.textSecondary,
+                                      size: 26,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _selectedFilter == 'All'
+                                        ? 'No notifications yet'
+                                        : 'No $_selectedFilter notifications',
+                                    style: const TextStyle(
+                                      color: AppColors.text,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'Alerts, referrals, and meeting updates will appear here.',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 12,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
                             )
-                          : ListView.separated(
-                              itemCount: _notifications.length,
-                              separatorBuilder: (context, index) =>
-                                  const Divider(height: 1, color: Color(0xFFEDEFF3)),
-                              itemBuilder: (context, index) =>
-                                  _buildNotificationCard(_notifications[index]),
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 24),
+                              itemCount: dateGroups.length,
+                              itemBuilder: (context, index) {
+                                final dateKey =
+                                    dateGroups.keys.elementAt(index);
+                                final groupList = dateGroups[dateKey]!;
+
+                                return NotificationDateGroup(
+                                  dateTitle: dateKey,
+                                  notifications: groupList,
+                                );
+                              },
                             ),
                     ),
                   ],

@@ -49,12 +49,8 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
     final activeCircle = event.selectedCircle ?? state.selectedCircle ?? '';
 
     try {
-      final industriesResponse = await _teamsRepository.getIndustries();
-      final circlesResponse = await _teamsRepository.getCircles(
-        industry: state.selectedIndustryFilter,
-        status: state.selectedStatusFilter,
-        search: state.searchQuery,
-      );
+      final industriesResponse = await _teamsRepository.getIndustriesList();
+      final circlesResponse = await _teamsRepository.getCircles();
 
       final allCircles = circlesResponse.data ?? const [];
       final filtered = _filterAndSortCircles(
@@ -64,13 +60,12 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
         state.selectedIndustryFilter,
       );
 
-      final Set<String> industriesSet = {'All Industries'};
-      if (industriesResponse.data != null) {
-        industriesSet.addAll(industriesResponse.data!);
-      }
-      for (final circle in allCircles) {
-        if (circle.category.trim().isNotEmpty) {
-          industriesSet.add(circle.category.trim());
+      final List<IndustryModel> rawIndustries = industriesResponse.data ?? [];
+      final List<String> industriesSet = ['All Industries'];
+      for (final ind in rawIndustries) {
+        final name = ind.name.trim();
+        if (name.isNotEmpty && !industriesSet.contains(name)) {
+          industriesSet.add(name);
         }
       }
 
@@ -81,7 +76,8 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
           allCircles: allCircles,
           filteredCircles: filtered,
           selectedCircle: activeCircle,
-          availableIndustries: industriesSet.toList(),
+          availableIndustries: industriesSet,
+          industriesList: rawIndustries,
         ),
       );
     } catch (e) {

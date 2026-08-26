@@ -18,31 +18,38 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
   Future<void> _onLoadPeerProfile(LoadPeerProfile event, Emitter<PeerProfileState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: ''));
 
-    final peer = event.peer;
-
+    var currentPeer = event.peer;
     List<PeerMeetingModel> realMeetings = [];
     List<PeerActivityModel> realActivities = [];
 
-    try {
-      if (peer.id.isNotEmpty) {
-        final meetingsRes = await _peersRepository.getPeerMeetings(peer.id);
+    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+    final hasValidId = currentPeer.id.trim().isNotEmpty && uuidRegex.hasMatch(currentPeer.id.trim());
+
+    if (hasValidId) {
+      try {
+        final peerDetailsRes = await _peersRepository.getPeerDetails(currentPeer.id.trim());
+        if (peerDetailsRes.success && peerDetailsRes.data != null) {
+          currentPeer = peerDetailsRes.data!;
+        }
+
+        final meetingsRes = await _peersRepository.getPeerMeetings(currentPeer.id.trim());
         if (meetingsRes.success && meetingsRes.data != null) {
           realMeetings = meetingsRes.data!;
         }
 
-        final activitiesRes = await _peersRepository.getPeerActivities(peer.id);
+        final activitiesRes = await _peersRepository.getPeerActivities(currentPeer.id.trim());
         if (activitiesRes.success && activitiesRes.data != null) {
           realActivities = activitiesRes.data!;
         }
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
 
     final details = PeerProfileDetailModel(
-      dealsClosed: peer.dealsFormatted,
-      referralsGiven: peer.impactCount,
-      p2pSessions: (peer.impactCount * 0.8).round(),
-      coinsEarned: peer.coins,
-      attendanceRate: peer.attendance,
+      dealsClosed: currentPeer.dealsFormatted,
+      referralsGiven: currentPeer.impactCount,
+      p2pSessions: (currentPeer.impactCount * 0.8).round(),
+      coinsEarned: currentPeer.coins,
+      attendanceRate: currentPeer.attendance,
       birthday: '',
       anniversary: '',
       meetings: realMeetings,
@@ -53,7 +60,7 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
     emit(
       state.copyWith(
         isLoading: false,
-        peer: peer,
+        peer: currentPeer,
         details: details,
       ),
     );

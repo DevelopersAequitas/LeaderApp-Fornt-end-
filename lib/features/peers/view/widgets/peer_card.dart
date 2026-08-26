@@ -93,7 +93,8 @@ class PeerCard extends StatelessWidget {
           children: [
             InitialsAvatar(
               name: peer.name,
-              radius: 20,
+              imageUrl: peer.avatarUrl,
+              radius: 22,
               backgroundColor: normStatus.contains('risk')
                   ? AppColors.danger
                   : const Color(0xFF1E3C72),

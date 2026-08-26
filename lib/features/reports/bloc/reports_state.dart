@@ -7,6 +7,7 @@ class ReportsState {
   final int activeSubTab; // 0: Submit, 1: History
   final String selectedType; // "Weekly" or "Monthly"
   final String circleName;
+  final List<String> availableCircles;
   final String reportContent;
   final List<ReportModel> submittedReports;
   final List<ReportsChartPoint> attendanceTrend;
@@ -20,6 +21,7 @@ class ReportsState {
     this.activeSubTab = 0,
     this.selectedType = 'Monthly',
     this.circleName = '',
+    this.availableCircles = const [],
     this.reportContent = '',
     this.submittedReports = const [],
     this.attendanceTrend = const [],
@@ -34,6 +36,7 @@ class ReportsState {
     int? activeSubTab,
     String? selectedType,
     String? circleName,
+    List<String>? availableCircles,
     String? reportContent,
     List<ReportModel>? submittedReports,
     List<ReportsChartPoint>? attendanceTrend,
@@ -47,6 +50,7 @@ class ReportsState {
       activeSubTab: activeSubTab ?? this.activeSubTab,
       selectedType: selectedType ?? this.selectedType,
       circleName: circleName ?? this.circleName,
+      availableCircles: availableCircles ?? this.availableCircles,
       reportContent: reportContent ?? this.reportContent,
       submittedReports: submittedReports ?? this.submittedReports,
       attendanceTrend: attendanceTrend ?? this.attendanceTrend,
@@ -57,3 +61,4 @@ class ReportsState {
     );
   }
 }
+

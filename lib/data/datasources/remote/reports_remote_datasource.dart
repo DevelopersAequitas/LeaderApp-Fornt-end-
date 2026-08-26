@@ -38,24 +38,48 @@ class ReportsRemoteDataSource {
     );
   }
 
+  /// Fetches single report details including peer breakdown.
+  Future<ApiResponse<ReportModel>> getReportDetails(String id) async {
+    return _apiClient.get<ReportModel>(
+      '${ApiEndpoints.reports}/$id',
+      fromJsonT: (json) => ReportModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
   /// Submits a new report.
   Future<ApiResponse<Map<String, dynamic>>> submitReport({
     required String circleId,
     required String type,
     required String period,
     required String content,
-    int? attendancePercentage,
+    num? attendancePercentage,
     String? dealsClosedValue,
+    String? totalRevenue,
+    String? highlights,
+    String? challengesFaced,
     String? actionItems,
+    List<String>? includedSections,
   }) async {
     final body = <String, dynamic>{
       'circle_id': circleId,
+      'report_type': type,
       'type': type,
       'period': period,
       'content': content,
+      'summary_text': content,
+      'included_sections': includedSections ?? const [
+        'attendance',
+        'financials',
+        'peer_roster',
+        'p2p_meetings',
+        'action_items'
+      ],
     };
     if (attendancePercentage != null) body['attendance_percentage'] = attendancePercentage;
     if (dealsClosedValue != null) body['deals_closed_value'] = dealsClosedValue;
+    if (totalRevenue != null) body['total_revenue'] = totalRevenue;
+    if (highlights != null) body['highlights'] = highlights;
+    if (challengesFaced != null) body['challenges_faced'] = challengesFaced;
     if (actionItems != null) body['action_items'] = actionItems;
 
     return _apiClient.post<Map<String, dynamic>>(
@@ -64,6 +88,7 @@ class ReportsRemoteDataSource {
       fromJsonT: (json) => json as Map<String, dynamic>,
     );
   }
+
 
   /// Fetches attendance trend chart points.
   Future<ApiResponse<List<ReportsChartPoint>>> getAttendanceTrend({String? circleId}) async {

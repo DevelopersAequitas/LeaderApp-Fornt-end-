@@ -135,10 +135,7 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
           )
         else
           ..._peers.map(
-            (peer) => PeerCard(
-              peer: peer,
-              selectedSort: _selectedSort,
-            ),
+            (peer) => PeerCard(peer: peer, selectedSort: _selectedSort),
           ),
         if (isRoleManagementVisible) const PeerRoleManagementSection(),
         const SizedBox(height: 20),
@@ -167,7 +164,11 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
             child: Row(
               children: [
-                const Icon(Icons.cake_rounded, color: Colors.redAccent, size: 16),
+                const Icon(
+                  Icons.cake_rounded,
+                  color: Colors.redAccent,
+                  size: 16,
+                ),
                 const SizedBox(width: 6),
                 const Expanded(
                   child: Text(
@@ -180,8 +181,10 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0F4F8),
                     borderRadius: BorderRadius.circular(8),
@@ -224,8 +227,10 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0F4F8),
                     borderRadius: BorderRadius.circular(8),
@@ -273,8 +278,8 @@ class _PeersViewState extends State<PeersView> implements PeersViewContract {
             _isLoading
                 ? const CenteredLoadingIndicator(height: 300)
                 : _activeSubTab == 0
-                    ? _buildPeersListTab()
-                    : _buildCelebrationsTab(),
+                ? _buildPeersListTab()
+                : _buildCelebrationsTab(),
           ],
         ),
       ),

@@ -9,8 +9,9 @@ abstract class PeersRepository {
   Future<ApiResponse<List<PeerModel>>> getPeers({
     String? circleId,
     String? status,
-    String? sort,
     String? search,
+    int? page,
+    int? perPage,
   });
   Future<ApiResponse<PeerModel>> getPeerDetails(String id);
   Future<ApiResponse<CelebrationsResponse>> getCelebrations({String? circleId});
@@ -39,16 +40,18 @@ class PeersRepositoryImpl implements PeersRepository {
   Future<ApiResponse<List<PeerModel>>> getPeers({
     String? circleId,
     String? status,
-    String? sort,
     String? search,
+    int? page,
+    int? perPage,
   }) async {
     final cacheKey = 'peers_list_${circleId ?? "all"}_${status ?? "all"}';
     try {
       final response = await _remoteDataSource.getPeers(
         circleId: circleId,
         status: status,
-        sort: sort,
         search: search,
+        page: page,
+        perPage: perPage,
       );
       if (response.success && response.data != null) {
         final listJson = response.data!.map((x) => x.toJson()).toList();

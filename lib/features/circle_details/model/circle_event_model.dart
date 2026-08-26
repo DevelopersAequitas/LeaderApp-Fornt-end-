@@ -1,6 +1,7 @@
 /// Model representing a circle assembly or summit event.
 class CircleEventModel {
   final String id;
+  final String circleId;
   final String title;
   final String date;
   final String time;
@@ -11,6 +12,7 @@ class CircleEventModel {
 
   const CircleEventModel({
     required this.id,
+    this.circleId = '',
     required this.title,
     required this.date,
     required this.time,
@@ -23,6 +25,7 @@ class CircleEventModel {
   factory CircleEventModel.fromJson(Map<String, dynamic> json) {
     return CircleEventModel(
       id: json['id']?.toString() ?? '',
+      circleId: json['circle_id']?.toString() ?? '',
       title: json['title'] as String? ?? 'Event',
       date: json['date'] as String? ?? '',
       time: json['time'] as String? ?? '',
@@ -35,6 +38,7 @@ class CircleEventModel {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'circle_id': circleId,
         'title': title,
         'date': date,
         'time': time,

@@ -82,6 +82,14 @@ class SecureStorageService {
     }
   }
 
+  /// Saves permissions securely.
+  Future<void> savePermissions(LeaderPermissions permissions) async {
+    await _storage.write(
+      key: _keyPermissions,
+      value: jsonEncode(permissions.toJson()),
+    );
+  }
+
   /// Retrieves and reconstructs the persisted LeaderPermissions.
   Future<LeaderPermissions?> getPermissions() async {
     final raw = await _storage.read(key: _keyPermissions);

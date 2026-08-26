@@ -49,8 +49,10 @@ abstract class ApiEndpoints {
   static String get teamsCircles => '$baseUrl/teams/circles';
   static String get teamsIndustries => '$baseUrl/teams/industries';
   static String circleDetails(String id) => '$baseUrl/teams/circles/$id';
+  static String circlePeers(String id) => '$baseUrl/teams/circles/$id/peers';
   static String circleSubIndustries(String id) => '$baseUrl/teams/circles/$id/sub-industries';
   static String circleEvents(String id) => '$baseUrl/teams/circles/$id/events';
+
 
   // --- 5. Finance ---
   static String get financeMetrics => '$baseUrl/finance/metrics';

@@ -10,8 +10,8 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
   final PeersRepository _peersRepository;
 
   PeersBloc({PeersRepository? peersRepository})
-      : _peersRepository = peersRepository ?? PeersRepositoryImpl(),
-        super(const PeersState()) {
+    : _peersRepository = peersRepository ?? PeersRepositoryImpl(),
+      super(const PeersState()) {
     on<LoadPeersData>(_onLoadPeersData);
     on<SearchQueryChanged>(_onSearchQueryChanged);
     on<StatusFilterChanged>(_onStatusFilterChanged);
@@ -20,28 +20,40 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     on<SendWish>(_onSendWish);
   }
 
-  Future<void> _onLoadPeersData(LoadPeersData event, Emitter<PeersState> emit) async {
+  Future<void> _onLoadPeersData(
+    LoadPeersData event,
+    Emitter<PeersState> emit,
+  ) async {
     if (state.allPeers.isEmpty) {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
     }
 
     final session = SessionManager().currentSession;
-    final activeCircle =
-        event.selectedCircle ??
-        state.selectedCircle ??
-        (session.managedCircles.isNotEmpty
-            ? session.managedCircles.first
-            : (session.regionalScope.isNotEmpty ? session.regionalScope : null));
+    final uuidRegex = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    );
+
+    String? activeCircle = event.selectedCircle ?? state.selectedCircle;
+    if (activeCircle != null && !uuidRegex.hasMatch(activeCircle.trim())) {
+      activeCircle = null;
+    }
+    if (activeCircle == null && session.managedCircles.isNotEmpty) {
+      final first = session.managedCircles.first.trim();
+      if (uuidRegex.hasMatch(first)) {
+        activeCircle = first;
+      }
+    }
 
     try {
       final peersResponse = await _peersRepository.getPeers(
         circleId: activeCircle,
         status: state.selectedStatus,
-        sort: state.selectedSort,
         search: state.searchQuery,
       );
 
-      final celebrationsResponse = await _peersRepository.getCelebrations(circleId: activeCircle);
+      final celebrationsResponse = await _peersRepository.getCelebrations(
+        circleId: activeCircle,
+      );
 
       final allPeers = peersResponse.data ?? const [];
       final filtered = _filterAndSort(
@@ -108,14 +120,11 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
 
   Future<void> _onSendWish(SendWish event, Emitter<PeersState> emit) async {
     try {
-      await _peersRepository.sendWish(
-        event.peerName,
-        type: event.type,
-      );
+      await _peersRepository.sendWish(event.peerName, type: event.type);
     } catch (_) {}
   }
 
-  // --- Filtering & Sorting Helpers ---
+  // --- Filtering & Top-to-Bottom App-Side Sorting Logic ---
 
   List<PeerModel> _filterAndSort(
     List<PeerModel> list,
@@ -133,54 +142,103 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
                 p.company.toLowerCase().contains(cleanQuery) ||
                 p.circle.toLowerCase().contains(cleanQuery) ||
                 p.tags.toLowerCase().contains(cleanQuery) ||
-                p.location.toLowerCase().contains(cleanQuery),
+                p.location.toLowerCase().contains(cleanQuery) ||
+                (p.level4Category != null &&
+                    p.level4Category!.toLowerCase().contains(cleanQuery)) ||
+                (p.industry != null &&
+                    p.industry!.toLowerCase().contains(cleanQuery)),
           )
           .toList();
     }
 
     if (status != 'All') {
-      final cleanStatus = status.toLowerCase().replaceAll(' ', '').replaceAll('_', '');
+      final cleanStatus = status
+          .toLowerCase()
+          .replaceAll(' ', '')
+          .replaceAll('_', '');
       result = result.where((p) {
-        final pStatus = p.status.toLowerCase().replaceAll(' ', '').replaceAll('_', '');
+        final pStatus = p.status
+            .toLowerCase()
+            .replaceAll(' ', '')
+            .replaceAll('_', '');
         return pStatus == cleanStatus;
       }).toList();
     }
 
     result = List.from(result);
-    if (sort == 'Impact') {
-      result.sort((a, b) => b.impactCount.compareTo(a.impactCount));
-    } else if (sort == 'Deals') {
-      result.sort(
-        (a, b) => _parseDeals(
+    final sortLower = sort.toLowerCase().trim();
+
+    if (sortLower == 'impact') {
+      // Top to bottom by highest Impact Count
+      result.sort((a, b) {
+        final cmp = b.impactCount.compareTo(a.impactCount);
+        if (cmp != 0) return cmp;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+    } else if (sortLower == 'deals') {
+      // Top to bottom by highest Closed Deals value
+      result.sort((a, b) {
+        final cmp = _parseDeals(
           b.dealsFormatted,
-        ).compareTo(_parseDeals(a.dealsFormatted)),
-      );
-    } else if (sort == 'Coins') {
-      result.sort((a, b) => b.coins.compareTo(a.coins));
-    } else if (sort == 'Attendance') {
-      result.sort(
-        (a, b) => _parseAttendance(
+        ).compareTo(_parseDeals(a.dealsFormatted));
+        if (cmp != 0) return cmp;
+        return b.impactCount.compareTo(a.impactCount);
+      });
+    } else if (sortLower == 'coins') {
+      // Top to bottom by highest Coins earned
+      result.sort((a, b) {
+        final cmp = b.coins.compareTo(a.coins);
+        if (cmp != 0) return cmp;
+        return b.impactCount.compareTo(a.impactCount);
+      });
+    } else if (sortLower == 'attendance') {
+      // Top to bottom by highest Attendance percentage
+      result.sort((a, b) {
+        final cmp = _parseAttendance(
           b.attendance,
-        ).compareTo(_parseAttendance(a.attendance)),
+        ).compareTo(_parseAttendance(a.attendance));
+        if (cmp != 0) return cmp;
+        return b.impactCount.compareTo(a.impactCount);
+      });
+    } else if (sortLower == 'name') {
+      // Alphabetical A to Z
+      result.sort(
+        (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
+    } else {
+      // Default: Top to bottom by Impact
+      result.sort((a, b) => b.impactCount.compareTo(a.impactCount));
     }
 
     return result;
   }
 
   double _parseDeals(String deals) {
-    final clean = deals.replaceAll('₹', '').replaceAll(' ', '');
-    if (clean.contains('Cr')) {
-      final val = double.tryParse(clean.replaceAll('Cr', '')) ?? 0.0;
-      return val * 100.0;
-    } else if (clean.contains('L')) {
-      return double.tryParse(clean.replaceAll('L', '')) ?? 0.0;
+    if (deals.isEmpty) return 0.0;
+    final clean = deals
+        .replaceAll('₹', '')
+        .replaceAll(',', '')
+        .replaceAll(' ', '')
+        .trim();
+    if (clean.toUpperCase().contains('CR')) {
+      final val =
+          double.tryParse(clean.toUpperCase().replaceAll('CR', '')) ?? 0.0;
+      return val * 10000000.0;
+    } else if (clean.toUpperCase().contains('L')) {
+      final val =
+          double.tryParse(clean.toUpperCase().replaceAll('L', '')) ?? 0.0;
+      return val * 100000.0;
+    } else if (clean.toUpperCase().contains('K')) {
+      final val =
+          double.tryParse(clean.toUpperCase().replaceAll('K', '')) ?? 0.0;
+      return val * 1000.0;
     }
-    return 0.0;
+    return double.tryParse(clean) ?? 0.0;
   }
 
-  int _parseAttendance(String val) {
-    final clean = val.replaceAll('%', '').trim();
-    return int.tryParse(clean) ?? 0;
+  double _parseAttendance(String val) {
+    if (val.isEmpty) return 0.0;
+    final clean = val.replaceAll('%', '').replaceAll(' ', '').trim();
+    return double.tryParse(clean) ?? 0.0;
   }
 }

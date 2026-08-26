@@ -33,28 +33,69 @@ class ReferralModel {
   });
 
   factory ReferralModel.fromJson(Map<String, dynamic> json) {
-    final name = json['peer_name'] as String? ?? json['name'] as String? ?? 'Peer';
-    final nameParts = name.split(' ');
+    final name = json['peer_name'] as String? ??
+        json['name'] as String? ??
+        json['prospect_name'] as String? ??
+        'Peer';
+    final nameParts = name.trim().split(' ');
     final initials = nameParts.length > 1
-        ? '${nameParts[0][0]}${nameParts[1][0]}'
-        : name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
+        ? '${nameParts[0].isNotEmpty ? nameParts[0][0] : ""}${nameParts[1].isNotEmpty ? nameParts[1][0] : ""}'
+        : (name.length >= 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase());
 
-    final referralsCount = json['referrals_count'] as int? ?? json['referral_count'] as int? ?? 0;
+    final referralsCount =
+        json['referrals_count'] as int? ?? json['referral_count'] as int? ?? 0;
+
+    String statusStr = 'Active';
+    final rawStatus = json['status'];
+    if (rawStatus is Map) {
+      statusStr = rawStatus['name']?.toString() ??
+          rawStatus['status']?.toString() ??
+          rawStatus['label']?.toString() ??
+          'Active';
+    } else if (rawStatus is String) {
+      statusStr = rawStatus;
+    }
+
+    String categoryStr = 'General';
+    final rawCat = json['category'];
+    if (rawCat is Map) {
+      categoryStr = rawCat['name']?.toString() ??
+          rawCat['category']?.toString() ??
+          rawCat['label']?.toString() ??
+          'General';
+    } else if (rawCat is String) {
+      categoryStr = rawCat;
+    }
+
+    String sourceStr = 'Direct';
+    final rawSource = json['source'];
+    if (rawSource is Map) {
+      sourceStr = rawSource['name']?.toString() ??
+          rawSource['source']?.toString() ??
+          rawSource['label']?.toString() ??
+          'Direct';
+    } else if (rawSource is String) {
+      sourceStr = rawSource;
+    }
 
     return ReferralModel(
       id: json['id']?.toString() ?? '',
       rank: json['rank'] as int? ?? 1,
       name: name,
-      initials: initials,
-      company: json['company'] as String? ?? '',
+      initials: initials.isNotEmpty ? initials : 'PR',
+      company: json['company'] as String? ??
+          json['prospect_company'] as String? ??
+          '',
       referralCount: referralsCount,
-      category: json['category'] as String? ?? 'Technology',
-      status: json['status'] as String? ?? 'Active',
-      source: json['source'] as String? ?? 'Direct',
+      category: categoryStr,
+      status: statusStr,
+      source: sourceStr,
       attendanceRate: json['attendance_rate']?.toString() ?? '92%',
       p2pCount: json['p2p_count'] as int? ?? 12,
       referralsCount: referralsCount,
-      dealsCount: json['value_formatted']?.toString() ?? json['deals_count']?.toString() ?? '₹0',
+      dealsCount: json['value_formatted']?.toString() ??
+          json['deals_count']?.toString() ??
+          '₹0',
       coinsCount: json['coins_count'] as int? ?? 420,
     );
   }

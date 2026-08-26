@@ -82,44 +82,48 @@ class PeersFilterBar extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
           child: Row(
-            children: const ['All', 'Active', 'Needs Attention', 'At Risk']
-                .map((status) {
-              final isSelected =
-                  selectedStatus.toLowerCase() == status.toLowerCase();
-              return Padding(
-                padding: const EdgeInsets.only(right: 6.0),
-                child: InkWell(
-                  onTap: () => onStatusSelected(status),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF1E3C72) : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
+            children: const ['All', 'Active', 'Needs Attention', 'At Risk'].map(
+              (status) {
+                final isSelected =
+                    selectedStatus.toLowerCase() == status.toLowerCase();
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6.0),
+                  child: InkWell(
+                    onTap: () => onStatusSelected(status),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFF1E3C72)
-                            : AppColors.border,
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFF1E3C72)
+                              : AppColors.border,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      status,
-                      style: TextStyle(
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                        fontSize: 11,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w600,
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              },
+            ).toList(),
           ),
         ),
 
@@ -183,8 +187,9 @@ class PeersFilterBar extends StatelessWidget {
                               ? const Color(0xFF0F172A)
                               : const Color(0xFF64748B),
                           fontSize: 11,
-                          fontWeight:
-                              isSelected ? FontWeight.w800 : FontWeight.w600,
+                          fontWeight: isSelected
+                              ? FontWeight.w800
+                              : FontWeight.w600,
                         ),
                       ),
                     ),

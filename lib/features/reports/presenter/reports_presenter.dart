@@ -31,9 +31,14 @@ class ReportsPresenter {
     bloc.add(ChangeReportType(type));
   }
 
+  void changeCircle(String circleName) {
+    bloc.add(ChangeSelectedCircle(circleName));
+  }
+
   void onContentChanged(String content) {
     bloc.add(ReportContentChanged(content));
   }
+
 
   void submit() {
     bloc.add(const SubmitReportForm());

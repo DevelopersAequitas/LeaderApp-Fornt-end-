@@ -90,12 +90,33 @@ class PeerTestimonialModel {
   });
 
   factory PeerTestimonialModel.fromJson(Map<String, dynamic> json) {
+    String author = '';
+    final rawAuthor = json['author_name'] ?? json['author'] ?? json['from_name'];
+    if (rawAuthor is Map) {
+      author = rawAuthor['name']?.toString() ?? rawAuthor['author_name']?.toString() ?? '';
+    } else if (rawAuthor is String) {
+      author = rawAuthor;
+    }
+
+    String subtitle = '';
+    final rawSub = json['subtitle'] ?? json['author_role'] ?? json['from_company'] ?? json['circle_name'];
+    if (rawSub is Map) {
+      subtitle = rawSub['name']?.toString() ?? rawSub['role']?.toString() ?? rawSub['company']?.toString() ?? '';
+    } else if (rawSub is String) {
+      subtitle = rawSub;
+    }
+
+    final nameParts = author.trim().split(' ');
+    final initials = nameParts.length > 1
+        ? '${nameParts[0].isNotEmpty ? nameParts[0][0] : ""}${nameParts[1].isNotEmpty ? nameParts[1][0] : ""}'
+        : (author.length >= 2 ? author.substring(0, 2).toUpperCase() : author.toUpperCase());
+
     return PeerTestimonialModel(
-      authorName: json['author_name'] as String? ?? '',
-      authorInitials: json['author_initials'] as String? ?? 'P',
-      subtitle: json['subtitle'] as String? ?? '',
+      authorName: author.isNotEmpty ? author : 'Circle Peer',
+      authorInitials: initials.isNotEmpty ? initials : 'P',
+      subtitle: subtitle,
       rating: json['rating'] as int? ?? 5,
-      content: json['content'] as String? ?? '',
+      content: json['content'] as String? ?? json['message'] as String? ?? '',
     );
   }
 
@@ -155,12 +176,14 @@ class PeerProfileDetailModel {
       }
     }
 
+    final metrics = json['metrics'] is Map ? (json['metrics'] as Map) : json;
+
     return PeerProfileDetailModel(
-      dealsClosed: json['deals_closed'] as String? ?? '₹0',
-      referralsGiven: json['referrals_given'] as int? ?? 0,
-      p2pSessions: json['p2p_sessions'] as int? ?? 0,
-      coinsEarned: json['coins_earned'] as int? ?? 0,
-      attendanceRate: json['attendance_rate'] as String? ?? '0%',
+      dealsClosed: metrics['deals_closed']?.toString() ?? json['deals_closed']?.toString() ?? '₹0',
+      referralsGiven: metrics['referrals_given'] as int? ?? json['referrals_given'] as int? ?? 0,
+      p2pSessions: metrics['p2p_sessions'] as int? ?? metrics['p2p_meetings'] as int? ?? json['p2p_sessions'] as int? ?? 0,
+      coinsEarned: metrics['coins_earned'] as int? ?? metrics['coins'] as int? ?? json['coins_earned'] as int? ?? 0,
+      attendanceRate: metrics['attendance_percentage']?.toString() ?? metrics['attendance_rate']?.toString() ?? json['attendance_rate']?.toString() ?? '0%',
       birthday: json['birthday'] as String? ?? '',
       anniversary: json['anniversary'] as String? ?? '',
       meetings: meetingsList,
@@ -168,6 +191,7 @@ class PeerProfileDetailModel {
       testimonials: testimonialsList,
     );
   }
+
 
   Map<String, dynamic> toJson() => {
         'deals_closed': dealsClosed,

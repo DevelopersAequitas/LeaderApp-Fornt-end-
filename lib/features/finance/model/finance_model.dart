@@ -148,6 +148,34 @@ class FinanceMetricsModel {
       }
     }
 
+    final commRates = <CommissionRateModel>[];
+    if (json['commission_rates'] is List) {
+      for (final item in json['commission_rates']) {
+        if (item is Map<String, dynamic>) {
+          commRates.add(CommissionRateModel(
+            label: item['label']?.toString() ?? '',
+            rate: item['rate']?.toString() ?? '',
+            description: item['description']?.toString() ?? '',
+            status: item['status']?.toString() ?? 'Active',
+          ));
+        }
+      }
+    }
+
+    final commStruct = <CommissionStructureItemModel>[];
+    if (json['commission_structure'] is List) {
+      for (final item in json['commission_structure']) {
+        if (item is Map<String, dynamic>) {
+          commStruct.add(CommissionStructureItemModel(
+            role: item['role']?.toString() ?? '',
+            directReferralCut: item['direct_referral_cut']?.toString() ?? '0%',
+            appJoinCut: item['app_join_cut']?.toString() ?? '0%',
+            icon: const IconData(0xe491, fontFamily: 'MaterialIcons'),
+          ));
+        }
+      }
+    }
+
     return FinanceMetricsModel(
       totalRevenue: json['projected_annual_revenue']?.toString() ?? json['total_revenue']?.toString() ?? '₹0.0',
       circleRevenue: json['total_collections']?.toString() ?? json['circle_revenue']?.toString() ?? '₹0.0',
@@ -158,10 +186,11 @@ class FinanceMetricsModel {
       coinIssuancesTotal: json['coin_issuances_total'] as int? ?? 0,
       revenueTrend: revList,
       businessDeals: dealsList,
-      commissionRates: const [],
-      commissionStructure: const [],
+      commissionRates: commRates,
+      commissionStructure: commStruct,
     );
   }
+
 
   Map<String, dynamic> toJson() => {
         'total_revenue': totalRevenue,

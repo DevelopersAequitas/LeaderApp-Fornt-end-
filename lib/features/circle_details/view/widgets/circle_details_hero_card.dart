@@ -10,17 +10,15 @@ class CircleDetailsHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isAtRisk = circle.healthPercentage < 70;
-    final Color healthColor =
-        isAtRisk ? const Color(0xFFE53935) : const Color(0xFF16A34A);
+    final Color healthColor = isAtRisk
+        ? const Color(0xFFE53935)
+        : const Color(0xFF16A34A);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFF1E3C72),
-            Color(0xFF2A5298),
-          ],
+          colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -54,7 +52,16 @@ class CircleDetailsHeroCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${circle.category} · ${circle.location}',
+                      circle.category.toUpperCase(),
+                      style: const TextStyle(
+                        color: Color(0xFFB0C4DE),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    // const SizedBox(height: 10),
+                    Text(
+                      circle.location,
                       style: const TextStyle(
                         color: Color(0xFFB0C4DE),
                         fontSize: 11,
@@ -64,49 +71,46 @@ class CircleDetailsHeroCard extends StatelessWidget {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isAtRisk
-                                ? Colors.redAccent.withValues(alpha: 0.2)
-                                : const Color(0xFF16A34A).withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isAtRisk
-                                  ? Colors.redAccent.withValues(alpha: 0.4)
-                                  : const Color(0xFF16A34A).withValues(alpha: 0.4),
+                        if (circle.status.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF16A34A,
+                              ).withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: const Color(
+                                  0xFF16A34A,
+                                ).withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF4ADE80),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  circle.status,
+                                  style: const TextStyle(
+                                    color: Color(0xFF4ADE80),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: isAtRisk
-                                      ? Colors.redAccent
-                                      : const Color(0xFF4ADE80),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                isAtRisk ? 'At Risk' : 'Active',
-                                style: TextStyle(
-                                  color: isAtRisk
-                                      ? Colors.redAccent
-                                      : const Color(0xFF4ADE80),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                         if (circle.launchDate != null &&
                             circle.launchDate!.isNotEmpty) ...[
                           const SizedBox(width: 8),
@@ -191,8 +195,8 @@ class CircleDetailsHeroCard extends StatelessWidget {
                 _buildMetricCol(circle.revenue, 'REVENUE'),
                 _buildDivider(),
                 _buildMetricCol('${circle.healthPercentage}%', 'HEALTH'),
-                _buildDivider(),
-                _buildMetricCol(circle.category, 'CATEGORY'),
+                // _buildDivider(),
+                // _buildMetricCol(circle.category, 'CATEGORY'),
               ],
             ),
           ),

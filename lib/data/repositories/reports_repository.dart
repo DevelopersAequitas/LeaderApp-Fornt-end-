@@ -6,6 +6,7 @@ import '../datasources/remote/reports_remote_datasource.dart';
 
 abstract class ReportsRepository {
   Future<ApiResponse<List<ReportModel>>> getReports({String? circleId, String? type, String? status});
+  Future<ApiResponse<ReportModel>> getReportDetails(String id);
   Future<ApiResponse<Map<String, dynamic>>> submitReport({
     required String circleId,
     required String type,
@@ -28,7 +29,13 @@ class ReportsRepositoryImpl implements ReportsRepository {
         _cacheService = cacheService ?? HiveCacheService();
 
   @override
+  Future<ApiResponse<ReportModel>> getReportDetails(String id) async {
+    return _remoteDataSource.getReportDetails(id);
+  }
+
+  @override
   Future<ApiResponse<List<ReportModel>>> getReports({
+
     String? circleId,
     String? type,
     String? status,

@@ -33,10 +33,14 @@ class UserSession {
 
   factory UserSession.fromJson(Map<String, dynamic> json) {
     final rawRole = json['role'] as String? ?? 'circleChair';
+    final normalizedRaw = rawRole.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
     UserRole resolvedRole = UserRole.circleChair;
     for (final r in UserRole.values) {
-      if (r.name.toLowerCase() == rawRole.toLowerCase() ||
-          r.label.toLowerCase() == rawRole.toLowerCase()) {
+      final normName = r.name.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+      final normLabel = r.label.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+      if (normName == normalizedRaw ||
+          normLabel == normalizedRaw ||
+          normalizedRaw.contains(normName)) {
         resolvedRole = r;
         break;
       }
@@ -202,7 +206,37 @@ class SessionManager {
     _resolvePredefinedPermissions(UserRole.circleChair);
   }
 
+  /// Cache of dynamic role capabilities mapped by roleId / roleName.
+  static final Map<String, List<String>> _roleCapabilitiesMatrix = {};
+
+  /// Updates the cached capabilities for a role and applies them if matching active session.
+  void updateRoleCapabilitiesMatrix(String roleKey, List<String> capabilities) {
+    final cleanKey = roleKey.trim().toLowerCase();
+    _roleCapabilitiesMatrix[cleanKey] = capabilities;
+
+    // If active session matches this role key, immediately update permissions
+    final currentRoleName = _currentSession.role.name.toLowerCase();
+    final currentRoleLabel = _currentSession.role.label.toLowerCase();
+    final customLabel = (_currentSession.customRoleLabel ?? '').toLowerCase();
+
+    if (cleanKey == currentRoleName ||
+        cleanKey == currentRoleLabel ||
+        cleanKey == customLabel ||
+        cleanKey == _currentSession.id.toLowerCase()) {
+      _permissions = LeaderPermissions.fromCapabilities(capabilities);
+      SecureStorageService().savePermissions(_permissions);
+    }
+  }
+
   void _resolvePredefinedPermissions(UserRole role) {
+    final roleKey = role.name.toLowerCase();
+    if (_roleCapabilitiesMatrix.containsKey(roleKey)) {
+      _permissions = LeaderPermissions.fromCapabilities(
+        _roleCapabilitiesMatrix[roleKey]!,
+      );
+      return;
+    }
+
     switch (role) {
       case UserRole.circleChair:
         _permissions = const LeaderPermissions(

@@ -13,6 +13,7 @@ class TeamsState {
   final String selectedIndustryFilter;
   final String? selectedCircle;
   final List<String> availableIndustries;
+  final List<IndustryModel> industriesList;
 
   const TeamsState({
     this.isLoading = false,
@@ -25,6 +26,7 @@ class TeamsState {
     this.selectedIndustryFilter = 'All Industries',
     this.selectedCircle,
     this.availableIndustries = const ['All Industries'],
+    this.industriesList = const [],
   });
 
   TeamsState copyWith({
@@ -38,6 +40,7 @@ class TeamsState {
     String? selectedIndustryFilter,
     String? selectedCircle,
     List<String>? availableIndustries,
+    List<IndustryModel>? industriesList,
   }) {
     return TeamsState(
       isLoading: isLoading ?? this.isLoading,
@@ -51,6 +54,7 @@ class TeamsState {
           selectedIndustryFilter ?? this.selectedIndustryFilter,
       selectedCircle: selectedCircle ?? this.selectedCircle,
       availableIndustries: availableIndustries ?? this.availableIndustries,
+      industriesList: industriesList ?? this.industriesList,
     );
   }
 }

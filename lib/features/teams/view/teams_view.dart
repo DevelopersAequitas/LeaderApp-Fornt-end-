@@ -104,6 +104,7 @@ class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
         const SizedBox(height: 10),
         TeamsIndustryFilterChips(
           industries: _bloc.state.availableIndustries,
+          industriesList: _bloc.state.industriesList,
           allCircles: _bloc.state.allCircles,
           selectedIndustry: _selectedIndustry,
           onIndustrySelected: (ind) => _presenter.filterCirclesIndustry(ind),

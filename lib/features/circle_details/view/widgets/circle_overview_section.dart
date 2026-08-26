@@ -10,9 +10,11 @@ class CircleOverviewSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isAtRisk = circle.healthPercentage < 70;
-    final healthColor =
-        isAtRisk ? const Color(0xFFE53935) : const Color(0xFF16A34A);
+    final hasHealthData = circle.healthPercentage > 0;
+    final isAtRisk = circle.healthPercentage < 70 && hasHealthData;
+    final healthColor = !hasHealthData
+        ? Colors.grey
+        : (isAtRisk ? const Color(0xFFE53935) : const Color(0xFF16A34A));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -33,18 +35,33 @@ class CircleOverviewSection extends StatelessWidget {
             circle.healthPercentage,
             healthColor,
           ),
-          const SizedBox(height: 10),
-          _buildHealthProgressBar(
-            'Attendance & Participation',
-            circle.healthPercentage > 80 ? 85 : 72,
-            const Color(0xFF1E3C72),
-          ),
-          const SizedBox(height: 10),
-          _buildHealthProgressBar(
-            'Member Engagement',
-            circle.healthPercentage > 75 ? 78 : 65,
-            const Color(0xFFD97706),
-          ),
+          if (!hasHealthData) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.secondaryBg,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 16, color: AppColors.textSecondary),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Newly formed circle. Health and performance metrics will populate once initial sessions and member transactions are logged.',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           if (circle.tags.isNotEmpty) ...[
             const Text(

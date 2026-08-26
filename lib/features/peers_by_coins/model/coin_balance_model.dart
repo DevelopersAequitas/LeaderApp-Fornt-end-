@@ -34,23 +34,47 @@ class CoinBalanceModel {
 
   factory CoinBalanceModel.fromJson(Map<String, dynamic> json) {
     final name = json['peer_name'] as String? ?? json['name'] as String? ?? 'Peer';
-    final nameParts = name.split(' ');
+    final nameParts = name.trim().split(' ');
     final initials = nameParts.length > 1
-        ? '${nameParts[0][0]}${nameParts[1][0]}'
-        : name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
+        ? '${nameParts[0].isNotEmpty ? nameParts[0][0] : ""}${nameParts[1].isNotEmpty ? nameParts[1][0] : ""}'
+        : (name.length >= 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase());
 
     final coins = json['coins'] as int? ?? 0;
+
+    String statusStr = 'Active';
+    final rawStatus = json['status'];
+    if (rawStatus is Map) {
+      statusStr = rawStatus['name']?.toString() ?? rawStatus['status']?.toString() ?? 'Active';
+    } else if (rawStatus is String) {
+      statusStr = rawStatus;
+    }
+
+    String categoryStr = '';
+    final rawCat = json['category'];
+    if (rawCat is Map) {
+      categoryStr = rawCat['name']?.toString() ?? rawCat['category']?.toString() ?? '';
+    } else if (rawCat is String) {
+      categoryStr = rawCat;
+    }
+
+    String sourceStr = 'Direct';
+    final rawSource = json['source'];
+    if (rawSource is Map) {
+      sourceStr = rawSource['name']?.toString() ?? rawSource['source']?.toString() ?? 'Direct';
+    } else if (rawSource is String) {
+      sourceStr = rawSource;
+    }
 
     return CoinBalanceModel(
       id: json['id']?.toString() ?? '',
       rank: json['rank'] as int? ?? 1,
       name: name,
-      initials: initials,
+      initials: initials.isNotEmpty ? initials : 'PR',
       company: json['company'] as String? ?? json['circle_name'] as String? ?? '',
       coins: coins,
-      category: json['category'] as String? ?? '',
-      status: json['status'] as String? ?? 'Active',
-      source: json['source'] as String? ?? 'Direct',
+      category: categoryStr,
+      status: statusStr,
+      source: sourceStr,
       attendanceRate: json['attendance_rate']?.toString() ?? '0%',
       p2pCount: json['p2p_count'] as int? ?? 0,
       referralsCount: json['referrals_count'] as int? ?? 0,
