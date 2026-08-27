@@ -85,7 +85,6 @@ class PeerProfileHeroCard extends StatelessWidget {
                       name: peer.name,
                       imageUrl: peer.avatarUrl,
                       radius: 26,
-                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.35),
                         width: 1.5,
@@ -245,7 +244,7 @@ class PeerProfileHeroCard extends StatelessWidget {
             _buildDetailRow(
               icon: Icons.phone_outlined,
               label: 'PHONE',
-              value: peer.phone!,
+              value: peer.hidePhone ? 'Hidden by Peer 🔒' : peer.phone!,
             ),
           ],
           if (peer.email != null && peer.email!.isNotEmpty) ...[
@@ -253,7 +252,7 @@ class PeerProfileHeroCard extends StatelessWidget {
             _buildDetailRow(
               icon: Icons.email_outlined,
               label: 'EMAIL',
-              value: peer.email!,
+              value: peer.hideEmail ? 'Hidden by Peer 🔒' : peer.email!,
             ),
           ],
         ],

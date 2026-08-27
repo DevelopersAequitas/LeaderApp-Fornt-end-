@@ -10,15 +10,14 @@ import '../bloc/profile_state.dart';
 import '../model/profile_model.dart';
 import '../presenter/profile_presenter.dart';
 import 'widgets/edit_profile_bottom_sheet.dart';
-import 'widgets/profile_assigned_circles_card.dart';
-import 'widgets/profile_capabilities_card.dart';
+import 'widgets/profile_app_version_tile.dart';
+import 'widgets/profile_circulars_tile.dart';
 import 'widgets/profile_contact_card.dart';
 import 'widgets/profile_hero_card.dart';
 import 'widgets/profile_role_management_tile.dart';
-import 'widgets/profile_sign_out_dialog.dart';
+import 'widgets/profile_sign_out_bottom_sheet.dart';
 
 /// The View component of the Profile Screen feature.
-/// Renders an executive leader profile, contact info, assigned circles, capabilities, and session controls.
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
 
@@ -26,8 +25,7 @@ class ProfileView extends StatefulWidget {
   State<ProfileView> createState() => _ProfileViewState();
 }
 
-class _ProfileViewState extends State<ProfileView>
-    implements ProfileViewContract {
+class _ProfileViewState extends State<ProfileView> implements ProfileViewContract {
   late final ProfileBloc _bloc;
   late final ProfilePresenter _presenter;
 
@@ -70,7 +68,7 @@ class _ProfileViewState extends State<ProfileView>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(error),
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppColors.danger,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -94,7 +92,8 @@ class _ProfileViewState extends State<ProfileView>
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Profile updated successfully!'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
             ),
           );
         }
@@ -103,8 +102,8 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  void _showSignOutDialog() {
-    ProfileSignOutDialog.show(
+  void _showSignOutBottomSheet() {
+    ProfileSignOutBottomSheet.show(
       context,
       onConfirm: () => _presenter.signOut(),
     );
@@ -122,59 +121,79 @@ class _ProfileViewState extends State<ProfileView>
         },
         child: Scaffold(
           backgroundColor: AppColors.background,
-          body: Column(
-            children: [
-              const CustomAppBar(
-                title: 'Leader Profile',
-                showBackButton: true,
-              ),
-              Expanded(
-                child: _isLoading || _profile == null
-                    ? const CenteredLoadingIndicator(height: 300)
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.only(bottom: 28),
+          appBar: const CustomAppBar(
+            title: 'Leader Profile',
+            showBackButton: true,
+          ),
+          body: _isLoading || _profile == null
+              ? const CenteredLoadingIndicator(height: 300)
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 32),
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ProfileHeroCard(profile: _profile!),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            ProfileHeroCard(profile: _profile!),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  ProfileContactCard(
-                                    profile: _profile!,
-                                    onEditTap: () =>
-                                        _showEditProfileModal(_profile!),
-                                    canEdit: true,
+                            ProfileContactCard(
+                              profile: _profile!,
+                              onEditTap: () => _showEditProfileModal(_profile!),
+                              canEdit: true,
+                            ),
+                            const SizedBox(height: 10),
+                            const ProfileCircularsTile(),
+                            if (isSuperAdmin) ...[
+                              const SizedBox(height: 10),
+                              const ProfileRoleManagementTile(),
+                            ],
+                            const SizedBox(height: 10),
+                            const ProfileAppVersionTile(),
+                            const SizedBox(height: 20),
+                            // Refined Compact Sign Out Button
+                            InkWell(
+                              onTap: _showSignOutBottomSheet,
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.dangerBg,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: AppColors.danger.withValues(alpha: 0.3),
+                                    width: 0.8,
                                   ),
-                                  const SizedBox(height: 10),
-                                  ProfileAssignedCirclesCard(
-                                      profile: _profile!),
-                                  const SizedBox(height: 10),
-                                  ProfileCapabilitiesCard(profile: _profile!),
-                                  if (isSuperAdmin) ...[
-                                    const SizedBox(height: 10),
-                                    const ProfileRoleManagementTile(),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.logout_rounded,
+                                      size: 16,
+                                      color: AppColors.danger,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Sign Out of Account',
+                                      style: TextStyle(
+                                        color: AppColors.danger,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ],
-                                  const SizedBox(height: 20),
-                                  PrimaryButton(
-                                    label: 'Sign Out of Account',
-                                    onPressed: _showSignOutDialog,
-                                    isOutlined: true,
-                                    color: Colors.redAccent,
-                                    leadingIcon: Icons.logout_rounded,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-              ),
-            ],
-          ),
+                    ],
+                  ),
+                ),
         ),
       ),
     );

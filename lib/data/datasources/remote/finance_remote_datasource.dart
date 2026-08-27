@@ -8,16 +8,10 @@ class FinanceRemoteDataSource {
 
   FinanceRemoteDataSource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
-  static bool _isValidUuid(String? str) {
-    if (str == null || str.isEmpty) return false;
-    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
-    return uuidRegex.hasMatch(str.trim());
-  }
-
   /// Fetches financial metrics and fee collections.
   Future<ApiResponse<FinanceMetricsModel>> getFinanceMetrics({String? circleId}) async {
     final params = <String, String>{};
-    if (_isValidUuid(circleId)) params['circle_id'] = circleId!;
+    if (circleId != null && circleId.isNotEmpty) params['circle_id'] = circleId;
 
     return _apiClient.get<FinanceMetricsModel>(
       ApiEndpoints.financeMetrics,
@@ -32,7 +26,7 @@ class FinanceRemoteDataSource {
     String? status,
   }) async {
     final params = <String, String>{};
-    if (_isValidUuid(circleId)) params['circle_id'] = circleId!;
+    if (circleId != null && circleId.isNotEmpty) params['circle_id'] = circleId;
     if (status != null && status != 'All') params['status'] = status;
 
     return _apiClient.get<List<FinanceTransactionModel>>(

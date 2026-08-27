@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/constants/api_endpoints.dart';
 import '../../../core/helpers/session_manager.dart';
+import '../../../core/network/api_client.dart';
 import '../model/profile_model.dart';
 import 'profile_event.dart';
 import 'profile_state.dart';
@@ -11,8 +13,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<TriggerSignOut>(_onTriggerSignOut);
   }
 
-  void _onLoadProfileData(LoadProfileData event, Emitter<ProfileState> emit) {
+  Future<void> _onLoadProfileData(LoadProfileData event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: ''));
+
+    // 1. Fetch fresh profile and dynamic permissions from GET /api/v1/auth/profile
+    try {
+      final response = await ApiClient().get<Map<String, dynamic>>(
+        ApiEndpoints.updateProfile,
+        fromJsonT: (json) => json is Map<String, dynamic> ? json : <String, dynamic>{},
+      );
+      if (response.data != null && response.data!.isNotEmpty) {
+        await SessionManager().updateFromAuthProfile(response.data!);
+      }
+    } catch (_) {}
 
     final session = SessionManager().currentSession;
     final permissions = SessionManager().permissions;

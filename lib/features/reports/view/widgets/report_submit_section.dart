@@ -29,6 +29,9 @@ class ReportSubmitSection extends StatelessWidget {
   String _getUpperRecipientLabel() {
     final role = SessionManager().currentRole;
     switch (role) {
+      case UserRole.chairBusinessGrowth:
+      case UserRole.chairMembership:
+      case UserRole.chairEvents:
       case UserRole.circleChair:
         return 'To: Circle Founder, Circle Director & District Leadership';
       case UserRole.circleFounder:

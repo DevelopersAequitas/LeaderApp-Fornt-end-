@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/services/app_config_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../bloc/splash_bloc.dart';
 import '../bloc/splash_state.dart';
@@ -119,13 +120,33 @@ class _SplashViewState extends State<SplashView>
   }
 
   @override
-  void navigateToHome() {
-    if (mounted) {
-      if (SessionManager().isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      } else {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+  Future<void> navigateToHome() async {
+    if (!mounted) return;
+    try {
+      final service = AppConfigService();
+      final config = await service.fetchAppConfig();
+      if (!mounted) return;
+
+      if (config.isMaintenanceMode && service.isUnderMaintenance(SessionManager().currentRole.name)) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.maintenance);
+        return;
       }
+
+      if (service.isForceUpdateRequired()) {
+        await service.triggerNativeStoreUpdate(isForce: true);
+        return;
+      }
+
+      if (service.isOptionalUpdateAvailable()) {
+        service.triggerNativeStoreUpdate(isForce: false);
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+    if (SessionManager().isAuthenticated) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    } else {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
     }
   }
 

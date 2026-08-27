@@ -55,6 +55,24 @@ class RoleManagementPresenter {
     bloc.add(DeleteRole(roleId: roleId));
   }
 
+  /// Relays bulk toggle for a single category.
+  void toggleCategoryCapabilities(String roleId, List<String> capabilityIds, bool enable) {
+    bloc.add(BulkToggleCategoryCapabilities(
+      roleId: roleId,
+      capabilityIds: capabilityIds,
+      enable: enable,
+    ));
+  }
+
+  /// Relays bulk toggle for all role capabilities.
+  void toggleAllCapabilities(String roleId, List<String> allCapabilityIds, bool enable) {
+    bloc.add(BulkToggleAllRoleCapabilities(
+      roleId: roleId,
+      allCapabilityIds: allCapabilityIds,
+      enable: enable,
+    ));
+  }
+
   /// Relays save changes trigger.
   void saveChanges() {
     bloc.add(const SaveChangesRequested());

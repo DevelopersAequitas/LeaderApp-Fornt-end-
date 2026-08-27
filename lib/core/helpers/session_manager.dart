@@ -149,6 +149,37 @@ class SessionManager {
     );
   }
 
+  /// Updates active session and dynamic capabilities directly from GET /api/v1/auth/profile response.
+  Future<void> updateFromAuthProfile(Map<String, dynamic> data) async {
+    final userMap = data['user'] is Map<String, dynamic>
+        ? data['user'] as Map<String, dynamic>
+        : data;
+    _currentSession = UserSession.fromJson(userMap);
+
+    if (data['permissions'] is Map && data['permissions']['enabled_capabilities'] is List) {
+      final caps = (data['permissions']['enabled_capabilities'] as List)
+          .map((e) => e.toString())
+          .toList();
+      _permissions = LeaderPermissions.fromCapabilities(caps);
+    } else if (data['enabled_capabilities'] is List) {
+      final caps = (data['enabled_capabilities'] as List)
+          .map((e) => e.toString())
+          .toList();
+      _permissions = LeaderPermissions.fromCapabilities(caps);
+    } else {
+      _resolvePredefinedPermissions(_currentSession.role);
+    }
+
+    if (_authToken != null && _authToken!.isNotEmpty) {
+      await SecureStorageService().saveAuthSession(
+        token: _authToken!,
+        refreshToken: _refreshToken,
+        session: _currentSession,
+        permissions: _permissions,
+      );
+    }
+  }
+
   /// The active user session. Defaults to Circle Chair (Arjun Patel).
   UserSession _currentSession = const UserSession(
     id: '',
@@ -238,6 +269,8 @@ class SessionManager {
     }
 
     switch (role) {
+      case UserRole.chairBusinessGrowth:
+      case UserRole.chairEvents:
       case UserRole.circleChair:
         _permissions = const LeaderPermissions(
           canAccessDashboard: true,
@@ -245,6 +278,21 @@ class SessionManager {
           canReviewPendingPeers: true,
           canAccessPeersTab: true,
           canAddEditPeer: false,
+          canSendWishes: true,
+          canAccessTeamsTab: false,
+          canAccessFinanceTab: false,
+          canAccessReportsTab: true,
+          canSubmitReports: true,
+          canAccessRoleManagement: false,
+        );
+        break;
+      case UserRole.chairMembership:
+        _permissions = const LeaderPermissions(
+          canAccessDashboard: true,
+          canViewOverallRevenue: false,
+          canReviewPendingPeers: true,
+          canAccessPeersTab: true,
+          canAddEditPeer: true,
           canSendWishes: true,
           canAccessTeamsTab: false,
           canAccessFinanceTab: false,

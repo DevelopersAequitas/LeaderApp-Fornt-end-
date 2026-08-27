@@ -1,3 +1,4 @@
+/// Model representing a single user role (system or dynamic custom role).
 class RoleModel {
   final String id;
   final String? roleKey;
@@ -13,7 +14,7 @@ class RoleModel {
 
   factory RoleModel.fromJson(Map<String, dynamic> json) {
     return RoleModel(
-      id: json['id']?.toString() ?? json['role_key']?.toString() ?? '',
+      id: json['id']?.toString() ?? '',
       roleKey: json['role_key'] as String?,
       label: json['label'] as String? ?? 'Role',
       isSystemRole: json['is_system_role'] as bool? ?? false,
@@ -28,19 +29,21 @@ class RoleModel {
       };
 
   RoleModel copyWith({
-    String? label,
+    String? id,
     String? roleKey,
+    String? label,
+    bool? isSystemRole,
   }) {
     return RoleModel(
-      id: id,
+      id: id ?? this.id,
       roleKey: roleKey ?? this.roleKey,
       label: label ?? this.label,
-      isSystemRole: isSystemRole,
+      isSystemRole: isSystemRole ?? this.isSystemRole,
     );
   }
 }
 
-/// Represents a specific application permission or capability.
+/// Represents a specific application permission or capability returned by the backend matrix.
 class AppCapability {
   final String id;
   final String name;
@@ -69,92 +72,9 @@ class AppCapability {
         'category': category,
         'description': description,
       };
-
-  /// Default predefined list of system capabilities.
-  static List<AppCapability> get defaultCapabilities => const [
-        // Navigation & Access
-        AppCapability(
-          id: 'access_dashboard',
-          name: 'Access Dashboard',
-          category: 'Navigation & Access',
-          description: 'Allows access to the primary metrics and impacter list dashboard.',
-        ),
-        AppCapability(
-          id: 'access_teams',
-          name: 'Access Circles & Teams',
-          category: 'Navigation & Access',
-          description: 'Allows viewing circles, directors, and chairs directories.',
-        ),
-        AppCapability(
-          id: 'access_finance',
-          name: 'Access Financial Analytics',
-          category: 'Navigation & Access',
-          description: 'Allows viewing fee collections, dues, and transaction histories.',
-        ),
-        AppCapability(
-          id: 'regional_data',
-          name: 'View Regional Scope Data',
-          category: 'Navigation & Access',
-          description: 'Access and filter data beyond own local circle (District/Country level).',
-        ),
-
-        // Core Operations
-        AppCapability(
-          id: 'view_peers',
-          name: 'View Peer Profiles',
-          category: 'Core Operations',
-          description: 'Allows viewing and browsing peer profile details and attendance stats.',
-        ),
-        AppCapability(
-          id: 'manage_peers',
-          name: 'Add/Edit Peer Information',
-          category: 'Core Operations',
-          description: 'Allows coordinators to add new peers or edit biographical fields.',
-        ),
-        AppCapability(
-          id: 'request_actions',
-          name: 'Endorse Testimonials & Referrals',
-          category: 'Core Operations',
-          description: 'Allows creating and endorsing peer testimonials and registering new referrals.',
-        ),
-        AppCapability(
-          id: 'view_reports',
-          name: 'View Performance Reports',
-          category: 'Core Operations',
-          description: 'Allows accessing downloadable PDFs and spreadsheets of peer activities.',
-        ),
-
-        // Financial Control
-        AppCapability(
-          id: 'manage_finance',
-          name: 'Modify Financial Settings',
-          category: 'Financial Control',
-          description: 'Allows modifying annual fees, approval of dues, and updating ledger settings.',
-        ),
-        AppCapability(
-          id: 'coin_payouts',
-          name: 'Issue Coin Payouts',
-          category: 'Financial Control',
-          description: 'Allows awarding platform coins directly to peers for special achievements.',
-        ),
-
-        // Administration
-        AppCapability(
-          id: 'manage_roles',
-          name: 'Manage App Roles (Matrix)',
-          category: 'Administration',
-          description: 'Allows altering permission rules and toggling capabilities per role.',
-        ),
-        AppCapability(
-          id: 'system_configs',
-          name: 'System Global Settings',
-          category: 'Administration',
-          description: 'Allows modifying global server variables, maintenance modes, and metadata keys.',
-        ),
-      ];
 }
 
-/// Binds a dynamic role model with their enabled capability list.
+/// Binds a dynamic role model with its enabled capability list.
 class RolePermissionModel {
   final RoleModel role;
   final List<String> enabledCapabilityIds;
@@ -174,7 +94,15 @@ class RolePermissionModel {
 
     final RoleModel roleModel;
     if (json['role'] is Map<String, dynamic>) {
-      roleModel = RoleModel.fromJson(json['role'] as Map<String, dynamic>);
+      final roleMap = json['role'] as Map<String, dynamic>;
+      roleModel = RoleModel.fromJson({
+        ...roleMap,
+        if (!roleMap.containsKey('id') && json.containsKey('id')) 'id': json['id'],
+        if (!roleMap.containsKey('label') && json.containsKey('label')) 'label': json['label'],
+        if (!roleMap.containsKey('role_key') && json.containsKey('role_key')) 'role_key': json['role_key'],
+        if (!roleMap.containsKey('is_system_role') && json.containsKey('is_system_role'))
+          'is_system_role': json['is_system_role'],
+      });
     } else {
       roleModel = RoleModel.fromJson(json);
     }
@@ -187,8 +115,10 @@ class RolePermissionModel {
 
   Map<String, dynamic> toJson() => {
         'id': role.id,
+        if (role.roleKey != null) 'role_key': role.roleKey,
         'label': role.label,
         'is_system_role': role.isSystemRole,
+        'role': role.toJson(),
         'enabled_capabilities': enabledCapabilityIds,
       };
 

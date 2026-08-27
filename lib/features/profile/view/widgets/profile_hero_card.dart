@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../model/profile_model.dart';
 
-/// Renders the executive dark hero card for the leader profile.
+/// MD3-styled luxury hero card for the leader profile with high-res avatar and role badge.
 class ProfileHeroCard extends StatelessWidget {
   final UserProfileModel profile;
 
@@ -16,12 +17,12 @@ class ProfileHeroCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
+          colors: [Color(0xFF102640), Color(0xFF1E3C72)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E3C72).withValues(alpha: 0.15),
+            color: const Color(0xFF102640).withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -36,9 +37,9 @@ class ProfileHeroCard extends StatelessWidget {
             children: [
               InitialsAvatar(
                 name: profile.name,
+                imageUrl: profile.avatarUrl,
                 radius: 34,
                 backgroundColor: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: Colors.white.withValues(alpha: 0.25),
                   width: 1.5,
@@ -46,21 +47,17 @@ class ProfileHeroCard extends StatelessWidget {
                 fontSize: 22,
               ),
               Container(
-                width: 12,
-                height: 12,
+                width: 13,
+                height: 13,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF16A34A),
+                  color: AppColors.healthGreen,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFF1E3C72),
-                    width: 2.0,
-                  ),
+                  border: Border.all(color: const Color(0xFF102640), width: 2.0),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          // Leader Name
           Text(
             profile.name,
             style: const TextStyle(
@@ -83,7 +80,6 @@ class ProfileHeroCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 8),
-          // Role Badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
@@ -100,23 +96,15 @@ class ProfileHeroCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          // 3-Metric Strip
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
-                child: _buildQuickStatTile('SCOPE', profile.regionalScope),
+                child: _buildStatTile('REGIONAL SCOPE', profile.regionalScope),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _buildQuickStatTile(
-                  'PERMISSIONS',
-                  '${profile.capabilitiesCount} Active',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildQuickStatTile('SINCE', profile.memberSince),
+                child: _buildStatTile('MEMBER SINCE', profile.memberSince),
               ),
             ],
           ),
@@ -125,13 +113,13 @@ class ProfileHeroCard extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStatTile(String label, String value) {
+  Widget _buildStatTile(String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [

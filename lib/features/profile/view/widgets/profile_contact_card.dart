@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../model/profile_model.dart';
 
-/// Renders the leader's contact details, bio, and official credentials card.
+/// MD3-styled contact details and executive bio card for the leader profile.
 class ProfileContactCard extends StatelessWidget {
   final UserProfileModel profile;
   final VoidCallback onEditTap;
@@ -24,7 +24,7 @@ class ProfileContactCard extends StatelessWidget {
         content: Text('$label copied to clipboard'),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF1E3C72),
+        backgroundColor: AppColors.primary,
       ),
     );
   }
@@ -35,12 +35,12 @@ class ProfileContactCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -62,39 +62,31 @@ class ProfileContactCard extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.text,
                     fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
               if (canEdit)
                 InkWell(
                   onTap: onEditTap,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                      color: AppColors.selectionBg,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(
-                          Icons.edit_outlined,
-                          size: 11,
-                          color: Color(0xFF2563EB),
-                        ),
-                        SizedBox(width: 3),
+                      children: [
+                        Icon(Icons.edit_outlined, size: 12, color: AppColors.primary),
+                        SizedBox(width: 4),
                         Text(
                           'Edit',
                           style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF2563EB),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -113,40 +105,28 @@ class ProfileContactCard extends StatelessWidget {
                 ? () => _copyToClipboard(context, 'Phone number', profile.phone)
                 : null,
           ),
-          const Divider(color: AppColors.border, height: 16),
+          const Divider(color: AppColors.border, height: 14),
           _buildInfoRow(
             context: context,
             icon: Icons.mail_outline_rounded,
             label: 'Official Email',
             value: profile.email.isNotEmpty ? profile.email : 'Not provided',
             onCopy: profile.email.isNotEmpty
-                ? () =>
-                    _copyToClipboard(context, 'Email address', profile.email)
+                ? () => _copyToClipboard(context, 'Email address', profile.email)
                 : null,
           ),
           if (profile.company.isNotEmpty) ...[
-            const Divider(color: AppColors.border, height: 16),
+            const Divider(color: AppColors.border, height: 14),
             _buildInfoRow(
               context: context,
               icon: Icons.business_outlined,
               label: 'Company / Organization',
               value: profile.company,
-              onCopy: () =>
-                  _copyToClipboard(context, 'Company name', profile.company),
-            ),
-          ],
-          if (profile.id.isNotEmpty) ...[
-            const Divider(color: AppColors.border, height: 16),
-            _buildInfoRow(
-              context: context,
-              icon: Icons.badge_outlined,
-              label: 'Leader ID',
-              value: profile.id,
-              onCopy: () => _copyToClipboard(context, 'Leader ID', profile.id),
+              onCopy: () => _copyToClipboard(context, 'Company name', profile.company),
             ),
           ],
           if (profile.bio.isNotEmpty) ...[
-            const Divider(color: AppColors.border, height: 16),
+            const Divider(color: AppColors.border, height: 14),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -165,7 +145,7 @@ class ProfileContactCard extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.text,
                     fontSize: 12,
-                    height: 1.4,
+                    height: 1.35,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -187,14 +167,14 @@ class ProfileContactCard extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 32,
-          height: 32,
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F4F9),
+            color: AppColors.secondaryBg,
             borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
-          child: Icon(icon, color: const Color(0xFF1E3C72), size: 16),
+          child: Icon(icon, color: AppColors.primary, size: 15),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -225,15 +205,11 @@ class ProfileContactCard extends StatelessWidget {
         ),
         if (onCopy != null)
           IconButton(
-            icon: const Icon(
-              Icons.copy_rounded,
-              size: 14,
-              color: AppColors.textSecondary,
-            ),
+            icon: const Icon(Icons.copy_rounded, size: 14, color: AppColors.textSecondary),
             onPressed: onCopy,
             tooltip: 'Copy',
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
           ),
       ],
     );

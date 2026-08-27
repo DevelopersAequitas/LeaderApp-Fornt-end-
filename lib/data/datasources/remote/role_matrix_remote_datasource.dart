@@ -16,16 +16,18 @@ class RoleMatrixResponse {
     final caps = <AppCapability>[];
     if (json['capabilities'] is List) {
       for (final item in json['capabilities']) {
-        caps.add(AppCapability.fromJson(item as Map<String, dynamic>));
+        if (item is Map<String, dynamic>) {
+          caps.add(AppCapability.fromJson(item));
+        }
       }
-    } else {
-      caps.addAll(AppCapability.defaultCapabilities);
     }
 
     final roleList = <RolePermissionModel>[];
     if (json['roles'] is List) {
       for (final item in json['roles']) {
-        roleList.add(RolePermissionModel.fromJson(item as Map<String, dynamic>));
+        if (item is Map<String, dynamic>) {
+          roleList.add(RolePermissionModel.fromJson(item));
+        }
       }
     }
 
@@ -43,7 +45,7 @@ class RoleMatrixRemoteDataSource {
 
   RoleMatrixRemoteDataSource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
-  /// Fetches capability definitions and role permission matrix.
+  /// Fetches capability definitions and role permission matrix from API.
   Future<ApiResponse<RoleMatrixResponse>> getRoleMatrix() async {
     return _apiClient.get<RoleMatrixResponse>(
       ApiEndpoints.roleMatrix,

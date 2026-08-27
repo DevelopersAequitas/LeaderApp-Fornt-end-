@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/enums/user_role.dart';
+import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../peers/model/peer_model.dart';
@@ -7,6 +9,7 @@ import '../bloc/peer_profile_bloc.dart';
 import '../bloc/peer_profile_state.dart';
 import '../model/peer_profile_model.dart';
 import '../presenter/peer_profile_presenter.dart';
+import 'widgets/edit_peer_bottom_sheet.dart';
 import 'widgets/log_p2p_bottom_sheet.dart';
 import 'widgets/peer_profile_activity_section.dart';
 import 'widgets/peer_profile_bottom_actions.dart';
@@ -116,9 +119,27 @@ class _PeerProfileViewState extends State<PeerProfileView>
     );
   }
 
+  void _showEditPeerModal(PeerModel currentPeer) {
+    EditPeerBottomSheet.show(
+      context,
+      peer: currentPeer,
+      onUpdated: (updatedPeer) {
+        _presenter.load(updatedPeer);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Peer profile updated successfully!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final activePeer = _bloc.state.peer ?? widget.peer;
+    final canEditPeer = SessionManager().permissions.canAddEditPeer ||
+        SessionManager().currentRole == UserRole.superAdmin;
 
     return BlocProvider<PeerProfileBloc>.value(
       value: _bloc,
@@ -128,9 +149,17 @@ class _PeerProfileViewState extends State<PeerProfileView>
         },
         child: Scaffold(
           backgroundColor: AppColors.background,
-          appBar: const CustomAppBar(
+          appBar: CustomAppBar(
             title: 'Peer Profile',
             showBackButton: true,
+            actions: [
+              if (canEditPeer)
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
+                  tooltip: 'Edit Peer Profile',
+                  onPressed: () => _showEditPeerModal(activePeer),
+                ),
+            ],
           ),
           body: _isLoading && _details == null
               ? const CenteredLoadingIndicator(height: 300)

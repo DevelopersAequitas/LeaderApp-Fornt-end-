@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_video_player.dart';
 import '../../../peers/model/peer_model.dart';
 import '../../model/peer_profile_model.dart';
 
@@ -246,61 +247,9 @@ class PeerProfileOverviewSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Container(
-              height: 180,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white12),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF1E3C72),
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Video Ready to Stream',
-                        style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                  Positioned(
-                    bottom: 10,
-                    left: 12,
-                    right: 12,
-                    child: Row(
-                      children: [
-                        const Text('0:00', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderThemeData(
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                              trackHeight: 3,
-                              activeTrackColor: const Color(0xFF60A5FA),
-                              inactiveTrackColor: Colors.white24,
-                              thumbColor: Colors.white,
-                            ),
-                            child: Slider(value: 0.15, onChanged: (_) {}),
-                          ),
-                        ),
-                        const Text('1:30', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            AppVideoPlayer(
+              videoUrl: videoUrl,
+              autoPlay: true,
             ),
             const SizedBox(height: 14),
             Container(

@@ -1,11 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../data/repositories/role_matrix_repository.dart';
 import '../../../core/helpers/session_manager.dart';
+import '../../../data/repositories/role_matrix_repository.dart';
 import '../model/role_permission_model.dart';
 import 'role_management_event.dart';
 import 'role_management_state.dart';
 
-/// Business Logic Component for managing application roles and permissions matrix via Clean Architecture.
+/// Business Logic Component for managing application roles and permissions matrix from API.
 class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> {
   final RoleMatrixRepository _roleMatrixRepository;
 
@@ -17,6 +17,8 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
     on<AddRole>(_onAddRole);
     on<EditRole>(_onEditRole);
     on<DeleteRole>(_onDeleteRole);
+    on<BulkToggleCategoryCapabilities>(_onBulkToggleCategoryCapabilities);
+    on<BulkToggleAllRoleCapabilities>(_onBulkToggleAllRoleCapabilities);
     on<SaveChangesRequested>(_onSaveChangesRequested);
   }
 
@@ -24,11 +26,13 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
     LoadRoleManagementData event,
     Emitter<RoleManagementState> emit,
   ) async {
-    emit(state.copyWith(isLoading: true, errorMessage: '', saveSuccess: false));
+    emit(state.copyWith(isLoading: true, errorMessage: '', saveSuccess: false, hasUnsavedChanges: false));
 
     try {
       final response = await _roleMatrixRepository.getRoleMatrix();
       final roles = response.data?.roles ?? const [];
+      final capabilities = response.data?.capabilities ?? const [];
+
       for (final rp in roles) {
         SessionManager().updateRoleCapabilitiesMatrix(
           rp.role.id,
@@ -48,7 +52,9 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
       emit(
         state.copyWith(
           isLoading: false,
+          capabilities: capabilities,
           rolesPermissions: roles,
+          hasUnsavedChanges: false,
         ),
       );
     } catch (e) {
@@ -73,7 +79,11 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
       return rp;
     }).toList();
 
-    emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+    emit(state.copyWith(
+      rolesPermissions: updatedList,
+      saveSuccess: false,
+      hasUnsavedChanges: true,
+    ));
   }
 
   Future<void> _onAddRole(AddRole event, Emitter<RoleManagementState> emit) async {
@@ -90,7 +100,11 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
         final updatedList = List<RolePermissionModel>.from(state.rolesPermissions)
           ..add(response.data!);
         SessionManager().addDynamicRole(trimLabel);
-        emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+        emit(state.copyWith(
+          rolesPermissions: updatedList,
+          saveSuccess: false,
+          hasUnsavedChanges: true,
+        ));
       }
     } catch (_) {}
   }
@@ -108,7 +122,11 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
         return rp;
       }).toList();
 
-      emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+      emit(state.copyWith(
+        rolesPermissions: updatedList,
+        saveSuccess: false,
+        hasUnsavedChanges: true,
+      ));
     } catch (_) {}
   }
 
@@ -119,8 +137,55 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
           .where((rp) => rp.role.id != event.roleId)
           .toList();
 
-      emit(state.copyWith(rolesPermissions: updatedList, saveSuccess: false));
+      emit(state.copyWith(
+        rolesPermissions: updatedList,
+        saveSuccess: false,
+        hasUnsavedChanges: true,
+      ));
     } catch (_) {}
+  }
+
+  void _onBulkToggleCategoryCapabilities(
+    BulkToggleCategoryCapabilities event,
+    Emitter<RoleManagementState> emit,
+  ) {
+    final updatedList = state.rolesPermissions.map((rp) {
+      if (rp.role.id == event.roleId) {
+        final currentCapabilities = Set<String>.from(rp.enabledCapabilityIds);
+        if (event.enable) {
+          currentCapabilities.addAll(event.capabilityIds);
+        } else {
+          currentCapabilities.removeAll(event.capabilityIds);
+        }
+        return rp.copyWith(enabledCapabilityIds: currentCapabilities.toList());
+      }
+      return rp;
+    }).toList();
+
+    emit(state.copyWith(
+      rolesPermissions: updatedList,
+      saveSuccess: false,
+      hasUnsavedChanges: true,
+    ));
+  }
+
+  void _onBulkToggleAllRoleCapabilities(
+    BulkToggleAllRoleCapabilities event,
+    Emitter<RoleManagementState> emit,
+  ) {
+    final updatedList = state.rolesPermissions.map((rp) {
+      if (rp.role.id == event.roleId) {
+        final newCapabilities = event.enable ? List<String>.from(event.allCapabilityIds) : <String>[];
+        return rp.copyWith(enabledCapabilityIds: newCapabilities);
+      }
+      return rp;
+    }).toList();
+
+    emit(state.copyWith(
+      rolesPermissions: updatedList,
+      saveSuccess: false,
+      hasUnsavedChanges: true,
+    ));
   }
 
   Future<void> _onSaveChangesRequested(
@@ -149,7 +214,7 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
           );
         }
       }
-      emit(state.copyWith(isSaving: false, saveSuccess: true));
+      emit(state.copyWith(isSaving: false, saveSuccess: true, hasUnsavedChanges: false));
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }

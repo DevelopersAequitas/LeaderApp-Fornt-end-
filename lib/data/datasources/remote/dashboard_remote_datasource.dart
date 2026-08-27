@@ -15,9 +15,12 @@ class DashboardRemoteDataSource {
     return uuidRegex.hasMatch(str.trim());
   }
 
-  /// Fetches summary metrics for the active circle or regional scope.
-  Future<ApiResponse<DashboardMetricsModel>> getMetrics({String? circleId}) async {
+  /// Fetches summary metrics for the active circle or regional scope with optional timeframe.
+  Future<ApiResponse<DashboardMetricsModel>> getMetrics({String? timeframe, String? circleId}) async {
     final params = <String, String>{};
+    if (timeframe != null && timeframe.isNotEmpty) {
+      params['timeframe'] = timeframe;
+    }
     if (_isValidUuid(circleId)) {
       params['circle_id'] = circleId!;
     }

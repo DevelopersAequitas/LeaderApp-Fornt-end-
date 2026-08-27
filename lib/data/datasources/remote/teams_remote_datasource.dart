@@ -1,4 +1,4 @@
-import 'package:leaderapp/features/peers/model/peer_model.dart';
+import '../../../features/peers/model/peer_model.dart';
 
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';

@@ -1,4 +1,4 @@
-/// Model representing a peer in the circle.
+/// Model representing a peer in the circle with privacy controls and rich profile fields.
 class PeerModel {
   final String id;
   final String initials;
@@ -18,6 +18,8 @@ class PeerModel {
   final String? level4Category;
   final String? phone;
   final String? email;
+  final bool hidePhone;
+  final bool hideEmail;
   final String? designation;
   final String? joinedDate;
   final bool isVerified;
@@ -42,6 +44,8 @@ class PeerModel {
     this.level4Category,
     this.phone,
     this.email,
+    this.hidePhone = false,
+    this.hideEmail = false,
     this.designation,
     this.joinedDate,
     this.isVerified = false,
@@ -117,6 +121,9 @@ class PeerModel {
         json['verified'] == true ||
         json['is_verified'] == 1;
 
+    final hideP = json['hide_phone'] == true || json['hide_phone'] == 1;
+    final hideE = json['hide_email'] == true || json['hide_email'] == 1;
+
     return PeerModel(
       id: json['id']?.toString() ?? '',
       initials: initials.isNotEmpty ? initials : 'PR',
@@ -136,6 +143,8 @@ class PeerModel {
       level4Category: level4,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
+      hidePhone: hideP,
+      hideEmail: hideE,
       designation: designationStr,
       joinedDate: json['joined_date'] as String?,
       isVerified: verified,
@@ -161,10 +170,65 @@ class PeerModel {
         'level4_category': level4Category,
         'phone': phone,
         'email': email,
+        'hide_phone': hidePhone,
+        'hide_email': hideEmail,
         'designation': designation,
         'joined_date': joinedDate,
         'is_verified': isVerified,
         'intro_video_url': introVideoUrl,
       };
-}
 
+  PeerModel copyWith({
+    String? id,
+    String? initials,
+    String? name,
+    String? avatarUrl,
+    String? company,
+    String? circle,
+    String? circleId,
+    String? location,
+    String? tags,
+    int? impactCount,
+    String? dealsFormatted,
+    int? coins,
+    String? attendance,
+    String? status,
+    String? industry,
+    String? level4Category,
+    String? phone,
+    String? email,
+    bool? hidePhone,
+    bool? hideEmail,
+    String? designation,
+    String? joinedDate,
+    bool? isVerified,
+    String? introVideoUrl,
+  }) {
+    return PeerModel(
+      id: id ?? this.id,
+      initials: initials ?? this.initials,
+      name: name ?? this.name,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      company: company ?? this.company,
+      circle: circle ?? this.circle,
+      circleId: circleId ?? this.circleId,
+      location: location ?? this.location,
+      tags: tags ?? this.tags,
+      impactCount: impactCount ?? this.impactCount,
+      dealsFormatted: dealsFormatted ?? this.dealsFormatted,
+      coins: coins ?? this.coins,
+      attendance: attendance ?? this.attendance,
+      status: status ?? this.status,
+      industry: industry ?? this.industry,
+      level4Category: level4Category ?? this.level4Category,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      hidePhone: hidePhone ?? this.hidePhone,
+      hideEmail: hideEmail ?? this.hideEmail,
+      designation: designation ?? this.designation,
+      joinedDate: joinedDate ?? this.joinedDate,
+      isVerified: isVerified ?? this.isVerified,
+      introVideoUrl: introVideoUrl ?? this.introVideoUrl,
+    );
+  }
+}

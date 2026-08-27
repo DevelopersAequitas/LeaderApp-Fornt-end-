@@ -15,6 +15,8 @@ import '../../features/peers_by_coins/view/peers_by_coins_view.dart';
 import '../../features/teams/model/teams_model.dart';
 import '../../features/circle_details/view/circle_details_view.dart';
 import '../../features/role_management/view/role_management_view.dart';
+import '../../features/circulars/view/circulars_view.dart';
+import '../../features/maintenance/view/maintenance_view.dart';
 
 /// Centralized routing configuration for the Leader App.
 abstract class AppRoutes {
@@ -53,6 +55,12 @@ abstract class AppRoutes {
 
   /// Role Management route
   static const String roleManagement = '/role-management';
+
+  /// Official Circulars route
+  static const String circulars = '/circulars';
+
+  /// Maintenance mode route
+  static const String maintenance = '/maintenance';
 
   /// Route generator to handle app navigation transitions.
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -186,6 +194,16 @@ abstract class AppRoutes {
       case roleManagement:
         return MaterialPageRoute(
           builder: (_) => const RoleManagementView(),
+          settings: settings,
+        );
+      case circulars:
+        return MaterialPageRoute(
+          builder: (_) => const CircularsView(),
+          settings: settings,
+        );
+      case maintenance:
+        return MaterialPageRoute(
+          builder: (_) => const MaintenanceView(),
           settings: settings,
         );
       default:

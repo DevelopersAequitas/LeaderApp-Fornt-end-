@@ -50,3 +50,29 @@ class DeleteRole extends RoleManagementEvent {
 class SaveChangesRequested extends RoleManagementEvent {
   const SaveChangesRequested();
 }
+
+/// Triggers bulk toggling of all capabilities within a category for a role.
+class BulkToggleCategoryCapabilities extends RoleManagementEvent {
+  final String roleId;
+  final List<String> capabilityIds;
+  final bool enable;
+
+  const BulkToggleCategoryCapabilities({
+    required this.roleId,
+    required this.capabilityIds,
+    required this.enable,
+  });
+}
+
+/// Triggers bulk toggling of all capabilities for a role.
+class BulkToggleAllRoleCapabilities extends RoleManagementEvent {
+  final String roleId;
+  final List<String> allCapabilityIds;
+  final bool enable;
+
+  const BulkToggleAllRoleCapabilities({
+    required this.roleId,
+    required this.allCapabilityIds,
+    required this.enable,
+  });
+}

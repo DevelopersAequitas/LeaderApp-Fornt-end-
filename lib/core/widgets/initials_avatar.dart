@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
+/// MD3-styled circular avatar displaying the user/peer's profile photo or calculated initials fallback.
 class InitialsAvatar extends StatelessWidget {
   final String name;
   final String? imageUrl;
@@ -8,8 +9,8 @@ class InitialsAvatar extends StatelessWidget {
   final Color? backgroundColor;
   final Color? textColor;
   final double? fontSize;
-  final BorderRadius? borderRadius;
   final BoxBorder? border;
+  final bool isCircle;
 
   const InitialsAvatar({
     super.key,
@@ -19,8 +20,9 @@ class InitialsAvatar extends StatelessWidget {
     this.backgroundColor,
     this.textColor,
     this.fontSize,
-    this.borderRadius,
     this.border,
+    this.isCircle = true,
+    BorderRadius? borderRadius,
   });
 
   @override
@@ -45,9 +47,6 @@ class InitialsAvatar extends StatelessWidget {
       ),
     );
 
-    final resolvedBorderRadius =
-        borderRadius ?? BorderRadius.circular(radius);
-
     final hasValidImage = imageUrl != null &&
         imageUrl!.trim().isNotEmpty &&
         imageUrl!.startsWith('http');
@@ -57,12 +56,11 @@ class InitialsAvatar extends StatelessWidget {
         width: radius * 2,
         height: radius * 2,
         decoration: BoxDecoration(
+          shape: BoxShape.circle,
           color: backgroundColor ?? AppColors.primary,
-          borderRadius: resolvedBorderRadius,
           border: border,
         ),
-        child: ClipRRect(
-          borderRadius: resolvedBorderRadius,
+        child: ClipOval(
           child: Image.network(
             imageUrl!.trim(),
             width: radius * 2,
@@ -86,23 +84,15 @@ class InitialsAvatar extends StatelessWidget {
       );
     }
 
-    if (borderRadius != null || border != null) {
-      return Container(
-        width: radius * 2,
-        height: radius * 2,
-        decoration: BoxDecoration(
-          color: backgroundColor ?? AppColors.primary,
-          borderRadius: resolvedBorderRadius,
-          border: border,
-        ),
-        alignment: Alignment.center,
-        child: textWidget,
-      );
-    }
-
-    return CircleAvatar(
-      radius: radius,
-      backgroundColor: backgroundColor ?? AppColors.primary,
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: backgroundColor ?? AppColors.primary,
+        border: border,
+      ),
+      alignment: Alignment.center,
       child: textWidget,
     );
   }

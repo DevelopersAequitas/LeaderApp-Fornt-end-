@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Defines the active server environment for the Leader App.
 enum AppEnvironment {
   dev('Development', 'https://dev.peersunity.com/api/v1'),
@@ -14,8 +16,10 @@ enum AppEnvironment {
 /// Centralized API endpoint registry for all REST APIs.
 /// Adheres strictly to the Leader App API Specification and New Endpoints release.
 abstract class ApiEndpoints {
-  /// Active Environment. Defaults to Dev (`https://dev.peersunity.com/api/v1`).
-  static AppEnvironment activeEnvironment = AppEnvironment.dev;
+  /// Active Environment.
+  /// Automatically selects Production (`https://peersglobal.com/api/v1`) for Release builds,
+  /// and Development (`https://dev.peersunity.com/api/v1`) during local Debug runs.
+  static AppEnvironment activeEnvironment = kReleaseMode ? AppEnvironment.prod : AppEnvironment.dev;
 
   /// Gets the current Base URL.
   static String get baseUrl => activeEnvironment.baseUrl;
@@ -79,4 +83,10 @@ abstract class ApiEndpoints {
   static String get roleMatrix => '$baseUrl/roles/matrix';
   static String get roles => '$baseUrl/roles';
   static String roleById(String id) => '$baseUrl/roles/$id';
+
+  // --- 10. System Configuration & Circulars ---
+  static String get appConfig => '$baseUrl/system/app-config';
+  static String get circulars => '$baseUrl/circulars';
+  static String circularById(String id) => '$baseUrl/circulars/$id';
+  static String get circularPublish => '$baseUrl/circulars/publish';
 }
