@@ -20,6 +20,9 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
     on<BulkToggleCategoryCapabilities>(_onBulkToggleCategoryCapabilities);
     on<BulkToggleAllRoleCapabilities>(_onBulkToggleAllRoleCapabilities);
     on<SaveChangesRequested>(_onSaveChangesRequested);
+    on<SelectRole>(_onSelectRole);
+    on<SearchCapabilityQueryChanged>(_onSearchCapabilityQueryChanged);
+    on<SelectCapabilityCategory>(_onSelectCapabilityCategory);
   }
 
   Future<void> _onLoadRoleManagementData(
@@ -54,12 +57,34 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
           isLoading: false,
           capabilities: capabilities,
           rolesPermissions: roles,
+          selectedRoleId: roles.isNotEmpty ? roles.first.role.id : '',
           hasUnsavedChanges: false,
         ),
       );
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
+  }
+
+  void _onSelectRole(
+    SelectRole event,
+    Emitter<RoleManagementState> emit,
+  ) {
+    emit(state.copyWith(selectedRoleId: event.roleId));
+  }
+
+  void _onSearchCapabilityQueryChanged(
+    SearchCapabilityQueryChanged event,
+    Emitter<RoleManagementState> emit,
+  ) {
+    emit(state.copyWith(searchQuery: event.query));
+  }
+
+  void _onSelectCapabilityCategory(
+    SelectCapabilityCategory event,
+    Emitter<RoleManagementState> emit,
+  ) {
+    emit(state.copyWith(selectedCategory: event.category));
   }
 
   void _onToggleCapability(
@@ -102,6 +127,7 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
         SessionManager().addDynamicRole(trimLabel);
         emit(state.copyWith(
           rolesPermissions: updatedList,
+          selectedRoleId: response.data!.role.id,
           saveSuccess: false,
           hasUnsavedChanges: true,
         ));
@@ -137,8 +163,13 @@ class RoleManagementBloc extends Bloc<RoleManagementEvent, RoleManagementState> 
           .where((rp) => rp.role.id != event.roleId)
           .toList();
 
+      final newSelectedId = state.selectedRoleId == event.roleId
+          ? (updatedList.isNotEmpty ? updatedList.first.role.id : '')
+          : state.selectedRoleId;
+
       emit(state.copyWith(
         rolesPermissions: updatedList,
+        selectedRoleId: newSelectedId,
         saveSuccess: false,
         hasUnsavedChanges: true,
       ));

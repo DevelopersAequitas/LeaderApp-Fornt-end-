@@ -1,45 +1,45 @@
+// ==============================================================================
+// File: lib/features/maintenance/view/maintenance_view.dart
+// Description: Scheduled Maintenance Lockdown, Live Status Check & System Recovery
+// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
+// Features:
+//   - Elegant maintenance illustration with server health status banner
+//   - Estimated system restoration countdown and detailed administrator announcement
+//   - Interactive "Check Status" server retry probe dispatched to `MaintenanceBloc`
+//   - Automated recovery routing to Home or Login once maintenance window concludes
+// ==============================================================================
+
 import 'package:flutter/material.dart';
-import '../../../core/enums/user_role.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
-import '../../../core/services/app_config_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../bloc/maintenance_bloc.dart';
+import '../bloc/maintenance_event.dart';
+import '../bloc/maintenance_state.dart';
+import 'widgets/maintenance_action_buttons.dart';
+import 'widgets/maintenance_icon_card.dart';
+import 'widgets/maintenance_message_card.dart';
 
-/// Full-screen MD3 Maintenance screen with Super Admin bypass capability.
-class MaintenanceView extends StatefulWidget {
+/// Full-screen MD3 Maintenance screen with pure BLoC state management.
+/// 100% StatelessWidget powered by Clean MVP + BLoC architecture.
+class MaintenanceView extends StatelessWidget {
   const MaintenanceView({super.key});
 
   @override
-  State<MaintenanceView> createState() => _MaintenanceViewState();
+  Widget build(BuildContext context) {
+    return BlocProvider<MaintenanceBloc>(
+      create: (context) =>
+          MaintenanceBloc()..add(const CheckMaintenanceStatus()),
+      child: const _MaintenanceContent(),
+    );
+  }
 }
 
-class _MaintenanceViewState extends State<MaintenanceView> {
-  bool _isRetrying = false;
+class _MaintenanceContent extends StatelessWidget {
+  const _MaintenanceContent();
 
-  Future<void> _handleRetry() async {
-    setState(() => _isRetrying = true);
-    final service = AppConfigService();
-    final config = await service.fetchAppConfig();
-    if (!mounted) return;
-    setState(() => _isRetrying = false);
-
-    if (!config.isMaintenanceMode) {
-      if (SessionManager().isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      } else {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('System is still undergoing maintenance. Please check back shortly.'),
-          backgroundColor: AppColors.warningDark,
-        ),
-      );
-    }
-  }
-
-  void _handleBypass() {
+  void _navigateToApp(BuildContext context) {
     if (SessionManager().isAuthenticated) {
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } else {
@@ -49,99 +49,50 @@ class _MaintenanceViewState extends State<MaintenanceView> {
 
   @override
   Widget build(BuildContext context) {
-    final config = AppConfigService().config;
-    final isSuperAdmin = SessionManager().currentRole == UserRole.superAdmin;
-    final canBypass = isSuperAdmin ||
-        config.allowedBypassRoles.any((r) => r.toLowerCase() == SessionManager().currentRole.name.toLowerCase());
+    final bloc = context.read<MaintenanceBloc>();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(),
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.warningBg,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 2),
-                ),
-                child: const Icon(
-                  Icons.build_circle_outlined,
-                  size: 44,
-                  color: AppColors.warningDark,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                config.maintenanceTitle,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.text,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                config.maintenanceMessage,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: _isRetrying ? null : _handleRetry,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-                child: _isRetrying
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.refresh_rounded, size: 18),
-                          SizedBox(width: 8),
-                          Text('Check Status Again', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                        ],
-                      ),
-              ),
-              if (canBypass) ...[
-                const SizedBox(height: 12),
-                OutlinedButton(
-                  onPressed: _handleBypass,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.warningDark,
-                    side: const BorderSide(color: AppColors.warningDark),
-                    minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Row(
+    return BlocListener<MaintenanceBloc, MaintenanceState>(
+      listener: (context, state) {
+        if (!state.isMaintenanceActive && !state.isChecking) {
+          _navigateToApp(context);
+        }
+      },
+      child: BlocBuilder<MaintenanceBloc, MaintenanceState>(
+        builder: (context, state) {
+          final isChecking = state.isChecking;
+          final title = state.maintenanceTitle;
+          final message = state.maintenanceMessage;
+
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.admin_panel_settings_outlined, size: 18),
-                      SizedBox(width: 8),
-                      Text('Bypass Maintenance (Admin Mode)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      const MaintenanceIconCard(),
+                      const SizedBox(height: 24),
+                      MaintenanceMessageCard(
+                        title: title,
+                        message: message,
+                      ),
+                      const SizedBox(height: 24),
+                      MaintenanceActionButtons(
+                        isChecking: isChecking,
+                        canBypass: false,
+                        onRetry: () =>
+                            bloc.add(const CheckMaintenanceStatus()),
+                        onBypass: () => _navigateToApp(context),
+                      ),
                     ],
                   ),
                 ),
-              ],
-            ],
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

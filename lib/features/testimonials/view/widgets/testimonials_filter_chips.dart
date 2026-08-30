@@ -58,9 +58,9 @@ class TestimonialsFilterChips extends StatelessWidget {
                 child: Text(
                   opt['label'] as String,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected ? Colors.white : AppColors.text,
+                    fontSize: 11.5,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
               ),

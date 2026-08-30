@@ -1,201 +1,143 @@
+// ==============================================================================
+// File: lib/features/reports/view/reports_view.dart
+// Description: Leadership Reports Submission, History & Analytics Export Center
+// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
+// Features:
+//   - Segmented sub-tab switcher between Report Submission and Submitted History
+//   - Structured report submission forms with recipient hierarchy previews
+//   - Real-time submission state feedback driven by `ReportsBloc`
+//   - Export section for Super Admins and Country Directors
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/reports_bloc.dart';
+import '../bloc/reports_event.dart';
 import '../bloc/reports_state.dart';
-import '../model/report_model.dart';
-import '../presenter/reports_presenter.dart';
 import 'widgets/report_history_section.dart';
 import 'widgets/report_submit_section.dart';
 import 'widgets/reports_export_section.dart';
 import 'widgets/reports_tab_selector.dart';
 
 /// The View component of the Reports tab feature.
-/// Handles weekly/monthly report submissions, historical reports list, and exports with role-based UI.
-class ReportsView extends StatefulWidget {
+/// 100% Pure StatelessWidget powered by BLoC state machine.
+class ReportsView extends StatelessWidget {
   final String? selectedCircle;
+
   const ReportsView({super.key, this.selectedCircle});
 
   @override
-  State<ReportsView> createState() => _ReportsViewState();
+  Widget build(BuildContext context) {
+    return BlocProvider<ReportsBloc>(
+      key: ValueKey(selectedCircle),
+      create: (context) =>
+          ReportsBloc()..add(LoadReports(selectedCircle: selectedCircle)),
+      child: _ReportsContent(selectedCircle: selectedCircle),
+    );
+  }
 }
 
-class _ReportsViewState extends State<ReportsView>
-    implements ReportsViewContract {
-  late final ReportsBloc _bloc;
-  late final ReportsPresenter _presenter;
-  late final TextEditingController _contentController;
+class _ReportsContent extends StatelessWidget {
+  final String? selectedCircle;
+  final TextEditingController _contentController = TextEditingController();
 
-  int _activeSubTab = 0;
-  bool _isLoading = false;
-  bool _isSubmitting = false;
-  String _selectedType = 'Monthly';
-  String _circleName = '';
-  List<String> _availableCircles = const [];
-  List<ReportModel> _reports = const [];
-  List<ReportsChartPoint> _attendanceTrend = const [];
-
-  @override
-  void initState() {
-    super.initState();
-    _bloc = ReportsBloc();
-    _presenter = ReportsPresenter(view: this, bloc: _bloc);
-    _contentController = TextEditingController();
-
-    _contentController.addListener(() {
-      _presenter.onContentChanged(_contentController.text);
-    });
-
-    _presenter.load(selectedCircle: widget.selectedCircle);
-  }
-
-  @override
-  void didUpdateWidget(covariant ReportsView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedCircle != oldWidget.selectedCircle) {
-      _presenter.load(selectedCircle: widget.selectedCircle);
-    }
-  }
-
-  @override
-  void dispose() {
-    _contentController.dispose();
-    _bloc.close();
-    super.dispose();
-  }
-
-  // --- ReportsViewContract Implementations ---
-
-  @override
-  void onReportsLoading() {
-    setState(() => _isLoading = true);
-  }
-
-  @override
-  void onReportsLoaded() {
-    setState(() {
-      _isLoading = false;
-      _isSubmitting = false;
-      _reports = _bloc.state.submittedReports;
-      _attendanceTrend = _bloc.state.attendanceTrend;
-      _selectedType = _bloc.state.selectedType;
-      _circleName = _bloc.state.circleName;
-      _availableCircles = _bloc.state.availableCircles;
-    });
-  }
-
-  @override
-  void onReportSubmitting() {
-    setState(() => _isSubmitting = true);
-  }
-
-  @override
-  void onReportSubmitSuccess() {
-    setState(() {
-      _isSubmitting = false;
-      _contentController.clear();
-      _reports = _bloc.state.submittedReports;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Report submitted successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    _presenter.changeSubTab(1);
-  }
-
-  @override
-  void onReportsError(String error) {
-    setState(() {
-      _isLoading = false;
-      _isSubmitting = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
-    );
-  }
-
-  @override
-  void onSubTabChanged(int index) {
-    if (_activeSubTab != index) {
-      setState(() => _activeSubTab = index);
-    }
-  }
+  _ReportsContent({this.selectedCircle});
 
   @override
   Widget build(BuildContext context) {
-    final role = SessionManager().currentRole;
-    final isSuperAdmin = role == UserRole.superAdmin;
+    final bloc = context.read<ReportsBloc>();
+    final session = SessionManager().currentSession;
+    final canExport = session.role == UserRole.superAdmin ||
+        session.role == UserRole.countryDirector;
 
-    return BlocProvider<ReportsBloc>.value(
-      value: _bloc,
-      child: BlocListener<ReportsBloc, ReportsState>(
-        listener: (context, state) {
-          _presenter.handleStateChange(state);
-        },
-        child: _isLoading && _reports.isEmpty
-            ? const CenteredLoadingIndicator(height: 300)
-            : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (isSuperAdmin) ...[
-                      // Super Admin View: Reports list & Export
-                      ReportsTabSelector(
-                        activeIndex: _activeSubTab,
-                        onTabSelected: (idx) =>
-                            setState(() => _activeSubTab = idx),
-                        firstTabLabel: 'Reports',
-                        secondTabLabel: 'Export',
-                        secondTabBadge: _reports.isNotEmpty
-                            ? '${_reports.length}'
-                            : null,
+    return BlocListener<ReportsBloc, ReportsState>(
+      listenWhen: (prev, curr) =>
+          (prev.errorMessage != curr.errorMessage &&
+              curr.errorMessage.isNotEmpty) ||
+          (prev.isSuccess != curr.isSuccess && curr.isSuccess),
+      listener: (context, state) {
+        if (state.errorMessage.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        } else if (state.isSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Report submitted successfully!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          _contentController.clear();
+        }
+      },
+      child: BlocBuilder<ReportsBloc, ReportsState>(
+        builder: (context, state) {
+          if (state.isLoading && state.submittedReports.isEmpty) {
+            return const CenteredLoadingIndicator(height: 300);
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              bloc.add(LoadReports(selectedCircle: selectedCircle));
+            },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 32),
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ReportsTabSelector(
+                    activeIndex: state.activeSubTab,
+                    firstTabLabel: 'Submit Report',
+                    secondTabLabel: 'History',
+                    secondTabBadge: state.submittedReports.isNotEmpty
+                        ? '${state.submittedReports.length}'
+                        : null,
+                    onTabSelected: (idx) =>
+                        bloc.add(ToggleReportSubTab(idx)),
+                  ),
+                  const SizedBox(height: 12),
+                  if (state.activeSubTab == 0)
+                    ReportSubmitSection(
+                      selectedType: state.selectedType,
+                      onTypeChanged: (type) =>
+                          bloc.add(ChangeReportType(type)),
+                      circleName: state.circleName,
+                      availableCircles: state.availableCircles,
+                      onCircleChanged: (circle) =>
+                          bloc.add(ChangeSelectedCircle(circle)),
+                      contentController: _contentController,
+                      isSubmitting: state.isSubmitting,
+                      onSubmit: () {
+                        bloc.add(
+                          ReportContentChanged(_contentController.text),
+                        );
+                        bloc.add(const SubmitReportForm());
+                      },
+                    )
+                  else ...[
+                    ReportHistorySection(reports: state.submittedReports),
+                    if (canExport) ...[
+                      const SizedBox(height: 16),
+                      ReportsExportSection(
+                        selectedCircle: selectedCircle,
+                        attendanceTrend: state.attendanceTrend,
                       ),
-                      const SizedBox(height: 4),
-                      if (_activeSubTab == 0)
-                        ReportHistorySection(reports: _reports)
-                      else
-                        ReportsExportSection(
-                          selectedCircle: widget.selectedCircle,
-                          attendanceTrend: _attendanceTrend,
-                        ),
-                    ] else ...[
-                      // All Leadership Roles (CC, CF, CD, ID, DED): Submit Report & Scoped Reports History
-                      ReportsTabSelector(
-                        activeIndex: _activeSubTab,
-                        onTabSelected: (idx) => _presenter.changeSubTab(idx),
-                        firstTabLabel: 'Submit Report',
-                        secondTabLabel: 'Reports',
-                        secondTabBadge: _reports.isNotEmpty
-                            ? '${_reports.length}'
-                            : null,
-                      ),
-                      const SizedBox(height: 4),
-                      if (_activeSubTab == 0)
-                        ReportSubmitSection(
-                          selectedType: _selectedType,
-                          onTypeChanged: (type) =>
-                              _presenter.changeReportType(type),
-                          circleName: _circleName,
-                          availableCircles: _availableCircles,
-                          onCircleChanged: (circle) =>
-                              _presenter.changeCircle(circle),
-                          contentController: _contentController,
-                          isSubmitting: _isSubmitting,
-                          onSubmit: () => _presenter.submit(),
-                        )
-                      else
-                        ReportHistorySection(reports: _reports),
                     ],
-                    const SizedBox(height: 24),
                   ],
-                ),
+                ],
               ),
+            ),
+          );
+        },
       ),
     );
   }
-
 }

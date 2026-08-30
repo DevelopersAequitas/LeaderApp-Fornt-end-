@@ -4,8 +4,13 @@ import '../../../../core/theme/app_colors.dart';
 /// Renders a compact, sleek search input field for filtering circles.
 class TeamsSearchBar extends StatelessWidget {
   final TextEditingController controller;
+  final ValueChanged<String>? onChanged;
 
-  const TeamsSearchBar({super.key, required this.controller});
+  const TeamsSearchBar({
+    super.key,
+    required this.controller,
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +35,7 @@ class TeamsSearchBar extends StatelessWidget {
             Expanded(
               child: TextField(
                 controller: controller,
+                onChanged: onChanged,
                 style: const TextStyle(fontSize: 13, color: AppColors.text),
                 decoration: const InputDecoration(
                   hintText: 'Search circles by name, founder, city...',
@@ -50,6 +56,7 @@ class TeamsSearchBar extends StatelessWidget {
                 return GestureDetector(
                   onTap: () {
                     controller.clear();
+                    onChanged?.call('');
                   },
                   child: const Icon(
                     Icons.close,

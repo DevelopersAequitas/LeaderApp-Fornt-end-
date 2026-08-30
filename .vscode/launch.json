@@ -4,24 +4,26 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
-
         {
-            "name": "LeaderApp-Fornt-end-",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "LeaderApp-Fornt-end- (profile mode)",
+            "name": "Peers Leader (Dev - Debug)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "program": "lib/main.dart",
+            "flutterMode": "debug"
         },
         {
-            "name": "LeaderApp-Fornt-end- (release mode)",
+            "name": "Peers Leader (Prod - Release)",
             "request": "launch",
             "type": "dart",
+            "program": "lib/main.dart",
             "flutterMode": "release"
+        },
+        {
+            "name": "Peers Leader (Profile Mode)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "profile"
         }
     ]
 }

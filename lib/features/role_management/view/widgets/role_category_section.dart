@@ -64,45 +64,60 @@ class RoleCategorySection extends StatelessWidget {
                 child: Icon(_getCategoryIcon(categoryName), size: 16, color: AppColors.primary),
               ),
               const SizedBox(width: 8),
-              Text(
-                categoryName.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text,
-                  letterSpacing: 0.5,
+              Expanded(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        categoryName.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.text,
+                          letterSpacing: 0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: activeCount > 0 ? AppColors.selectionBg : AppColors.secondaryBg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$activeCount/${capabilities.length}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: activeCount > 0 ? AppColors.primary : AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: activeCount > 0 ? AppColors.selectionBg : AppColors.secondaryBg,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '$activeCount/${capabilities.length}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: activeCount > 0 ? AppColors.primary : AppColors.textSecondary,
-                  ),
-                ),
-              ),
-              const Spacer(),
+              const SizedBox(width: 4),
               Text(
                 isAllCategoryEnabled ? 'All ON' : 'All OFF',
                 style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
               ),
-              Transform.scale(
-                scale: 0.7,
-                child: Switch(
-                  value: isAllCategoryEnabled,
-                  activeThumbColor: AppColors.primary,
-                  activeTrackColor: AppColors.primary.withValues(alpha: 0.25),
-                  inactiveThumbColor: AppColors.disabled,
-                  inactiveTrackColor: AppColors.border,
-                  onChanged: onToggleCategoryAll,
+              const SizedBox(width: 2),
+              SizedBox(
+                height: 28,
+                child: Transform.scale(
+                  scale: 0.7,
+                  child: Switch(
+                    value: isAllCategoryEnabled,
+                    activeThumbColor: AppColors.primary,
+                    activeTrackColor: AppColors.primary.withValues(alpha: 0.25),
+                    inactiveThumbColor: AppColors.disabled,
+                    inactiveTrackColor: AppColors.border,
+                    onChanged: onToggleCategoryAll,
+                  ),
                 ),
               ),
             ],

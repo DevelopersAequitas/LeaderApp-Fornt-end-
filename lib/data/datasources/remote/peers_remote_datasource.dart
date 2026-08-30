@@ -39,7 +39,9 @@ class PeersRemoteDataSource {
   PeersRemoteDataSource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
   static bool _isValidId(String? str) {
-    return str != null && str.trim().isNotEmpty;
+    if (str == null || str.trim().isEmpty) return false;
+    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+    return uuidRegex.hasMatch(str.trim());
   }
 
   /// Fetches peers list with pagination (sorting is handled client-side).

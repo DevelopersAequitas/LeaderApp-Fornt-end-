@@ -9,6 +9,12 @@ class ReportsRemoteDataSource {
 
   ReportsRemoteDataSource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
+  static bool _isValidUuid(String? str) {
+    if (str == null || str.isEmpty) return false;
+    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+    return uuidRegex.hasMatch(str.trim());
+  }
+
   /// Fetches submitted reports.
   Future<ApiResponse<List<ReportModel>>> getReports({
     String? circleId,
@@ -16,7 +22,7 @@ class ReportsRemoteDataSource {
     String? status,
   }) async {
     final params = <String, String>{};
-    if (circleId != null && circleId.isNotEmpty) params['circle_id'] = circleId;
+    if (_isValidUuid(circleId)) params['circle_id'] = circleId!.trim();
     if (type != null) params['type'] = type;
     if (status != null) params['status'] = status;
 
@@ -87,7 +93,7 @@ class ReportsRemoteDataSource {
   /// Fetches attendance trend chart points.
   Future<ApiResponse<List<ReportsChartPoint>>> getAttendanceTrend({String? circleId}) async {
     final params = <String, String>{};
-    if (circleId != null && circleId.isNotEmpty) params['circle_id'] = circleId;
+    if (_isValidUuid(circleId)) params['circle_id'] = circleId!.trim();
 
     return _apiClient.get<List<ReportsChartPoint>>(
       ApiEndpoints.reportsAttendanceTrend,
@@ -107,7 +113,7 @@ class ReportsRemoteDataSource {
     String? circleId,
   }) async {
     final params = <String, String>{'format': format};
-    if (circleId != null && circleId.isNotEmpty) params['circle_id'] = circleId;
+    if (_isValidUuid(circleId)) params['circle_id'] = circleId!.trim();
 
     return _apiClient.get<Map<String, dynamic>>(
       ApiEndpoints.reportsExport,

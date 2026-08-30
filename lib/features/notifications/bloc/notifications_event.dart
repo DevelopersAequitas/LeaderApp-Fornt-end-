@@ -1,21 +1,32 @@
-import 'package:flutter/material.dart';
+import 'package:equatable/equatable.dart';
 
-@immutable
-abstract class NotificationsEvent {
+abstract class NotificationsEvent extends Equatable {
   const NotificationsEvent();
+
+  @override
+  List<Object?> get props => [];
 }
 
-/// Triggers loading of user notification logs.
 class LoadNotifications extends NotificationsEvent {
-  const LoadNotifications();
+  final bool isRefresh;
+  const LoadNotifications({this.isRefresh = false});
+
+  @override
+  List<Object?> get props => [isRefresh];
 }
 
-/// Toggles all unread notification statuses to read.
+class FilterNotifications extends NotificationsEvent {
+  final String filter;
+  const FilterNotifications(this.filter);
+
+  @override
+  List<Object?> get props => [filter];
+}
+
 class MarkAllAsRead extends NotificationsEvent {
   const MarkAllAsRead();
 }
 
-/// Purges notifications history.
 class ClearAllNotifications extends NotificationsEvent {
   const ClearAllNotifications();
 }

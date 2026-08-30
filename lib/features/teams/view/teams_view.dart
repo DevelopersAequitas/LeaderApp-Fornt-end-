@@ -1,12 +1,21 @@
-import 'dart:ui';
+// ==============================================================================
+// File: lib/features/teams/view/teams_view.dart
+// Description: Multi-Circle Teams Hierarchy, Industry Clusters & Growth Metrics
+// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
+// Features:
+//   - Industry cluster filter chips and circle status toggles (All, Active, Growing, Inactive)
+//   - Circle health indicators (Capacity percentage, member roster, revenue yield)
+//   - Real-time search query filtering over managed circles
+//   - Role-based restriction fallback view for non-authorized leadership tiers
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/teams_bloc.dart';
+import '../bloc/teams_event.dart';
 import '../bloc/teams_state.dart';
-import '../model/teams_model.dart';
-import '../presenter/teams_presenter.dart';
 import 'widgets/teams_circle_card.dart';
 import 'widgets/teams_industry_filter_chips.dart';
 import 'widgets/teams_metrics_banner.dart';
@@ -15,165 +24,139 @@ import 'widgets/teams_search_bar.dart';
 import 'widgets/teams_status_filter_header.dart';
 
 /// The View component of the Teams tab feature.
-class TeamsView extends StatefulWidget {
+/// 100% Pure StatelessWidget powered by BLoC state machine.
+class TeamsView extends StatelessWidget {
   final String? selectedCircle;
   const TeamsView({super.key, this.selectedCircle});
 
   @override
-  State<TeamsView> createState() => _TeamsViewState();
+  Widget build(BuildContext context) {
+    return BlocProvider<TeamsBloc>(
+      key: ValueKey(selectedCircle),
+      create: (context) =>
+          TeamsBloc()..add(LoadTeamsData(selectedCircle: selectedCircle)),
+      child: _TeamsContent(selectedCircle: selectedCircle),
+    );
+  }
 }
 
-class _TeamsViewState extends State<TeamsView> implements TeamsViewContract {
-  late final TeamsBloc _bloc;
-  late final TeamsPresenter _presenter;
-  late final TextEditingController _searchController;
+class _TeamsContent extends StatelessWidget {
+  final String? selectedCircle;
+  final TextEditingController _searchController = TextEditingController();
 
-  bool _isLoading = false;
-  TeamsPermissionModel? _permission;
-  List<CircleTeamModel> _filteredCircles = const [];
-  String _selectedStatus = 'All';
-  String _selectedIndustry = 'All Industries';
+  _TeamsContent({this.selectedCircle});
 
-  @override
-  void initState() {
-    super.initState();
-    _bloc = TeamsBloc();
-    _presenter = TeamsPresenter(view: this, bloc: _bloc);
-    _searchController = TextEditingController();
-
-    _searchController.addListener(() {
-      _presenter.searchCircles(_searchController.text);
-    });
-
-    _presenter.load(selectedCircle: widget.selectedCircle);
-  }
-
-  @override
-  void didUpdateWidget(covariant TeamsView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedCircle != oldWidget.selectedCircle) {
-      _presenter.load(selectedCircle: widget.selectedCircle);
+  String _getSectionTitle(String selectedIndustry) {
+    if (selectedIndustry == 'All Industries' || selectedIndustry.isEmpty) {
+      return 'ALL CIRCLES';
     }
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _bloc.close();
-    super.dispose();
-  }
-
-  // --- TeamsViewContract Implementations ---
-
-  @override
-  void onTeamsLoading() {
-    setState(() => _isLoading = true);
-  }
-
-  @override
-  void onTeamsLoaded() {
-    setState(() {
-      _isLoading = false;
-      _permission = _bloc.state.permission;
-      _filteredCircles = _bloc.state.filteredCircles;
-      _selectedStatus = _bloc.state.selectedStatusFilter;
-      _selectedIndustry = _bloc.state.selectedIndustryFilter;
-    });
-  }
-
-  @override
-  void onTeamsError(String error) {
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
-    );
-  }
-
-  String _getSectionTitle() {
-    if (_selectedIndustry == 'All Industries' || _selectedIndustry.isEmpty) {
-      return 'All Circles';
-    }
-    return '$_selectedIndustry Circles';
-  }
-
-  Widget _buildFounderDashboardView() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TeamsMetricsBanner(circles: _filteredCircles),
-        const SizedBox(height: 10),
-        TeamsIndustryFilterChips(
-          industries: _bloc.state.availableIndustries,
-          industriesList: _bloc.state.industriesList,
-          allCircles: _bloc.state.allCircles,
-          selectedIndustry: _selectedIndustry,
-          onIndustrySelected: (ind) => _presenter.filterCirclesIndustry(ind),
-        ),
-        const SizedBox(height: 10),
-        TeamsSearchBar(controller: _searchController),
-        const SizedBox(height: 10),
-        TeamsStatusFilterHeader(
-          title: _getSectionTitle(),
-          selectedStatus: _selectedStatus,
-          onStatusSelected: (status) => _presenter.filterCirclesStatus(status),
-        ),
-        const SizedBox(height: 8),
-        if (_filteredCircles.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(28.0),
-            child: Text(
-              'No circles found matching your criteria.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-            ),
-          )
-        else
-          ..._filteredCircles.map((circle) => TeamsCircleCard(circle: circle)),
-        const SizedBox(height: 16),
-      ],
-    );
+    return '${selectedIndustry.toUpperCase()} CIRCLES';
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<TeamsBloc>.value(
-      value: _bloc,
-      child: BlocListener<TeamsBloc, TeamsState>(
-        listener: (context, state) {
-          _presenter.handleStateChange(state);
-        },
-        child: _isLoading || _permission == null
-            ? const CenteredLoadingIndicator(height: 300)
-            : _permission!.isRestricted
-                ? SizedBox(
-                    height: 580,
-                    child: Stack(
-                      children: [
-                        const Positioned.fill(
-                          child: SingleChildScrollView(
-                            physics: NeverScrollableScrollPhysics(),
-                            child: TeamsRestrictedBackgroundSkeleton(),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
-                            child: Container(
-                              color: Colors.white.withValues(alpha: 0.3),
+    final bloc = context.read<TeamsBloc>();
+
+    return BlocListener<TeamsBloc, TeamsState>(
+      listenWhen: (prev, curr) =>
+          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.errorMessage),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      },
+      child: BlocBuilder<TeamsBloc, TeamsState>(
+        builder: (context, state) {
+          if (state.isLoading && state.allCircles.isEmpty) {
+            return const CenteredLoadingIndicator(height: 300);
+          }
+
+          if (state.permission != null && state.permission!.isRestricted) {
+            return TeamsRestrictedPlaceholder(
+              permission: state.permission!,
+            );
+          }
+
+          final circles = state.filteredCircles;
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              bloc.add(LoadTeamsData(selectedCircle: selectedCircle));
+            },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 24),
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TeamsMetricsBanner(circles: state.allCircles),
+                  const SizedBox(height: 8),
+                  TeamsIndustryFilterChips(
+                    industries: state.availableIndustries,
+                    industriesList: state.industriesList,
+                    allCircles: state.allCircles,
+                    selectedIndustry: state.selectedIndustryFilter,
+                    onIndustrySelected: (ind) =>
+                        bloc.add(IndustryCirclesFilterChanged(ind)),
+                  ),
+                  const SizedBox(height: 4),
+                  TeamsStatusFilterHeader(
+                    title: _getSectionTitle(state.selectedIndustryFilter),
+                    selectedStatus: state.selectedStatusFilter,
+                    onStatusSelected: (st) =>
+                        bloc.add(StatusCirclesFilterChanged(st)),
+                  ),
+                  const SizedBox(height: 8),
+                  TeamsSearchBar(
+                    controller: _searchController,
+                    onChanged: (q) =>
+                        bloc.add(SearchCirclesQueryChanged(q)),
+                  ),
+                  const SizedBox(height: 6),
+                  if (circles.isEmpty)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.search_off_rounded, color: AppColors.textSecondary, size: 36),
+                          SizedBox(height: 8),
+                          Text(
+                            'No circles found matching your filter criteria',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.text,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                        Center(
-                          child: SingleChildScrollView(
-                            child: TeamsRestrictedPlaceholder(
-                              permission: _permission!,
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: circles.length,
+                      itemBuilder: (context, index) {
+                        return TeamsCircleCard(circle: circles[index]);
+                      },
                     ),
-                  )
-                : _buildFounderDashboardView(),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

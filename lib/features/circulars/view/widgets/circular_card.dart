@@ -37,6 +37,22 @@ class _CircularCardState extends State<CircularCard> {
     }
   }
 
+  static const Map<String, String> _roleNames = {
+    'all': 'All Leaders',
+    'circleChair': 'Circle Chair',
+    'circleFounder': 'Circle Founder',
+    'circleDirector': 'Circle Director',
+    'industryDirector': 'Industry Director',
+    'districtExecDirector': 'District Exec Director',
+    'countryDirector': 'Country Director',
+    'superAdmin': 'Super Admin',
+  };
+
+  String _formatTargetRoles(List<String> roles) {
+    if (roles.isEmpty || roles.contains('all')) return 'All Leaders';
+    return roles.map((r) => _roleNames[r] ?? r).join(', ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = widget.circular;
@@ -89,7 +105,7 @@ class _CircularCardState extends State<CircularCard> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Target: ${c.targetRoles.join(', ')}',
+                        'Target: ${_formatTargetRoles(c.targetRoles)}',
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,
@@ -119,15 +135,20 @@ class _CircularCardState extends State<CircularCard> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  c.content,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                    height: 1.35,
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    c.content,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      height: 1.35,
+                    ),
+                    maxLines: _isExpanded ? 100 : 2,
+                    overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                   ),
-                  maxLines: _isExpanded ? 100 : 2,
-                  overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 10),
                 Row(

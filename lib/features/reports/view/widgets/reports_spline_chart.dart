@@ -1,41 +1,143 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../model/report_model.dart';
 
-/// Custom spline chart painter widget for rendering attendance & performance trends in reports.
-class ReportsSplineChart extends StatelessWidget {
+/// Custom spline chart painter widget for rendering attendance & performance trends in reports with smooth animation.
+class ReportsSplineChart extends StatefulWidget {
   final List<ReportsChartPoint> points;
-  final double minY;
-  final double maxY;
-  final List<double> yLabels;
+  final double? minY;
+  final double? maxY;
+  final List<double>? yLabels;
   final Color lineColor;
 
   const ReportsSplineChart({
     super.key,
     required this.points,
-    required this.minY,
-    required this.maxY,
-    required this.yLabels,
+    this.minY,
+    this.maxY,
+    this.yLabels,
     required this.lineColor,
   });
 
   @override
+  State<ReportsSplineChart> createState() => _ReportsSplineChartState();
+}
+
+class _ReportsSplineChartState extends State<ReportsSplineChart>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animController;
+  late final Animation<double> _curveAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 950),
+    );
+    _curveAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutCubic,
+    );
+    _animController.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant ReportsSplineChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.points != widget.points) {
+      _animController.reset();
+      _animController.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final effectiveMinY = widget.minY ?? 0.0;
+    double maxDataVal = 0.0;
+    for (final p in widget.points) {
+      if (p.value > maxDataVal) maxDataVal = p.value;
+    }
+
+    double effectiveMaxY = widget.maxY ?? 0.0;
+    List<double> effectiveYLabels = widget.yLabels ?? const [];
+
+    if (effectiveMaxY <= 0 || effectiveYLabels.isEmpty) {
+      final calculated = _calculateNiceScale(maxDataVal);
+      effectiveMaxY = widget.maxY ?? calculated.maxY;
+      effectiveYLabels = widget.yLabels ?? calculated.yLabels;
+    }
+
     return Container(
       width: double.infinity,
       height: 200,
-      padding: const EdgeInsets.fromLTRB(8, 12, 16, 4),
-      child: CustomPaint(
-        painter: _ReportsSplineChartPainter(
-          points: points,
-          minY: minY,
-          maxY: maxY,
-          yLabels: yLabels,
-          lineColor: lineColor,
-        ),
+      padding: const EdgeInsets.fromLTRB(4, 8, 8, 4),
+      child: AnimatedBuilder(
+        animation: _curveAnimation,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: _ReportsSplineChartPainter(
+              points: widget.points,
+              minY: effectiveMinY,
+              maxY: effectiveMaxY,
+              yLabels: effectiveYLabels,
+              lineColor: widget.lineColor,
+              animationProgress: _curveAnimation.value,
+            ),
+          );
+        },
       ),
     );
   }
+
+  _ReportNiceScale _calculateNiceScale(double maxVal) {
+    if (maxVal <= 0) {
+      return const _ReportNiceScale(
+        maxY: 100,
+        yLabels: [0, 25, 50, 75, 100],
+      );
+    }
+
+    final targetMax = maxVal * 1.30;
+    double step;
+
+    if (targetMax <= 20) {
+      step = 5.0;
+    } else if (targetMax <= 50) {
+      step = 10.0;
+    } else if (targetMax <= 100) {
+      step = 25.0;
+    } else if (targetMax <= 250) {
+      step = 50.0;
+    } else if (targetMax <= 500) {
+      step = 100.0;
+    } else {
+      final exp = math.pow(10, (math.log(targetMax / 4) / math.ln10).floor()).toDouble();
+      step = 2 * exp;
+    }
+
+    int steps = (targetMax / step).ceil();
+    if (steps < 3) steps = 4;
+    if (steps > 5) steps = 5;
+
+    final maxY = steps * step;
+    final labels = List<double>.generate(steps + 1, (i) => i * step);
+
+    return _ReportNiceScale(maxY: maxY, yLabels: labels);
+  }
+}
+
+class _ReportNiceScale {
+  final double maxY;
+  final List<double> yLabels;
+  const _ReportNiceScale({required this.maxY, required this.yLabels});
 }
 
 class _ReportsSplineChartPainter extends CustomPainter {
@@ -44,6 +146,7 @@ class _ReportsSplineChartPainter extends CustomPainter {
   final double maxY;
   final List<double> yLabels;
   final Color lineColor;
+  final double animationProgress;
 
   _ReportsSplineChartPainter({
     required this.points,
@@ -51,6 +154,7 @@ class _ReportsSplineChartPainter extends CustomPainter {
     required this.maxY,
     required this.yLabels,
     required this.lineColor,
+    required this.animationProgress,
   });
 
   void _drawDashedHorizontalLine(
@@ -66,7 +170,7 @@ class _ReportsSplineChartPainter extends CustomPainter {
       canvas.drawLine(
         Offset(currentX, start.dy),
         Offset(
-          currentX + dashWidth > end.dx ? end.dx : currentX + dashWidth,
+          (currentX + dashWidth) > end.dx ? end.dx : (currentX + dashWidth),
           start.dy,
         ),
         paint,
@@ -89,7 +193,7 @@ class _ReportsSplineChartPainter extends CustomPainter {
         Offset(start.dx, currentY),
         Offset(
           start.dx,
-          currentY + dashHeight > end.dy ? end.dy : currentY + dashHeight,
+          (currentY + dashHeight) > end.dy ? end.dy : (currentY + dashHeight),
         ),
         paint,
       );
@@ -102,48 +206,56 @@ class _ReportsSplineChartPainter extends CustomPainter {
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
 
     const double leftPadding = 36.0;
-    const double bottomPadding = 26.0;
+    const double rightPadding = 12.0;
+    const double topPadding = 14.0;
+    const double bottomPadding = 24.0;
 
-    final double chartWidth = size.width - leftPadding;
-    final double chartHeight = size.height - bottomPadding;
+    final double chartWidth = size.width - leftPadding - rightPadding;
+    final double chartHeight = size.height - topPadding - bottomPadding;
+    final double baselineY = topPadding + chartHeight;
 
     final gridPaint = Paint()
-      ..color = AppColors.border
+      ..color = AppColors.border.withValues(alpha: 0.7)
       ..strokeWidth = 1.0;
 
     final baselinePaint = Paint()
       ..color = AppColors.border
       ..strokeWidth = 1.5;
 
-    // Draw vertical dashed grid lines for X axis coordinates
-    final double xSegment = chartWidth / (points.length - 1);
-    for (int i = 0; i < points.length; i++) {
-      final x = leftPadding + (i * xSegment);
-      _drawDashedVerticalLine(
-        canvas,
-        Offset(x, 0),
-        Offset(x, chartHeight),
-        gridPaint,
-      );
+    // 1. Draw vertical dashed grid lines for X axis coordinates
+    if (points.isNotEmpty) {
+      final double xSegment = points.length > 1 ? chartWidth / (points.length - 1) : chartWidth;
+      for (int i = 0; i < points.length; i++) {
+        final x = leftPadding + (i * xSegment);
+        _drawDashedVerticalLine(
+          canvas,
+          Offset(x, topPadding),
+          Offset(x, baselineY),
+          gridPaint,
+        );
+      }
     }
 
-    // Draw horizontal dashed grid lines and Y-axis labels
+    // 2. Draw horizontal dashed grid lines and Y-axis labels
+    final rangeY = (maxY - minY) > 0 ? (maxY - minY) : 1.0;
     for (final label in yLabels) {
-      final yRatio = (label - minY) / (maxY - minY);
-      final yPos = chartHeight - (yRatio * chartHeight);
+      final yRatio = ((label - minY) / rangeY).clamp(0.0, 1.0);
+      final yPos = baselineY - (yRatio * chartHeight);
 
-      _drawDashedHorizontalLine(
-        canvas,
-        Offset(leftPadding, yPos),
-        Offset(size.width, yPos),
-        gridPaint,
-      );
+      if (yRatio > 0.01) {
+        _drawDashedHorizontalLine(
+          canvas,
+          Offset(leftPadding, yPos),
+          Offset(size.width - rightPadding, yPos),
+          gridPaint,
+        );
+      }
 
       textPainter.text = TextSpan(
-        text: '${label.toInt()}',
+        text: label >= 1000 ? '${(label / 1000).toStringAsFixed(1)}k' : '${label.toInt()}',
         style: const TextStyle(
           color: AppColors.textSecondary,
-          fontSize: 10,
+          fontSize: 9.5,
           fontWeight: FontWeight.w500,
         ),
       );
@@ -151,39 +263,45 @@ class _ReportsSplineChartPainter extends CustomPainter {
       textPainter.paint(
         canvas,
         Offset(
-          leftPadding - textPainter.width - 8,
+          leftPadding - textPainter.width - 6,
           yPos - textPainter.height / 2,
         ),
       );
     }
 
-    // Draw solid horizontal baseline at the bottom of the chart
+    // 3. Draw solid horizontal baseline at the bottom of the chart
     canvas.drawLine(
-      Offset(leftPadding, chartHeight),
-      Offset(size.width, chartHeight),
+      Offset(leftPadding, baselineY),
+      Offset(size.width - rightPadding, baselineY),
       baselinePaint,
     );
 
     if (points.isEmpty) return;
 
+    // 4. Calculate pixel coordinates with progress scaling
+    final double xSegment = points.length > 1 ? chartWidth / (points.length - 1) : chartWidth;
     final List<Offset> pixelPoints = [];
+
     for (int i = 0; i < points.length; i++) {
       final p = points[i];
       final x = leftPadding + (i * xSegment);
-      final yRatio = (p.value - minY) / (maxY - minY);
-      final y = chartHeight - (yRatio * chartHeight);
+      final rawYRatio = ((p.value - minY) / rangeY).clamp(0.0, 1.0);
+      final animatedYRatio = rawYRatio * animationProgress;
+      final y = baselineY - (animatedYRatio * chartHeight);
       pixelPoints.add(Offset(x, y));
     }
 
-    // Spline tangents calculation
+    // 5. Build spline curve
     final int n = pixelPoints.length;
     final List<Offset> controlPoints1 = [];
     final List<Offset> controlPoints2 = [];
-    const double factor = 0.20;
+    const double factor = 0.18;
 
     final List<Offset> tangents = List.filled(n, Offset.zero);
     for (int i = 0; i < n; i++) {
-      if (i == 0) {
+      if (n == 1) {
+        tangents[i] = Offset.zero;
+      } else if (i == 0) {
         tangents[i] = (pixelPoints[1] - pixelPoints[0]) * factor;
       } else if (i == n - 1) {
         tangents[i] = (pixelPoints[n - 1] - pixelPoints[n - 2]) * factor;
@@ -197,60 +315,65 @@ class _ReportsSplineChartPainter extends CustomPainter {
       controlPoints2.add(pixelPoints[i + 1] - tangents[i + 1]);
     }
 
-    // 1. Gradient Fill Path
-    final fillPath = Path();
-    fillPath.moveTo(pixelPoints[0].dx, chartHeight);
-    fillPath.lineTo(pixelPoints[0].dx, pixelPoints[0].dy);
+    // 6. Gradient Fill Path
+    if (n > 1) {
+      final fillPath = Path();
+      fillPath.moveTo(pixelPoints[0].dx, baselineY);
+      fillPath.lineTo(pixelPoints[0].dx, pixelPoints[0].dy);
 
-    for (int i = 0; i < n - 1; i++) {
-      fillPath.cubicTo(
-        controlPoints1[i].dx,
-        controlPoints1[i].dy,
-        controlPoints2[i].dx,
-        controlPoints2[i].dy,
-        pixelPoints[i + 1].dx,
-        pixelPoints[i + 1].dy,
-      );
+      for (int i = 0; i < n - 1; i++) {
+        fillPath.cubicTo(
+          controlPoints1[i].dx,
+          controlPoints1[i].dy,
+          controlPoints2[i].dx,
+          controlPoints2[i].dy,
+          pixelPoints[i + 1].dx,
+          pixelPoints[i + 1].dy,
+        );
+      }
+      fillPath.lineTo(pixelPoints.last.dx, baselineY);
+      fillPath.close();
+
+      final fillPaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            lineColor.withValues(alpha: 0.18 * animationProgress),
+            lineColor.withValues(alpha: 0.01),
+          ],
+        ).createShader(Rect.fromLTWH(leftPadding, topPadding, chartWidth, chartHeight));
+
+      canvas.drawPath(fillPath, fillPaint);
     }
-    fillPath.lineTo(pixelPoints.last.dx, chartHeight);
-    fillPath.close();
 
-    final fillPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          lineColor.withValues(alpha: 0.12),
-          lineColor.withValues(alpha: 0.01),
-        ],
-      ).createShader(Rect.fromLTWH(leftPadding, 0, chartWidth, chartHeight));
-
-    canvas.drawPath(fillPath, fillPaint);
-
-    // 2. Line Path
+    // 7. Line Path
     final linePath = Path();
     linePath.moveTo(pixelPoints[0].dx, pixelPoints[0].dy);
 
-    for (int i = 0; i < n - 1; i++) {
-      linePath.cubicTo(
-        controlPoints1[i].dx,
-        controlPoints1[i].dy,
-        controlPoints2[i].dx,
-        controlPoints2[i].dy,
-        pixelPoints[i + 1].dx,
-        pixelPoints[i + 1].dy,
-      );
+    if (n > 1) {
+      for (int i = 0; i < n - 1; i++) {
+        linePath.cubicTo(
+          controlPoints1[i].dx,
+          controlPoints1[i].dy,
+          controlPoints2[i].dx,
+          controlPoints2[i].dy,
+          pixelPoints[i + 1].dx,
+          pixelPoints[i + 1].dy,
+        );
+      }
     }
 
     final linePaint = Paint()
       ..color = lineColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
     canvas.drawPath(linePath, linePaint);
 
-    // 3. Dots & X labels
+    // 8. Dots & X labels
     final dotPaint = Paint()
       ..color = lineColor
       ..style = PaintingStyle.fill;
@@ -262,8 +385,8 @@ class _ReportsSplineChartPainter extends CustomPainter {
     for (int i = 0; i < points.length; i++) {
       final pt = pixelPoints[i];
 
-      canvas.drawCircle(pt, 4.5, dotBorderPaint);
-      canvas.drawCircle(pt, 3.0, dotPaint);
+      canvas.drawCircle(pt, 4.0, dotBorderPaint);
+      canvas.drawCircle(pt, 2.8, dotPaint);
 
       textPainter.text = TextSpan(
         text: points[i].month,
@@ -276,11 +399,16 @@ class _ReportsSplineChartPainter extends CustomPainter {
       textPainter.layout();
       textPainter.paint(
         canvas,
-        Offset(pt.dx - textPainter.width / 2, chartHeight + 8),
+        Offset(pt.dx - textPainter.width / 2, baselineY + 6),
       );
     }
   }
 
   @override
-  bool shouldRepaint(covariant _ReportsSplineChartPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _ReportsSplineChartPainter oldDelegate) {
+    return oldDelegate.animationProgress != animationProgress ||
+        oldDelegate.points != points ||
+        oldDelegate.maxY != maxY;
+  }
 }
+

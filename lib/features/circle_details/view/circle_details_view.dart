@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
-import '../../../data/repositories/teams_repository.dart';
-import '../../peers/model/peer_model.dart';
 import '../../teams/model/teams_model.dart';
-import '../model/circle_event_model.dart';
-import '../model/circle_sub_industry_model.dart';
+import '../bloc/circle_details_bloc.dart';
+import '../bloc/circle_details_event.dart';
+import '../bloc/circle_details_state.dart';
 import 'widgets/circle_details_hero_card.dart';
 import 'widgets/circle_details_tab_selector.dart';
 import 'widgets/circle_events_section.dart';
@@ -15,164 +15,101 @@ import 'widgets/circle_peers_section.dart';
 import 'widgets/circle_sub_industries_section.dart';
 
 /// Screen displaying comprehensive details about a specific Circle.
-class CircleDetailsView extends StatefulWidget {
+/// Pure StatelessWidget powered 100% by BLoC state machine.
+class CircleDetailsView extends StatelessWidget {
   final CircleTeamModel circle;
 
   const CircleDetailsView({super.key, required this.circle});
 
   @override
-  State<CircleDetailsView> createState() => _CircleDetailsViewState();
+  Widget build(BuildContext context) {
+    return BlocProvider<CircleDetailsBloc>(
+      create: (context) => CircleDetailsBloc()
+        ..add(LoadCircleDetailsData(circleId: circle.id)),
+      child: _CircleDetailsContent(initialCircle: circle),
+    );
+  }
 }
 
-class _CircleDetailsViewState extends State<CircleDetailsView> {
-  late CircleTeamModel _circle;
-  int _activeSubTab = 0; // 0: Overview, 1: Peers, 2: Sub-Industries, 3: Events
-  String _selectedEventFilter = 'All';
+class _CircleDetailsContent extends StatelessWidget {
+  final CircleTeamModel initialCircle;
 
-  List<PeerModel> _circlePeers = [];
-  bool _isLoadingPeers = false;
-
-  CircleSubIndustriesResponse? _subIndustries;
-  bool _isLoadingSubIndustries = false;
-
-  List<CircleEventModel> _circleEvents = [];
-  bool _isLoadingEvents = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _circle = widget.circle;
-    _loadCircleDetails();
-    _loadCirclePeers();
-    _loadSubIndustries();
-    _loadCircleEvents();
-  }
-
-  Future<void> _loadCircleDetails() async {
-    if (widget.circle.id.isEmpty) return;
-    try {
-      final res =
-          await TeamsRepositoryImpl().getCircleDetails(widget.circle.id);
-      if (mounted && res.success && res.data != null) {
-        setState(() {
-          _circle = res.data!;
-        });
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loadCirclePeers() async {
-    setState(() => _isLoadingPeers = true);
-    try {
-      final res =
-          await TeamsRepositoryImpl().getCirclePeers(widget.circle.id);
-      if (mounted) {
-        final peers = (res.data ?? []).where((p) {
-          final cId = p.circleId;
-          if (cId != null && cId.isNotEmpty && cId != widget.circle.id) {
-            return false;
-          }
-          return true;
-        }).toList();
-
-        setState(() {
-          _circlePeers = peers;
-          _isLoadingPeers = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isLoadingPeers = false);
-    }
-  }
-
-  Future<void> _loadSubIndustries() async {
-    setState(() => _isLoadingSubIndustries = true);
-    try {
-      final res =
-          await TeamsRepositoryImpl().getSubIndustries(widget.circle.id);
-      if (mounted) {
-        setState(() {
-          _subIndustries = res.data;
-          _isLoadingSubIndustries = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isLoadingSubIndustries = false);
-    }
-  }
-
-  Future<void> _loadCircleEvents() async {
-    setState(() => _isLoadingEvents = true);
-    try {
-      final res = await TeamsRepositoryImpl().getCircleEvents(
-        widget.circle.id,
-        filter: _selectedEventFilter,
-      );
-      if (mounted) {
-        final events = (res.data ?? []).where((e) {
-          if (e.circleId.isNotEmpty && e.circleId != widget.circle.id) {
-            return false;
-          }
-          return true;
-        }).toList();
-
-        setState(() {
-          _circleEvents = events;
-          _isLoadingEvents = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isLoadingEvents = false);
-    }
-  }
+  const _CircleDetailsContent({required this.initialCircle});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: CustomAppBar(
-        title: 'Circle Details',
-        subtitle: _circle.name,
-        showBackButton: true,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            CircleDetailsHeroCard(circle: _circle),
-            CircleLeadershipCard(circle: _circle),
-            CircleDetailsTabSelector(
-              activeTab: _activeSubTab,
-              peersCount: _circlePeers.length,
-              eventsCount: _circleEvents.length,
-              onTabChanged: (idx) => setState(() => _activeSubTab = idx),
+    return BlocListener<CircleDetailsBloc, CircleDetailsState>(
+      listenWhen: (prev, curr) =>
+          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.errorMessage),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      },
+      child: BlocBuilder<CircleDetailsBloc, CircleDetailsState>(
+        builder: (context, state) {
+          final activeCircle = state.circle ?? initialCircle;
+          final bloc = context.read<CircleDetailsBloc>();
+
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: CustomAppBar(
+              title: 'Circle Details',
+              subtitle: activeCircle.name,
+              showBackButton: true,
             ),
-            if (_activeSubTab == 0)
-              CircleOverviewSection(circle: _circle),
-            if (_activeSubTab == 1)
-              CirclePeersSection(
-                peers: _circlePeers,
-                isLoading: _isLoadingPeers,
+            body: RefreshIndicator(
+              onRefresh: () async {
+                bloc.add(LoadCircleDetailsData(
+                  circleId: initialCircle.id,
+                  isRefresh: true,
+                ));
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    CircleDetailsHeroCard(circle: activeCircle),
+                    CircleLeadershipCard(circle: activeCircle),
+                    CircleDetailsTabSelector(
+                      activeTab: state.activeSubTab,
+                      peersCount: state.circlePeers.length,
+                      eventsCount: state.filteredEvents.length,
+                      onTabChanged: (idx) =>
+                          bloc.add(ChangeCircleSubTabEvent(idx)),
+                    ),
+                    if (state.activeSubTab == 0)
+                      CircleOverviewSection(circle: activeCircle),
+                    if (state.activeSubTab == 1)
+                      CirclePeersSection(
+                        peers: state.circlePeers,
+                        isLoading: state.isLoadingPeers,
+                      ),
+                    if (state.activeSubTab == 2)
+                      CircleSubIndustriesSection(
+                        subIndustries: state.subIndustries,
+                        isLoading: state.isLoadingSubIndustries,
+                        categoryName: activeCircle.category,
+                      ),
+                    if (state.activeSubTab == 3)
+                      CircleEventsSection(
+                        events: state.filteredEvents,
+                        isLoading: state.isLoadingEvents,
+                        selectedFilter: state.selectedEventFilter,
+                        onFilterChanged: (filter) =>
+                            bloc.add(FilterCircleEventsEvent(filter)),
+                      ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
-            if (_activeSubTab == 2)
-              CircleSubIndustriesSection(
-                subIndustries: _subIndustries,
-                isLoading: _isLoadingSubIndustries,
-                categoryName: _circle.category,
-              ),
-            if (_activeSubTab == 3)
-              CircleEventsSection(
-                events: _circleEvents,
-                isLoading: _isLoadingEvents,
-                selectedFilter: _selectedEventFilter,
-                onFilterChanged: (filter) {
-                  setState(() => _selectedEventFilter = filter);
-                  _loadCircleEvents();
-                },
-              ),
-            const SizedBox(height: 24),
-          ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }

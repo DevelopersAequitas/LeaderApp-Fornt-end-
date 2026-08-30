@@ -7,7 +7,8 @@ abstract class DashboardEvent {
 
 /// Triggers loading of metrics and impacter lists.
 class LoadDashboardData extends DashboardEvent {
-  const LoadDashboardData();
+  final bool isRefresh;
+  const LoadDashboardData({this.isRefresh = false});
 }
 
 /// Dispatched when the user switches tabs in the bottom navigation bar.
@@ -18,6 +19,11 @@ class TabChanged extends DashboardEvent {
 
 /// Dispatched when the user switches active managed circles.
 class SelectCircle extends DashboardEvent {
-  final String circleName;
+  final String? circleName;
   const SelectCircle(this.circleName);
+}
+
+/// Refreshes unread notification count badge.
+class RefreshNotificationsCount extends DashboardEvent {
+  const RefreshNotificationsCount();
 }

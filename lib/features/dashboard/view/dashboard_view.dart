@@ -1,3 +1,15 @@
+// ==============================================================================
+// File: lib/features/dashboard/view/dashboard_view.dart
+// Description: Central Executive Dashboard & Bottom Navigation Hub
+// Framework: Flutter | Architecture: MVP View Layer (BLoC State Driven)
+// Features:
+//   - Dynamic role-aware application bar with notification badges & avatar profile launcher
+//   - Luxury executive hero overview banner with revenue & core metrics
+//   - Quick KPI matrix navigation to Peers, Teams, Finance, and Reports
+//   - IndexedStack persistence across bottom navigation tabs (Dashboard, Peers, Teams, Finance, Reports)
+//   - Double-back press exit protection via `PopScope`
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,17 +18,15 @@ import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
-import '../../../data/repositories/notifications_repository.dart';
-import '../../../data/repositories/teams_repository.dart';
 import '../../finance/view/finance_view.dart';
 import '../../peers/view/peers_view.dart';
 import '../../reports/view/reports_view.dart';
 import '../../teams/view/teams_view.dart';
 import '../bloc/dashboard_bloc.dart';
+import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../model/dashboard_metrics_model.dart';
 import '../model/impacter_model.dart';
-import '../presenter/dashboard_presenter.dart';
 import 'widgets/dashboard_app_bar.dart';
 import 'widgets/dashboard_bottom_nav_bar.dart';
 import 'widgets/dashboard_hero_card.dart';
@@ -25,134 +35,71 @@ import 'widgets/dashboard_pending_peers_card.dart';
 import 'widgets/dashboard_top_impacters.dart';
 
 /// The View component of the Executive Dashboard feature.
-class DashboardView extends StatefulWidget {
+/// Pure StatelessWidget powered 100% by BLoC state machine.
+class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
 
   @override
-  State<DashboardView> createState() => _DashboardViewState();
-}
-
-class _DashboardViewState extends State<DashboardView>
-    implements DashboardViewContract {
-  late final DashboardBloc _bloc;
-  late final DashboardPresenter _presenter;
-
-  int _activeTab = 0;
-  bool _isLoading = false;
-  DashboardMetricsModel? _metrics;
-  List<ImpacterModel> _impacters = const [];
-  String? _selectedCircle;
-  DateTime? _lastBackPress;
-  int _unreadNotificationCount = 0;
-  List<String> _dynamicIndustries = const [];
-
-  @override
-  void initState() {
-    super.initState();
-    _bloc = DashboardBloc();
-    _presenter = DashboardPresenter(view: this, bloc: _bloc);
-    _presenter.load();
-    _loadUnreadNotifications();
-    _loadDynamicIndustries();
-  }
-
-  Future<void> _loadDynamicIndustries() async {
-    try {
-      final res = await TeamsRepositoryImpl().getIndustries();
-      if (mounted && res.success && res.data != null && res.data!.isNotEmpty) {
-        setState(() {
-          _dynamicIndustries = res.data!;
-        });
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loadUnreadNotifications() async {
-    try {
-      final res = await NotificationsRepositoryImpl().getNotifications();
-      if (mounted && res.success && res.data != null) {
-        setState(() {
-          _unreadNotificationCount = res.data!.where((n) => n.isUnread).length;
-        });
-      }
-    } catch (_) {}
-  }
-
-  @override
-  void dispose() {
-    _bloc.close();
-    super.dispose();
-  }
-
-  // --- DashboardViewContract Implementations ---
-
-  @override
-  void onDashboardLoading() {
-    setState(() => _isLoading = true);
-  }
-
-  @override
-  void onDashboardLoaded() {
-    setState(() {
-      _isLoading = false;
-      _metrics = _bloc.state.metrics;
-      _impacters = _bloc.state.impacters;
-      _selectedCircle = _bloc.state.selectedCircle;
-    });
-  }
-
-  @override
-  void onDashboardError(String error) {
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+  Widget build(BuildContext context) {
+    return BlocProvider<DashboardBloc>(
+      create: (context) =>
+          DashboardBloc()..add(const LoadDashboardData()),
+      child: const _DashboardContent(),
     );
   }
+}
+
+class _DashboardContent extends StatefulWidget {
+  const _DashboardContent();
 
   @override
-  void onTabUpdated(int activeIndex) {
-    if (_activeTab != activeIndex) {
-      setState(() => _activeTab = activeIndex);
-    }
-  }
+  State<_DashboardContent> createState() => _DashboardContentState();
+}
 
-  int get _pendingApprovalsCount {
-    return _metrics?.pendingRequestsCount ?? 0;
-  }
+class _DashboardContentState extends State<_DashboardContent> {
+  DateTime? _lastBackPress;
 
-  Widget _buildDashboardTab() {
-    if (_isLoading || _metrics == null) {
+  Widget _buildDashboardTab({
+    required BuildContext context,
+    required bool isLoading,
+    required DashboardMetricsModel? metrics,
+    required List<ImpacterModel> impacters,
+    required String? selectedCircle,
+  }) {
+    if (isLoading || metrics == null) {
       return const CenteredLoadingIndicator(height: 300);
     }
 
     final session = SessionManager().currentSession;
-    final bool hasPendingRequests = _pendingApprovalsCount > 0;
+    final int pendingApprovalsCount = metrics.pendingRequestsCount;
+    final bool hasPendingRequests = pendingApprovalsCount > 0;
+    final bloc = context.read<DashboardBloc>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DashboardHeroCard(
-          metrics: _metrics!,
-          selectedCircle: _selectedCircle,
+          metrics: metrics,
+          selectedCircle: selectedCircle,
         ),
         const SizedBox(height: 6),
         DashboardKeyMetricsGrid(
-          metrics: _metrics!,
-          onPeersTap: () => _presenter.changeTab(1),
+          metrics: metrics,
+          onPeersTap: () => bloc.add(const TabChanged(1)),
         ),
         const SizedBox(height: 16),
         DashboardTopImpacters(
-          impacters: _impacters,
-          metrics: _metrics,
-          selectedCircle: _selectedCircle,
+          impacters: impacters,
+          metrics: metrics,
+          selectedCircle: selectedCircle,
         ),
         if (hasPendingRequests &&
             session.role != UserRole.industryDirector &&
             session.role != UserRole.countryDirector &&
             session.role != UserRole.superAdmin)
           DashboardPendingPeersCard(
-            count: _pendingApprovalsCount,
-            onReviewTap: () => _presenter.changeTab(1),
+            count: pendingApprovalsCount,
+            onReviewTap: () => bloc.add(const TabChanged(1)),
           ),
         const SizedBox(height: 16),
       ],
@@ -161,83 +108,96 @@ class _DashboardViewState extends State<DashboardView>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DashboardBloc>.value(
-      value: _bloc,
-      child: BlocListener<DashboardBloc, DashboardState>(
-        listener: (context, state) {
-          _presenter.handleStateChange(state);
-        },
-        child: PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, _) {
-            if (didPop) return;
-            final now = DateTime.now();
-            final isSecondPress = _lastBackPress != null &&
-                now.difference(_lastBackPress!) < const Duration(seconds: 2);
-            if (isSecondPress) {
-              SystemNavigator.pop();
-            } else {
-              _lastBackPress = now;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Press back again to exit'),
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  backgroundColor: AppColors.chartPrimary,
-                ),
-              );
-            }
-          },
-          child: Scaffold(
-            backgroundColor: AppColors.background,
-            body: Column(
-              children: [
-                DashboardAppBar(
-                  activeTab: _activeTab,
-                  selectedCircle: _selectedCircle,
-                  unreadNotificationCount: _unreadNotificationCount,
-                  dynamicIndustries: _dynamicIndustries,
-                  onCircleSelected: (c) => _presenter.selectCircle(c),
-                  onNotificationTap: () async {
-                    await Navigator.of(
-                      context,
-                    ).pushNamed(AppRoutes.notifications);
-                    _loadUnreadNotifications();
-                  },
-                ),
-                Expanded(
-                  child: IndexedStack(
-                    index: _activeTab,
-                    children: [
-                      SingleChildScrollView(
-                        child: _buildDashboardTab(),
-                      ),
-                      SingleChildScrollView(
-                        child: PeersView(selectedCircle: _selectedCircle),
-                      ),
-                      SingleChildScrollView(
-                        child: TeamsView(selectedCircle: _selectedCircle),
-                      ),
-                      SingleChildScrollView(
-                        child: FinanceView(selectedCircle: _selectedCircle),
-                      ),
-                      SingleChildScrollView(
-                        child: ReportsView(selectedCircle: _selectedCircle),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            bottomNavigationBar: DashboardBottomNavBar(
-              activeTab: _activeTab,
-              onTabSelected: (idx) => _presenter.changeTab(idx),
-            ),
+    final bloc = context.read<DashboardBloc>();
+
+    return BlocListener<DashboardBloc, DashboardState>(
+      listenWhen: (prev, curr) =>
+          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.errorMessage),
+            backgroundColor: AppColors.danger,
           ),
-        ),
+        );
+      },
+      child: BlocBuilder<DashboardBloc, DashboardState>(
+        builder: (context, state) {
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, _) {
+              if (didPop) return;
+              final now = DateTime.now();
+              final isSecondPress = _lastBackPress != null &&
+                  now.difference(_lastBackPress!) < const Duration(seconds: 2);
+              if (isSecondPress) {
+                SystemNavigator.pop();
+              } else {
+                _lastBackPress = now;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Press back again to exit'),
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: AppColors.chartPrimary,
+                  ),
+                );
+              }
+            },
+            child: Scaffold(
+              backgroundColor: AppColors.background,
+              body: Column(
+                children: [
+                  DashboardAppBar(
+                    activeTab: state.activeTab,
+                    selectedCircle: state.selectedCircle,
+                    unreadNotificationCount: state.unreadNotificationCount,
+                    dynamicIndustries: state.dynamicIndustries,
+                    onCircleSelected: (c) => bloc.add(SelectCircle(c)),
+                    onNotificationTap: () async {
+                      await Navigator.of(context)
+                          .pushNamed(AppRoutes.notifications);
+                      bloc.add(const RefreshNotificationsCount());
+                    },
+                  ),
+                  Expanded(
+                    child: IndexedStack(
+                      index: state.activeTab,
+                      children: [
+                        RefreshIndicator(
+                          onRefresh: () async {
+                            bloc.add(const LoadDashboardData(isRefresh: true));
+                          },
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: _buildDashboardTab(
+                              context: context,
+                              isLoading: state.isLoading,
+                              metrics: state.metrics,
+                              impacters: state.impacters,
+                              selectedCircle: state.selectedCircle,
+                            ),
+                          ),
+                        ),
+                        PeersView(selectedCircle: state.selectedCircle),
+                        TeamsView(selectedCircle: state.selectedCircle),
+                        FinanceView(selectedCircle: state.selectedCircle),
+                        ReportsView(selectedCircle: state.selectedCircle),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              bottomNavigationBar: DashboardBottomNavBar(
+                activeTab: state.activeTab,
+                onTabSelected: (idx) => bloc.add(TabChanged(idx)),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

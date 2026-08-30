@@ -1,3 +1,13 @@
+// ==============================================================================
+// File: lib/app.dart
+// Description: Root Application Widget & Global Route Configurator
+// Framework: Flutter Material 3 | Architecture: Central Navigation Container
+// Responsibilities:
+//   - Configures global `MaterialApp` theme tokens and brightness system
+//   - Connects centralized dynamic routing dispatcher via `AppRoutes.onGenerateRoute`
+//   - Defines initial launch route pointing to `SplashView`
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'core/routes/app_routes.dart';
 
@@ -28,47 +38,6 @@ class App extends StatelessWidget {
       themeMode: ThemeMode.system,
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRoutes.onGenerateRoute,
-    );
-  }
-}
-class PlaceholderHomeScreen extends StatelessWidget {
-  const PlaceholderHomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.emoji_events_outlined,
-                size: 64,
-                color: Colors.indigo,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Leader App',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: Text(
-                  'Foundation and folder structure initialized successfully.',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

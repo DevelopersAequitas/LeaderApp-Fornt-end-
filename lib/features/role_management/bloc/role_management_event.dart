@@ -76,3 +76,21 @@ class BulkToggleAllRoleCapabilities extends RoleManagementEvent {
     required this.enable,
   });
 }
+
+/// Dispatched when active selected role changes.
+class SelectRole extends RoleManagementEvent {
+  final String roleId;
+  const SelectRole(this.roleId);
+}
+
+/// Dispatched when search query filter text changes.
+class SearchCapabilityQueryChanged extends RoleManagementEvent {
+  final String query;
+  const SearchCapabilityQueryChanged(this.query);
+}
+
+/// Dispatched when capability category filter is selected.
+class SelectCapabilityCategory extends RoleManagementEvent {
+  final String category;
+  const SelectCapabilityCategory(this.category);
+}

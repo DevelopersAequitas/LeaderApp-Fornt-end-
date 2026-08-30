@@ -26,37 +26,47 @@ class CircleEventsSection extends StatelessWidget {
       children: [
         // Horizontal Filter Chips
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
           child: Row(
             children: filters.map((filter) {
               final isSelected = selectedFilter == filter;
               return Padding(
-                padding: const EdgeInsets.only(right: 6.0),
-                child: GestureDetector(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: InkWell(
                   onTap: () => onFilterChanged(filter),
-                  child: Container(
+                  borderRadius: BorderRadius.circular(20),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
+                      horizontal: 14,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFF1E3C72)
+                          ? AppColors.primary
                           : AppColors.secondaryBg,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
-                            ? const Color(0xFF1E3C72)
+                            ? Colors.transparent
                             : AppColors.border,
                       ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
                     ),
                     child: Text(
                       filter,
                       style: TextStyle(
-                        color:
-                            isSelected ? Colors.white : AppColors.textSecondary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        color: isSelected ? Colors.white : AppColors.text,
+                        fontSize: 11.5,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                       ),
                     ),
                   ),

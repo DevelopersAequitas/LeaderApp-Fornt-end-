@@ -15,14 +15,13 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   ) async {
     emit(const SplashLoading());
     try {
-      // Simulate minimum duration load (e.g., 4500ms) for background initialization tasks.
-      // This ensures the animated intro plays out completely.
-      await Future.delayed(const Duration(milliseconds: 4500));
+      // Smooth splash duration for animated intro without blocking user.
+      await Future.delayed(const Duration(milliseconds: 3400));
 
       const model = SplashModel(
         appVersion: '1.0.0',
-        brandingText: 'Elevate Your Leadership',
-        minDurationMs: 4500,
+        brandingText: 'PEERS GLOBAL',
+        minDurationMs: 3400,
       );
 
       emit(const SplashLoadSuccess(model));

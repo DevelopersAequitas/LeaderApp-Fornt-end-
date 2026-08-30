@@ -1,74 +1,44 @@
+// ==============================================================================
+// File: lib/features/referrals/view/referrals_view.dart
+// Description: Member Referral Exchange, Conversion Ranks & Deals Network
+// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
+// Features:
+//   - Tiered member referral conversion tracking (Gold, Silver, Bronze badges)
+//   - Filter bar with status counts (All, Active, At Risk)
+//   - Referral card details: Given referrals, Received referrals, and Closed business volume
+//   - Pure BLoC reactive state rendering
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/referrals_bloc.dart';
+import '../bloc/referrals_event.dart';
 import '../bloc/referrals_state.dart';
 import '../model/referral_model.dart';
-import '../presenter/referrals_presenter.dart';
 import 'widgets/referral_card.dart';
 import 'widgets/referrals_filter_bar.dart';
 
-/// Screen component rendering peers ranked by referrals with clean Material 3 design and space management.
-class ReferralsView extends StatefulWidget {
+/// Screen component rendering peers ranked by referrals.
+/// Pure StatelessWidget powered 100% by BLoC state machine.
+class ReferralsView extends StatelessWidget {
   const ReferralsView({super.key});
 
   @override
-  State<ReferralsView> createState() => _ReferralsViewState();
-}
-
-class _ReferralsViewState extends State<ReferralsView>
-    implements ReferralsViewContract {
-  late final ReferralsBloc _bloc;
-  late final ReferralsPresenter _presenter;
-
-  bool _isLoading = false;
-  List<ReferralModel> _referrals = const [];
-  String _selectedFilter = 'All';
-
-  @override
-  void initState() {
-    super.initState();
-    _bloc = ReferralsBloc();
-    _presenter = ReferralsPresenter(view: this, bloc: _bloc);
-    _presenter.load();
-  }
-
-  @override
-  void dispose() {
-    _bloc.close();
-    super.dispose();
-  }
-
-  // --- ReferralsViewContract Implementations ---
-
-  @override
-  void onReferralsLoading() {
-    setState(() => _isLoading = true);
-  }
-
-  @override
-  void onReferralsLoaded() {
-    setState(() {
-      _isLoading = false;
-      _referrals = _bloc.state.filteredReferrals;
-      _selectedFilter = _bloc.state.selectedFilter;
-    });
-  }
-
-  @override
-  void onReferralsError(String message) {
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.redAccent,
-      ),
+  Widget build(BuildContext context) {
+    return BlocProvider<ReferralsBloc>(
+      create: (context) => ReferralsBloc()..add(const LoadReferrals()),
+      child: const _ReferralsContent(),
     );
   }
+}
 
-  void _onPeerTap(ReferralModel referral) {
+class _ReferralsContent extends StatelessWidget {
+  const _ReferralsContent();
+
+  void _onPeerTap(BuildContext context, ReferralModel referral) {
     Navigator.of(context).pushNamed(
       AppRoutes.peerProfile,
       arguments: referral,
@@ -77,97 +47,111 @@ class _ReferralsViewState extends State<ReferralsView>
 
   @override
   Widget build(BuildContext context) {
-    final allList = _bloc.state.allReferrals;
-    final activeCount =
-        allList.where((r) => r.status.toLowerCase() == 'active').length;
-    final atRiskCount =
-        allList.where((r) => r.status.toLowerCase() == 'at risk').length;
+    final bloc = context.read<ReferralsBloc>();
 
-    return BlocProvider<ReferralsBloc>.value(
-      value: _bloc,
-      child: BlocListener<ReferralsBloc, ReferralsState>(
-        listener: (context, state) {
-          _presenter.handleStateChange(state);
-        },
-        child: Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: const CustomAppBar(
-            title: 'Peers by Referrals',
-            showBackButton: true,
+    return BlocListener<ReferralsBloc, ReferralsState>(
+      listenWhen: (prev, curr) =>
+          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.errorMessage),
+            backgroundColor: AppColors.danger,
           ),
-          body: _isLoading && allList.isEmpty
-              ? const CenteredLoadingIndicator(height: 300)
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Filter Chips Bar
-                    ReferralsFilterBar(
-                      selectedFilter: _selectedFilter,
-                      onFilterSelected: (status) =>
-                          _presenter.filterStatus(status),
-                      allCount: allList.length,
-                      activeCount: activeCount,
-                      atRiskCount: atRiskCount,
-                    ),
-                    const Divider(height: 1, color: AppColors.border),
-                    // Referrals List
-                    Expanded(
-                      child: _referrals.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 56,
-                                    height: 56,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF1F5F9),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: const Icon(
-                                      Icons.people_outline_rounded,
-                                      color: AppColors.textSecondary,
-                                      size: 26,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    _selectedFilter == 'All'
-                                        ? 'No peer referrals found'
-                                        : 'No $_selectedFilter peers found',
-                                    style: const TextStyle(
-                                      color: AppColors.text,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'Referral activities and peer stats will show here.',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(top: 6, bottom: 24),
-                              itemCount: _referrals.length,
-                              itemBuilder: (context, index) {
-                                final item = _referrals[index];
-                                return ReferralCard(
-                                  referral: item,
-                                  onTap: () => _onPeerTap(item),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
+        );
+      },
+      child: BlocBuilder<ReferralsBloc, ReferralsState>(
+        builder: (context, state) {
+          final referrals = state.filteredReferrals;
+          final allReferrals = state.allReferrals;
+
+          final activeCount = allReferrals.where((r) => r.status.toLowerCase() == 'active').length;
+          final atRiskCount = allReferrals.where((r) => r.status.toLowerCase() == 'at risk').length;
+
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: CustomAppBar(
+              title: 'Peers by Referrals',
+              subtitle: '${allReferrals.length} members ranked',
+              showBackButton: true,
+            ),
+            body: Column(
+              children: [
+                ReferralsFilterBar(
+                  selectedFilter: state.selectedFilter,
+                  allCount: allReferrals.length,
+                  activeCount: activeCount,
+                  atRiskCount: atRiskCount,
+                  onFilterSelected: (status) =>
+                      bloc.add(FilterReferrals(status)),
                 ),
-        ),
+                Expanded(
+                  child: state.isLoading && allReferrals.isEmpty
+                      ? const CenteredLoadingIndicator(height: 300)
+                      : RefreshIndicator(
+                          onRefresh: () async {
+                            bloc.add(const LoadReferrals());
+                          },
+                          child: referrals.isEmpty
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 56,
+                                        height: 56,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF1F5F9),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: const Icon(
+                                          Icons.share_outlined,
+                                          color: AppColors.textSecondary,
+                                          size: 26,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        'No referrals found',
+                                        style: TextStyle(
+                                          color: AppColors.text,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      const Text(
+                                        'Try adjusting your search query or status filter.',
+                                        style: TextStyle(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.only(
+                                    top: 8,
+                                    bottom: 24,
+                                  ),
+                                  itemCount: referrals.length,
+                                  itemBuilder: (context, index) {
+                                    final item = referrals[index];
+                                    return ReferralCard(
+                                      referral: item,
+                                      onTap: () => _onPeerTap(context, item),
+                                    );
+                                  },
+                                ),
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

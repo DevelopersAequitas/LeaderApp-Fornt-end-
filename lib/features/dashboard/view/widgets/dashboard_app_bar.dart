@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/enums/user_role.dart';
+// import '../../../../core/enums/user_role.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -27,7 +27,7 @@ class DashboardAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = SessionManager().currentSession;
-    final isIndustryDirector = session.role == UserRole.industryDirector;
+    // final isIndustryDirector = session.role == UserRole.industryDirector;
     final activeCircleName = selectedCircle ??
         (session.managedCircles.isNotEmpty
             ? session.managedCircles.first
@@ -116,14 +116,7 @@ class DashboardAppBar extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.shield_outlined,
-                    color: AppColors.text,
-                    size: 22,
-                  ),
-                  onPressed: () {},
-                ),
+               
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -182,6 +175,8 @@ class DashboardAppBar extends StatelessWidget {
                 ),
               ],
             ),
+            // Commented out horizontal circle chips on dashboard tab as requested
+            /*
             if (activeTab == 0) ...[
               if (isIndustryDirector && dynamicIndustries.isNotEmpty) ...[
                 const SizedBox(height: 10),
@@ -216,6 +211,7 @@ class DashboardAppBar extends StatelessWidget {
                 ),
               ],
             ],
+            */
           ],
         ),
       ),

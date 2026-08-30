@@ -1,12 +1,25 @@
+// ==============================================================================
+// File: lib/features/finance/view/finance_view.dart
+// Description: Executive Finance & Revenue Management Analytics Portal
+// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
+// Features:
+//   - Revenue metrics grid (Total Revenue, Monthly Yield, Founder Overrides, Net Earnings)
+//   - Monthly revenue analytics chart with trend projections
+//   - Commission tier rates & structure matrices (Circle Founder, Circle Chair, Area Director)
+//   - Role-based security gating with restricted placeholder for non-finance roles
+//   - Generous bottom scroll clearance for bottom navigation bar
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/finance_bloc.dart';
+import '../bloc/finance_event.dart';
 import '../bloc/finance_state.dart';
 import '../model/finance_model.dart';
-import '../presenter/finance_presenter.dart';
 import 'widgets/finance_chart_section.dart';
 import 'widgets/finance_commission_rates.dart';
 import 'widgets/finance_commission_structure.dart';
@@ -14,108 +27,85 @@ import 'widgets/finance_metrics_grid.dart';
 import 'widgets/finance_restricted_view.dart';
 
 /// The View component of the Finance tab feature.
-class FinanceView extends StatefulWidget {
+/// Pure StatelessWidget powered 100% by BLoC state machine.
+class FinanceView extends StatelessWidget {
   final String? selectedCircle;
+
   const FinanceView({super.key, this.selectedCircle});
 
   @override
-  State<FinanceView> createState() => _FinanceViewState();
-}
-
-class _FinanceViewState extends State<FinanceView>
-    implements FinanceViewContract {
-  late final FinanceBloc _bloc;
-  late final FinancePresenter _presenter;
-
-  bool _isLoading = false;
-  FinancePermissionModel? _permission;
-  FinanceMetricsModel? _metrics;
-
-  @override
-  void initState() {
-    super.initState();
-    _bloc = FinanceBloc();
-    _presenter = FinancePresenter(view: this, bloc: _bloc);
-    _presenter.load(selectedCircle: widget.selectedCircle);
-  }
-
-  @override
-  void didUpdateWidget(covariant FinanceView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedCircle != oldWidget.selectedCircle) {
-      _presenter.load(selectedCircle: widget.selectedCircle);
-    }
-  }
-
-  @override
-  void dispose() {
-    _bloc.close();
-    super.dispose();
-  }
-
-  // --- FinanceViewContract Implementations ---
-
-  @override
-  void onFinanceLoading() {
-    setState(() => _isLoading = true);
-  }
-
-  @override
-  void onFinanceLoaded() {
-    setState(() {
-      _isLoading = false;
-      _permission = _bloc.state.permission;
-      _metrics = _bloc.state.metrics;
-    });
-  }
-
-  @override
-  void onFinanceError(String error) {
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+  Widget build(BuildContext context) {
+    return BlocProvider<FinanceBloc>(
+      key: ValueKey(selectedCircle),
+      create: (context) =>
+          FinanceBloc()..add(LoadFinanceData(selectedCircle: selectedCircle)),
+      child: _FinanceContent(selectedCircle: selectedCircle),
     );
   }
+}
 
-  Widget _buildFounderFinanceView() {
+class _FinanceContent extends StatelessWidget {
+  final String? selectedCircle;
+
+  const _FinanceContent({this.selectedCircle});
+
+  Widget _buildFounderFinanceView(FinanceMetricsModel metrics) {
     final role = SessionManager().currentRole;
-    final hideCommissionRates =
-        role == UserRole.industryDirector ||
+    final hideCommissionRates = role == UserRole.industryDirector ||
         role == UserRole.countryDirector ||
         role == UserRole.superAdmin;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // FinanceActionButtons(
-        //   onRecordPaymentTap: _showRecordOfflinePaymentModal,
-        //   onCommissionSetupTap: _showCommissionSettingsModal,
-        // ),
-        if (_metrics != null) ...[
-          FinanceMetricsGrid(metrics: _metrics!),
-          FinanceChartSection(metrics: _metrics!),
-          if (!hideCommissionRates)
-            FinanceCommissionRates(rates: _metrics!.commissionRates),
-          FinanceCommissionStructure(structure: _metrics!.commissionStructure),
-        ],
-        const SizedBox(height: 20),
+        FinanceMetricsGrid(metrics: metrics),
+        FinanceChartSection(metrics: metrics),
+        if (!hideCommissionRates)
+          FinanceCommissionRates(rates: metrics.commissionRates),
+        FinanceCommissionStructure(structure: metrics.commissionStructure),
+        const SizedBox(height: 48), // Generous bottom spacing for navigation bar clearance
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<FinanceBloc>.value(
-      value: _bloc,
-      child: BlocListener<FinanceBloc, FinanceState>(
-        listener: (context, state) {
-          _presenter.handleStateChange(state);
+    final bloc = context.read<FinanceBloc>();
+
+    return BlocListener<FinanceBloc, FinanceState>(
+      listenWhen: (prev, curr) =>
+          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.errorMessage),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      },
+      child: BlocBuilder<FinanceBloc, FinanceState>(
+        builder: (context, state) {
+          if (state.isLoading || state.permission == null) {
+            return const CenteredLoadingIndicator(height: 300);
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              bloc.add(LoadFinanceData(selectedCircle: selectedCircle));
+            },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 96),
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              child: state.permission!.isRestricted
+                  ? FinanceRestrictedView(permission: state.permission!)
+                  : (state.metrics != null
+                      ? _buildFounderFinanceView(state.metrics!)
+                      : const SizedBox()),
+            ),
+          );
         },
-        child: _isLoading || _permission == null
-            ? const CenteredLoadingIndicator(height: 300)
-            : _permission!.isRestricted
-            ? FinanceRestrictedView(permission: _permission!)
-            : _buildFounderFinanceView(),
       ),
     );
   }

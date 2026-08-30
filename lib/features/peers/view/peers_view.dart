@@ -1,3 +1,14 @@
+// ==============================================================================
+// File: lib/features/peers/view/peers_view.dart
+// Description: Executive Peer Directory, Member Analytics & Celebrations Hub
+// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
+// Features:
+//   - Multi-tab navigation between Active Peers, At-Risk Members, and Peer Celebrations
+//   - Live search querying and status/metric sorting filters
+//   - Interactive peer card routing to PeerProfileView & P2P meeting logging
+//   - Quick wish messaging and birthday/anniversary celebration dispatches
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
@@ -5,10 +16,10 @@ import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/peers_bloc.dart';
+import '../bloc/peers_event.dart';
 import '../bloc/peers_state.dart';
 import '../model/celebration_model.dart';
 import '../model/peer_model.dart';
-import '../presenter/peers_presenter.dart';
 import 'widgets/celebration_card.dart';
 import 'widgets/peer_card.dart';
 import 'widgets/peer_role_management_section.dart';
@@ -16,271 +27,221 @@ import 'widgets/peers_empty_state.dart';
 import 'widgets/peers_filter_bar.dart';
 
 /// The View component of the Peers tab feature.
-class PeersView extends StatefulWidget {
+/// Pure StatelessWidget powered 100% by BLoC state machine.
+class PeersView extends StatelessWidget {
   final String? selectedCircle;
+
   const PeersView({super.key, this.selectedCircle});
 
   @override
-  State<PeersView> createState() => _PeersViewState();
+  Widget build(BuildContext context) {
+    return BlocProvider<PeersBloc>(
+      key: ValueKey(selectedCircle),
+      create: (context) =>
+          PeersBloc()..add(LoadPeersData(selectedCircle: selectedCircle)),
+      child: _PeersContent(selectedCircle: selectedCircle),
+    );
+  }
 }
 
-class _PeersViewState extends State<PeersView> implements PeersViewContract {
-  late final PeersBloc _bloc;
-  late final PeersPresenter _presenter;
-  late final TextEditingController _searchController;
+class _PeersContent extends StatelessWidget {
+  final String? selectedCircle;
+  final _searchController = TextEditingController();
 
-  int _activeSubTab = 0;
-  bool _isLoading = false;
-  String _selectedStatus = 'All';
-  String _selectedSort = 'Impact';
-  List<PeerModel> _peers = const [];
-  List<CelebrationModel> _birthdays = const [];
-  List<CelebrationModel> _anniversaries = const [];
+  _PeersContent({this.selectedCircle});
 
-  @override
-  void initState() {
-    super.initState();
-    _bloc = PeersBloc();
-    _presenter = PeersPresenter(view: this, bloc: _bloc);
-    _searchController = TextEditingController();
-
-    _searchController.addListener(() {
-      _presenter.search(_searchController.text);
-    });
-
-    _presenter.load(selectedCircle: widget.selectedCircle);
-  }
-
-  @override
-  void didUpdateWidget(covariant PeersView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedCircle != oldWidget.selectedCircle) {
-      _presenter.load(selectedCircle: widget.selectedCircle);
-    }
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _bloc.close();
-    super.dispose();
-  }
-
-  // --- PeersViewContract Implementations ---
-
-  @override
-  void onPeersLoading() {
-    setState(() => _isLoading = true);
-  }
-
-  @override
-  void onPeersLoaded() {
-    setState(() {
-      _isLoading = false;
-      _peers = _bloc.state.filteredPeers;
-      _birthdays = _bloc.state.birthdays;
-      _anniversaries = _bloc.state.anniversaries;
-      _selectedStatus = _bloc.state.selectedStatus;
-      _selectedSort = _bloc.state.selectedSort;
-    });
-  }
-
-  @override
-  void onPeersError(String error) {
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
-    );
-  }
-
-  @override
-  void onWishSent(String peerName, String type) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Wish sent to $peerName successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  @override
-  void onTabChanged(int index) {
-    if (_activeSubTab != index) {
-      setState(() => _activeSubTab = index);
-    }
-  }
-
-  Widget _buildPeersListTab() {
-    final currentRole = SessionManager().currentRole;
-    final isRoleManagementVisible =
-        currentRole == UserRole.industryDirector ||
-        currentRole == UserRole.superAdmin;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PeersFilterBar(
-          searchController: _searchController,
-          selectedStatus: _selectedStatus,
-          selectedSort: _selectedSort,
-          onStatusSelected: (status) => _presenter.filterStatus(status),
-          onSortSelected: (sort) => _presenter.sortMetric(sort),
-        ),
-        if (_peers.isEmpty)
-          const PeersEmptyState(
-            icon: Icons.people_outline_rounded,
-            title: 'No Peers Found',
-            message:
-                'No peers match your search query or filter criteria in this circle.',
-          )
-        else
-          ..._peers.map(
-            (peer) => PeerCard(peer: peer, selectedSort: _selectedSort),
-          ),
-        if (isRoleManagementVisible) const PeerRoleManagementSection(),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _buildCelebrationsTab() {
-    final hasBirthdays = _birthdays.isNotEmpty;
-    final hasAnniversaries = _anniversaries.isNotEmpty;
-
-    if (!hasBirthdays && !hasAnniversaries) {
+  Widget _buildCelebrationsSubTab(
+    BuildContext context,
+    List<CelebrationModel> birthdays,
+    List<CelebrationModel> anniversaries,
+  ) {
+    final celebrations = [...birthdays, ...anniversaries];
+    if (celebrations.isEmpty) {
       return const PeersEmptyState(
-        icon: Icons.celebration_outlined,
-        title: 'No Celebrations This Month',
-        message:
-            'Upcoming birthdays and business anniversaries will appear here automatically.',
+        icon: Icons.cake_outlined,
+        title: 'No upcoming celebrations',
+        message: 'Birthdays and work anniversaries will appear here.',
       );
     }
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8, bottom: 24),
+      itemCount: celebrations.length,
+      itemBuilder: (context, index) {
+        final item = celebrations[index];
+        return CelebrationCard(
+          celebration: item,
+          onWishTap: () {
+            context.read<PeersBloc>().add(SendWish(item.peerName, item.type));
+          },
+        );
+      },
+    );
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (hasBirthdays) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.cake_rounded,
-                  color: Colors.redAccent,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-                const Expanded(
-                  child: Text(
-                    'Birthdays This Month',
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F4F8),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${_birthdays.length} ${_birthdays.length == 1 ? "peer" : "peers"}',
-                    style: const TextStyle(
-                      color: Color(0xFF5A6E85),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ..._birthdays.map(
-            (b) => CelebrationCard(
-              celebration: b,
-              onWishTap: () => _presenter.sendWish(b.peerName, b.type),
-            ),
-          ),
-          const SizedBox(height: 10),
-        ],
-        if (hasAnniversaries) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.star_rounded, color: Colors.green, size: 16),
-                const SizedBox(width: 6),
-                const Expanded(
-                  child: Text(
-                    'Business Anniversaries',
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F4F8),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${_anniversaries.length} ${_anniversaries.length == 1 ? "peer" : "peers"}',
-                    style: const TextStyle(
-                      color: Color(0xFF5A6E85),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ..._anniversaries.map(
-            (a) => CelebrationCard(
-              celebration: a,
-              onWishTap: () => _presenter.sendWish(a.peerName, a.type),
-            ),
-          ),
-        ],
-        const SizedBox(height: 20),
-      ],
+  Widget _buildPeersList(
+    BuildContext context,
+    List<PeerModel> peers,
+    bool isRoleManagementEnabled,
+    String selectedSort,
+  ) {
+    if (peers.isEmpty) {
+      return const PeersEmptyState(
+        icon: Icons.people_outline,
+        title: 'No peers found',
+        message: 'Try changing your search query or filters.',
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8, bottom: 24),
+      itemCount: peers.length + (isRoleManagementEnabled ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (isRoleManagementEnabled && index == 0) {
+          return const PeerRoleManagementSection();
+        }
+        final peerIndex = isRoleManagementEnabled ? index - 1 : index;
+        return PeerCard(
+          peer: peers[peerIndex],
+          selectedSort: selectedSort,
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<PeersBloc>.value(
-      value: _bloc,
-      child: BlocListener<PeersBloc, PeersState>(
-        listener: (context, state) {
-          _presenter.handleStateChange(state);
-        },
-        child: Column(
-          children: [
-            SegmentedControl(
-              labels: ['Peers (${_peers.length})', 'Celebrations'],
-              icons: const [null, Icons.cake_rounded],
-              activeIndex: _activeSubTab,
-              onSegmentChanged: (index) => _presenter.changeSubTab(index),
+    final bloc = context.read<PeersBloc>();
+    final session = SessionManager().currentSession;
+    final isRoleManagementEnabled =
+        session.role == UserRole.superAdmin ||
+        session.role == UserRole.countryDirector;
+
+    return BlocListener<PeersBloc, PeersState>(
+      listenWhen: (prev, curr) =>
+          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+      listener: (context, state) {
+        if (state.errorMessage.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
+              backgroundColor: AppColors.danger,
             ),
-            _isLoading
-                ? const CenteredLoadingIndicator(height: 300)
-                : _activeSubTab == 0
-                ? _buildPeersListTab()
-                : _buildCelebrationsTab(),
-          ],
+          );
+        }
+      },
+      child: BlocBuilder<PeersBloc, PeersState>(
+        builder: (context, state) {
+          if (state.isLoading && state.allPeers.isEmpty) {
+            return const CenteredLoadingIndicator(height: 300);
+          }
+
+          final filteredPeers = state.filteredPeers;
+          final totalCelebrations = state.birthdays.length + state.anniversaries.length;
+
+          return Column(
+            children: [
+              // Segmented Sub-Tab Switcher
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryBg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildSegmentButton(
+                        context: context,
+                        label: 'All Peers (${state.allPeers.length})',
+                        isSelected: state.activeSubTab == 0,
+                        onTap: () => bloc.add(const ToggleSubTab(0)),
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildSegmentButton(
+                        context: context,
+                        label: 'Celebrations ($totalCelebrations)',
+                        isSelected: state.activeSubTab == 1,
+                        onTap: () => bloc.add(const ToggleSubTab(1)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Filter Bar (Only on Peers sub-tab)
+              if (state.activeSubTab == 0)
+                PeersFilterBar(
+                  searchController: _searchController,
+                  selectedStatus: state.selectedStatus,
+                  selectedSort: state.selectedSort,
+                  onStatusSelected: (s) =>
+                      bloc.add(StatusFilterChanged(s)),
+                  onSortSelected: (m) =>
+                      bloc.add(MetricSortChanged(m)),
+                ),
+
+              // Sub-Tab Content
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    bloc.add(
+                      LoadPeersData(selectedCircle: selectedCircle),
+                    );
+                  },
+                  child: state.activeSubTab == 1
+                      ? _buildCelebrationsSubTab(
+                          context,
+                          state.birthdays,
+                          state.anniversaries,
+                        )
+                      : _buildPeersList(
+                          context,
+                          filteredPeers,
+                          isRoleManagementEnabled,
+                          state.selectedSort,
+                        ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSegmentButton({
+    required BuildContext context,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? AppColors.text : AppColors.textSecondary,
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
         ),
       ),
     );

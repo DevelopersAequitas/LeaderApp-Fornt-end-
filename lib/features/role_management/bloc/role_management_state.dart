@@ -10,6 +10,9 @@ class RoleManagementState {
   final String errorMessage;
   final bool saveSuccess;
   final bool hasUnsavedChanges;
+  final String selectedRoleId;
+  final String searchQuery;
+  final String selectedCategory;
 
   const RoleManagementState({
     this.isLoading = false,
@@ -19,6 +22,9 @@ class RoleManagementState {
     this.errorMessage = '',
     this.saveSuccess = false,
     this.hasUnsavedChanges = false,
+    this.selectedRoleId = '',
+    this.searchQuery = '',
+    this.selectedCategory = 'All',
   });
 
   RoleManagementState copyWith({
@@ -29,6 +35,9 @@ class RoleManagementState {
     String? errorMessage,
     bool? saveSuccess,
     bool? hasUnsavedChanges,
+    String? selectedRoleId,
+    String? searchQuery,
+    String? selectedCategory,
   }) {
     return RoleManagementState(
       isLoading: isLoading ?? this.isLoading,
@@ -38,6 +47,9 @@ class RoleManagementState {
       errorMessage: errorMessage ?? this.errorMessage,
       saveSuccess: saveSuccess ?? this.saveSuccess,
       hasUnsavedChanges: hasUnsavedChanges ?? this.hasUnsavedChanges,
+      selectedRoleId: selectedRoleId ?? this.selectedRoleId,
+      searchQuery: searchQuery ?? this.searchQuery,
+      selectedCategory: selectedCategory ?? this.selectedCategory,
     );
   }
 }

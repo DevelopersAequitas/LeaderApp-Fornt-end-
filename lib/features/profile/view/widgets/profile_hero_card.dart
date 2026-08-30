@@ -17,12 +17,15 @@ class ProfileHeroCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF102640), Color(0xFF1E3C72)],
+          colors: [
+            AppColors.primary, // #102640 Brand Primary Navy
+            Color(0xFF1A3860), // Harmonized Executive Blue
+          ],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF102640).withValues(alpha: 0.2),
+            color: AppColors.primary.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

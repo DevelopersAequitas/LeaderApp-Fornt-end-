@@ -29,34 +29,34 @@ class NotificationsFilterChips extends StatelessWidget {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: filters.map((f) {
           final isSelected = selectedFilter == f['key'];
           return Padding(
-            padding: const EdgeInsets.only(right: 6.0),
+            padding: const EdgeInsets.only(right: 8.0),
             child: InkWell(
               onTap: () => onFilterSelected(f['key']!),
               borderRadius: BorderRadius.circular(20),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
+                duration: const Duration(milliseconds: 180),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: 14,
+                  vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.white,
+                  color: isSelected ? AppColors.primary : AppColors.secondaryBg,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppColors.primary : AppColors.border,
+                    color: isSelected ? Colors.transparent : AppColors.border,
                     width: 1.0,
                   ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
+                            color: AppColors.primary.withValues(alpha: 0.25),
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
                           ),
                         ]
                       : null,
@@ -64,9 +64,9 @@ class NotificationsFilterChips extends StatelessWidget {
                 child: Text(
                   f['label']!,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected ? Colors.white : AppColors.text,
+                    fontSize: 11.5,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
               ),
