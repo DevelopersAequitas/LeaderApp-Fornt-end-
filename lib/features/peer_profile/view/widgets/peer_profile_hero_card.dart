@@ -3,7 +3,13 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
 
-/// Renders the top Hero Card for Peer Profile with luxury gradient, badges, and details.
+/// Renders the luxury dark hero banner for Peer Profile with mandatory 5-point key peer information:
+/// 1. Peer Profile Name (+ Verified badge & Avatar)
+/// 2. City / Location
+/// 3. Designation
+/// 4. Company Name
+/// 5. Category (Level 4 Category / Specialization)
+/// 6. Lives Impacted Count
 class PeerProfileHeroCard extends StatelessWidget {
   final PeerModel peer;
 
@@ -44,258 +50,228 @@ class PeerProfileHeroCard extends StatelessWidget {
     final statusBg = _getStatusBg(peer.status);
     final statusText = _getStatusText(peer.status);
 
+    final displayCategory = peer.level4Category != null &&
+            peer.level4Category!.trim().isNotEmpty
+        ? peer.level4Category!.trim()
+        : (peer.tags.isNotEmpty
+            ? peer.tags
+            : (peer.industry ?? 'Specialist'));
+
+    final displayDesignation = peer.designation != null &&
+            peer.designation!.trim().isNotEmpty
+        ? peer.designation!.trim()
+        : '';
+    final displayCompany = peer.company.trim();
+
+    String subtitle = '';
+    if (displayDesignation.isNotEmpty && displayCompany.isNotEmpty) {
+      subtitle = '$displayDesignation · $displayCompany';
+    } else if (displayDesignation.isNotEmpty) {
+      subtitle = displayDesignation;
+    } else {
+      subtitle = displayCompany;
+    }
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary, // Brand Primary Navy #102640
+            Color(0xFF1A3860), // Harmonized Executive Blue #1A3860
+          ],
+        ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withValues(alpha: 0.22),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
+      padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Dark Luxury Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
-              ),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(17),
-                topRight: Radius.circular(17),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Avatar Image with fallback initials
-                    InitialsAvatar(
-                      name: peer.name,
-                      imageUrl: peer.avatarUrl,
-                      radius: 26,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.35),
-                        width: 1.5,
-                      ),
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      fontSize: 16,
-                    ),
-                    const SizedBox(width: 12),
-                    // Name & Designation/Company
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  peer.name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (peer.isVerified) ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.verified_rounded,
-                                  color: Color(0xFF60A5FA),
-                                  size: 16,
-                                ),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            peer.designation != null &&
-                                    peer.designation!.isNotEmpty
-                                ? '${peer.designation} · ${peer.company}'
-                                : peer.company,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Avatar with image / initials fallback
+              InitialsAvatar(
+                name: peer.name,
+                imageUrl: peer.avatarUrl,
+                radius: 28,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.35),
+                  width: 1.5,
                 ),
-                const SizedBox(height: 12),
-                // Badges row
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                backgroundColor: Colors.white.withValues(alpha: 0.15),
+                fontSize: 16,
+              ),
+              const SizedBox(width: 12),
+              // Name, Verified Badge, Designation & Company Name
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Impact badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD97706),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.lightbulb_outline_rounded,
-                            color: Colors.white,
-                            size: 11,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${peer.impactCount} Lives Impacted',
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            peer.name,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: 16,
                               fontWeight: FontWeight.w800,
+                              letterSpacing: -0.2,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (peer.isVerified) ...[
+                          const SizedBox(width: 5),
+                          const Icon(
+                            Icons.verified_rounded,
+                            color: Color(0xFF60A5FA),
+                            size: 16,
                           ),
                         ],
-                      ),
+                      ],
                     ),
-                    // Status badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusBg,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        peer.status,
+                    if (subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
                         style: TextStyle(
-                          color: statusText,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    // Circle Badge
-                    if (peer.circle.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          peer.circle,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
+                    ],
                   ],
                 ),
-              ],
-            ),
-          ),
-          // Details Rows
-          _buildDetailRow(
-            icon: Icons.corporate_fare_outlined,
-            label: 'CIRCLE',
-            value: peer.circle,
-          ),
-          const Divider(height: 1, color: AppColors.border),
-          _buildDetailRow(
-            icon: Icons.location_on_outlined,
-            label: 'CITY',
-            value: peer.location,
-          ),
-          const Divider(height: 1, color: AppColors.border),
-          _buildDetailRow(
-            icon: Icons.local_offer_outlined,
-            label: 'INDUSTRY / SPECIALIZATION',
-            value: peer.industry != null && peer.industry!.isNotEmpty
-                ? peer.industry!
-                : peer.tags,
-          ),
-          if (peer.phone != null && peer.phone!.isNotEmpty) ...[
-            const Divider(height: 1, color: AppColors.border),
-            _buildDetailRow(
-              icon: Icons.phone_outlined,
-              label: 'PHONE',
-              value: peer.hidePhone ? 'Hidden by Peer 🔒' : peer.phone!,
-            ),
-          ],
-          if (peer.email != null && peer.email!.isNotEmpty) ...[
-            const Divider(height: 1, color: AppColors.border),
-            _buildDetailRow(
-              icon: Icons.email_outlined,
-              label: 'EMAIL',
-              value: peer.hideEmail ? 'Hidden by Peer 🔒' : peer.email!,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: const Color(0xFF1E3C72), size: 16),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
+              ),
+              // Status Pill
+              if (peer.status.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    peer.status,
+                    style: TextStyle(
+                      color: statusText,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  value.isNotEmpty ? value : '—',
-                  style: const TextStyle(
-                    color: AppColors.text,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Mandatory Badges Row: Impact Count, Level 4 Category & City
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              // 1. Lives Impacted Count
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD97706),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.lightbulb_outline_rounded,
+                      color: Colors.white,
+                      size: 13,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      '${peer.impactCount} Lives Impacted',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 2. Level 4 Category / Specialization
+              if (displayCategory.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.category_outlined,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        size: 13,
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          displayCategory,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              // 3. City / Location
+              if (peer.location.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        size: 13,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        peer.location,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         ],
       ),

@@ -54,6 +54,8 @@ class DashboardTopImpacters extends StatelessWidget {
                 ? session.managedCircles.first
                 : session.regionalScope));
 
+    final topList = impacters.take(5).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -88,7 +90,7 @@ class DashboardTopImpacters extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        ...impacters.map((impacter) => _buildImpacterTile(context, impacter)),
+        ...topList.map((impacter) => _buildImpacterTile(context, impacter)),
         const SizedBox(height: 12),
       ],
     );
@@ -103,6 +105,23 @@ class DashboardTopImpacters extends StatelessWidget {
     } else if (impacter.rank == 3) {
       badgeColor = const Color(0xFF2E7D32);
     }
+
+    final displayDesig = impacter.designation != null && impacter.designation!.isNotEmpty
+        ? impacter.designation!
+        : '';
+    final displayComp = impacter.company;
+    String subtitle = '';
+    if (displayDesig.isNotEmpty && displayComp.isNotEmpty) {
+      subtitle = '$displayDesig · $displayComp';
+    } else if (displayDesig.isNotEmpty) {
+      subtitle = displayDesig;
+    } else {
+      subtitle = displayComp;
+    }
+
+    final categoryStr = impacter.level4Category != null && impacter.level4Category!.isNotEmpty
+        ? impacter.level4Category!
+        : (impacter.tags.isNotEmpty ? impacter.tags : impacter.industry);
 
     return InkWell(
       onTap: () {
@@ -122,8 +141,10 @@ class DashboardTopImpacters extends StatelessWidget {
           id: impacter.id,
           initials: impacter.initials,
           name: impacter.name,
+          avatarUrl: impacter.avatarUrl,
           company: impacter.company,
           circle: impacter.circle.isNotEmpty ? impacter.circle : activeCircle,
+          circleId: impacter.circleId,
           location: impacter.location,
           tags: impacter.tags,
           impactCount: impacter.lives,
@@ -131,6 +152,13 @@ class DashboardTopImpacters extends StatelessWidget {
           coins: impacter.coins,
           attendance: impacter.attendance,
           status: impacter.status.isNotEmpty ? impacter.status : 'Active',
+          phone: impacter.phone,
+          email: impacter.email,
+          designation: impacter.designation,
+          industry: impacter.industry,
+          level4Category: impacter.level4Category,
+          isVerified: impacter.isVerified,
+          introVideoUrl: impacter.introVideoUrl,
         );
         Navigator.of(context).pushNamed(AppRoutes.peerProfile, arguments: peer);
       },
@@ -138,12 +166,14 @@ class DashboardTopImpacters extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Stack(
               clipBehavior: Clip.none,
               children: [
                 InitialsAvatar(
                   name: impacter.name,
+                  imageUrl: impacter.avatarUrl,
                   radius: 20,
                   backgroundColor: const Color(0xFF162D4A),
                   fontSize: 13,
@@ -178,26 +208,58 @@ class DashboardTopImpacters extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    impacter.name,
-                    style: const TextStyle(
-                      color: AppColors.text,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          impacter.name,
+                          style: const TextStyle(
+                            color: AppColors.text,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (impacter.isVerified) ...[
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.verified_rounded,
+                          color: Color(0xFF2563EB),
+                          size: 13,
+                        ),
+                      ],
+                    ],
                   ),
-                  if (impacter.company.isNotEmpty) ...[
+                  if (subtitle.isNotEmpty) ...[
                     const SizedBox(height: 1),
                     Text(
-                      impacter.company,
+                      subtitle,
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: Colors.grey.shade700,
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  if (impacter.location.isNotEmpty) ...[
+                  if (categoryStr != null && categoryStr.isNotEmpty) ...[
+                    const SizedBox(height: 1),
+                    Text(
+                      impacter.location.isNotEmpty
+                          ? '$categoryStr · ${impacter.location}'
+                          : categoryStr,
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ] else if (impacter.location.isNotEmpty) ...[
                     const SizedBox(height: 1),
                     Text(
                       impacter.location,
@@ -206,11 +268,14 @@ class DashboardTopImpacters extends StatelessWidget {
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ],
               ),
             ),
+            const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
@@ -234,7 +299,7 @@ class DashboardTopImpacters extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             Icon(
               Icons.chevron_right_rounded,
               color: Colors.grey.shade300,

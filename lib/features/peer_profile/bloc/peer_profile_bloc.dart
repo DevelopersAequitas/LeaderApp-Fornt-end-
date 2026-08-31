@@ -15,47 +15,86 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
     on<ChangeProfileSubTab>(_onChangeProfileSubTab);
   }
 
-  Future<void> _onLoadPeerProfile(LoadPeerProfile event, Emitter<PeerProfileState> emit) async {
+  Future<void> _onLoadPeerProfile(
+    LoadPeerProfile event,
+    Emitter<PeerProfileState> emit,
+  ) async {
     emit(state.copyWith(isLoading: true, errorMessage: ''));
 
     var currentPeer = event.peer;
-    List<PeerMeetingModel> realMeetings = [];
-    List<PeerActivityModel> realActivities = [];
+    PeerProfileDetailModel details = PeerProfileDetailModel(
+      bio: currentPeer.bio ?? '',
+      birthday: currentPeer.birthday ?? '',
+      anniversary: currentPeer.anniversary ?? '',
+      joinedDate: currentPeer.joinedDate ?? '',
+      dealsClosed: currentPeer.dealsFormatted,
+      dealsGiven: currentPeer.dealsGiven ?? '₹0.0',
+      dealsReceived: currentPeer.dealsReceived ?? '₹0.0',
+      referralsGiven: currentPeer.referralsGiven ?? currentPeer.impactCount,
+      referralsReceived: currentPeer.referralsReceived ?? 0,
+      p2pSessions: currentPeer.p2pMeetings ?? (currentPeer.impactCount > 0 ? (currentPeer.impactCount * 0.4).round() : 0),
+      coinsEarned: currentPeer.coins,
+      attendanceRate: currentPeer.attendance.isNotEmpty ? currentPeer.attendance : '0%',
+      impactCount: currentPeer.impactCount,
+      tags: currentPeer.tags.isNotEmpty ? currentPeer.tags.split(' · ') : const [],
+      phone: currentPeer.phone,
+      email: currentPeer.email,
+      whatsapp: currentPeer.whatsapp,
+      linkedin: currentPeer.linkedin,
+    );
 
-    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
-    final hasValidId = currentPeer.id.trim().isNotEmpty && uuidRegex.hasMatch(currentPeer.id.trim());
+    final uuidRegex = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    );
+    final hasValidId = currentPeer.id.trim().isNotEmpty &&
+        uuidRegex.hasMatch(currentPeer.id.trim());
 
     if (hasValidId) {
       try {
-        final peerDetailsRes = await _peersRepository.getPeerDetails(currentPeer.id.trim());
+        final profileDetailRes =
+            await _peersRepository.getPeerProfileDetail(currentPeer.id.trim());
+        if (profileDetailRes.success && profileDetailRes.data != null) {
+          details = profileDetailRes.data!;
+        }
+
+        final peerDetailsRes =
+            await _peersRepository.getPeerDetails(currentPeer.id.trim());
         if (peerDetailsRes.success && peerDetailsRes.data != null) {
           currentPeer = peerDetailsRes.data!;
         }
 
-        final meetingsRes = await _peersRepository.getPeerMeetings(currentPeer.id.trim());
-        if (meetingsRes.success && meetingsRes.data != null) {
-          realMeetings = meetingsRes.data!;
-        }
-
-        final activitiesRes = await _peersRepository.getPeerActivities(currentPeer.id.trim());
-        if (activitiesRes.success && activitiesRes.data != null) {
-          realActivities = activitiesRes.data!;
+        // Fallback for meetings if empty in primary response
+        if (details.meetings.isEmpty) {
+          final meetingsRes =
+              await _peersRepository.getPeerMeetings(currentPeer.id.trim());
+          if (meetingsRes.success && meetingsRes.data != null) {
+            details = PeerProfileDetailModel(
+              bio: details.bio,
+              birthday: details.birthday,
+              anniversary: details.anniversary,
+              joinedDate: details.joinedDate,
+              dealsClosed: details.dealsClosed,
+              dealsGiven: details.dealsGiven,
+              dealsReceived: details.dealsReceived,
+              referralsGiven: details.referralsGiven,
+              referralsReceived: details.referralsReceived,
+              p2pSessions: details.p2pSessions,
+              coinsEarned: details.coinsEarned,
+              attendanceRate: details.attendanceRate,
+              impactCount: details.impactCount,
+              tags: details.tags,
+              phone: details.phone,
+              email: details.email,
+              whatsapp: details.whatsapp,
+              linkedin: details.linkedin,
+              meetings: meetingsRes.data!,
+              activities: details.activities,
+              testimonials: details.testimonials,
+            );
+          }
         }
       } catch (_) {}
     }
-
-    final details = PeerProfileDetailModel(
-      dealsClosed: currentPeer.dealsFormatted,
-      referralsGiven: currentPeer.impactCount,
-      p2pSessions: (currentPeer.impactCount * 0.8).round(),
-      coinsEarned: currentPeer.coins,
-      attendanceRate: currentPeer.attendance,
-      birthday: '',
-      anniversary: '',
-      meetings: realMeetings,
-      activities: realActivities,
-      testimonials: const [],
-    );
 
     emit(
       state.copyWith(
@@ -66,7 +105,10 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
     );
   }
 
-  void _onChangeProfileSubTab(ChangeProfileSubTab event, Emitter<PeerProfileState> emit) {
+  void _onChangeProfileSubTab(
+    ChangeProfileSubTab event,
+    Emitter<PeerProfileState> emit,
+  ) {
     emit(state.copyWith(activeSubTab: event.index));
   }
 }

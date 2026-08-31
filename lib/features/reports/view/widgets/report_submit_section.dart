@@ -177,7 +177,7 @@ class ReportSubmitSection extends StatelessWidget {
                                   height: 36,
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? const Color(0xFF1E3C72)
+                                        ? AppColors.primary
                                         : const Color(0xFFEBF3FB),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -187,7 +187,7 @@ class ReportSubmitSection extends StatelessWidget {
                                     size: 18,
                                     color: isSelected
                                         ? Colors.white
-                                        : const Color(0xFF1E3C72),
+                                        : AppColors.primary,
                                   ),
                                 ),
                                 title: Text(
@@ -198,7 +198,7 @@ class ReportSubmitSection extends StatelessWidget {
                                         : FontWeight.w600,
                                     fontSize: 13,
                                     color: isSelected
-                                        ? const Color(0xFF1E3C72)
+                                        ? AppColors.primary
                                         : AppColors.text,
                                   ),
                                 ),
@@ -294,7 +294,7 @@ class ReportSubmitSection extends StatelessWidget {
                 Text(
                   _getUpperRecipientLabel(),
                   style: const TextStyle(
-                    color: Color(0xFF1E3C72),
+                    color: AppColors.primary,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                   ),
@@ -399,7 +399,7 @@ class ReportSubmitSection extends StatelessWidget {
               const Text(
                 'Tap to change circle',
                 style: TextStyle(
-                  color: Color(0xFF1E3C72),
+                  color: AppColors.primary,
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                 ),
@@ -430,7 +430,7 @@ class ReportSubmitSection extends StatelessWidget {
                 const Icon(
                   Icons.group_work_outlined,
                   size: 18,
-                  color: Color(0xFF1E3C72),
+                  color: AppColors.primary,
                 ),
                 const SizedBox(width: 10),
                 Expanded(

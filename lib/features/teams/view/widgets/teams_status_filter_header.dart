@@ -68,7 +68,7 @@ class TeamsStatusFilterHeader extends StatelessWidget {
                       status,
                       style: TextStyle(
                         color: isSelected
-                            ? const Color(0xFF1E3C72)
+                            ? AppColors.primary
                             : const Color(0xFF64748B),
                         fontSize: 11,
                         fontWeight:

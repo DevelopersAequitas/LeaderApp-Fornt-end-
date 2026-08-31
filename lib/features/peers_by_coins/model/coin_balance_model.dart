@@ -5,6 +5,7 @@ class CoinBalanceModel {
   final String name;
   final String initials;
   final String company;
+  final String circle;
   final int coins;
   final String category;
   final String status; // 'Active' or 'At Risk'
@@ -21,6 +22,7 @@ class CoinBalanceModel {
     required this.name,
     required this.initials,
     required this.company,
+    this.circle = '',
     required this.coins,
     required this.category,
     required this.status,
@@ -65,12 +67,21 @@ class CoinBalanceModel {
       sourceStr = rawSource;
     }
 
+    String circleStr = '';
+    final rawCircle = json['circle'] ?? json['circle_name'];
+    if (rawCircle is Map) {
+      circleStr = rawCircle['name']?.toString() ?? '';
+    } else if (rawCircle is String) {
+      circleStr = rawCircle;
+    }
+
     return CoinBalanceModel(
       id: json['id']?.toString() ?? '',
       rank: json['rank'] as int? ?? 1,
       name: name,
       initials: initials.isNotEmpty ? initials : 'PR',
       company: json['company'] as String? ?? json['circle_name'] as String? ?? '',
+      circle: circleStr,
       coins: coins,
       category: categoryStr,
       status: statusStr,
@@ -88,6 +99,7 @@ class CoinBalanceModel {
         'rank': rank,
         'peer_name': name,
         'company': company,
+        'circle': circle,
         'coins': coins,
         'category': category,
         'status': status,

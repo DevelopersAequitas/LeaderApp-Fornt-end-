@@ -91,7 +91,7 @@ class DashboardKeyMetricsGrid extends StatelessWidget {
                   subtitle: session.role == UserRole.superAdmin
                       ? 'Worldwide network'
                       : '+${metrics.totalPeersGrowth} this month',
-                  valueColor: const Color(0xFF1E3C72),
+                  valueColor: AppColors.primary,
                   onTap: onPeersTap,
                 ),
               ),

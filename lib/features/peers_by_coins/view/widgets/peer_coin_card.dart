@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../peers/model/peer_model.dart';
 import '../../model/coin_balance_model.dart';
 
 /// Renders a Material 3 executive coin balance card for ranked circle peers.
@@ -64,7 +66,31 @@ class PeerCoinCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+          onTap: onTap ??
+              () {
+                final p = PeerModel(
+                  id: peer.id,
+                  initials: peer.name.isNotEmpty
+                      ? (peer.name.split(' ').length > 1
+                          ? '${peer.name.split(' ')[0][0]}${peer.name.split(' ')[1][0]}'
+                          : peer.name.substring(0, 1))
+                      : 'P',
+                  name: peer.name,
+                  company: peer.company,
+                  circle: peer.circle,
+                  location: '',
+                  tags: peer.category,
+                  impactCount: peer.p2pCount,
+                  dealsFormatted: peer.dealsCount,
+                  coins: peer.coins,
+                  attendance: peer.attendanceRate,
+                  status: peer.status,
+                );
+                Navigator.of(context).pushNamed(
+                  AppRoutes.peerProfile,
+                  arguments: p,
+                );
+              },
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
@@ -79,7 +105,7 @@ class PeerCoinCard extends StatelessWidget {
                         InitialsAvatar(
                           name: peer.name,
                           radius: 20,
-                          backgroundColor: const Color(0xFF1E3C72),
+                          backgroundColor: AppColors.primary,
                           fontSize: 12,
                         ),
                         Positioned(

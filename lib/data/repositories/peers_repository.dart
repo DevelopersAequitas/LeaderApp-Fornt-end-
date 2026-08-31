@@ -14,6 +14,7 @@ abstract class PeersRepository {
     int? perPage,
   });
   Future<ApiResponse<PeerModel>> getPeerDetails(String id);
+  Future<ApiResponse<PeerProfileDetailModel>> getPeerProfileDetail(String id);
   Future<ApiResponse<CelebrationsResponse>> getCelebrations({String? circleId});
   Future<ApiResponse<Map<String, dynamic>>> sendWish(String peerId, {required String type, String? message});
   Future<ApiResponse<List<PeerMeetingModel>>> getPeerMeetings(String peerId);
@@ -88,6 +89,29 @@ class PeersRepositoryImpl implements PeersRepository {
       if (cachedJson is Map<String, dynamic>) {
         final cachedData = PeerModel.fromJson(cachedJson);
         return ApiResponse<PeerModel>(
+          success: true,
+          data: cachedData,
+          message: 'Loaded from offline cache',
+        );
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<ApiResponse<PeerProfileDetailModel>> getPeerProfileDetail(String id) async {
+    final cacheKey = 'peer_profile_detail_$id';
+    try {
+      final response = await _remoteDataSource.getPeerProfileDetail(id);
+      if (response.success && response.data != null) {
+        await _cacheService.put(cacheKey, response.data!.toJson());
+      }
+      return response;
+    } catch (e) {
+      final cachedJson = _cacheService.get(cacheKey);
+      if (cachedJson is Map<String, dynamic>) {
+        final cachedData = PeerProfileDetailModel.fromJson(cachedJson);
+        return ApiResponse<PeerProfileDetailModel>(
           success: true,
           data: cachedData,
           message: 'Loaded from offline cache',

@@ -98,12 +98,12 @@ class PeersFilterBar extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF1E3C72)
+                            ? AppColors.primary
                             : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF1E3C72)
+                              ? AppColors.primary
                               : AppColors.border,
                         ),
                       ),

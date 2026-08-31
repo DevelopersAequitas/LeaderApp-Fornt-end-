@@ -20,14 +20,14 @@ import '../bloc/peer_profile_bloc.dart';
 import '../bloc/peer_profile_event.dart';
 import '../bloc/peer_profile_state.dart';
 import 'widgets/edit_peer_bottom_sheet.dart';
-import 'widgets/log_p2p_bottom_sheet.dart';
+// import 'widgets/log_p2p_bottom_sheet.dart';
 import 'widgets/peer_profile_activity_section.dart';
-import 'widgets/peer_profile_bottom_actions.dart';
+// import 'widgets/peer_profile_bottom_actions.dart';
 import 'widgets/peer_profile_hero_card.dart';
 import 'widgets/peer_profile_overview_section.dart';
 import 'widgets/peer_profile_tab_selector.dart';
 import 'widgets/peer_profile_testimonials_section.dart';
-import 'widgets/send_referral_bottom_sheet.dart';
+// import 'widgets/send_referral_bottom_sheet.dart';
 
 /// Screen component rendering a comprehensive Peer Profile view.
 /// Pure StatelessWidget powered 100% by BLoC state machine.
@@ -60,35 +60,35 @@ class _PeerProfileContent extends StatelessWidget {
     );
   }
 
-  void _showLogP2pSheet(BuildContext context, PeerModel currentPeer) {
-    LogP2PBottomSheet.show(
-      context,
-      peer: currentPeer,
-      onMeetingLogged: () {
-        context.read<PeerProfileBloc>().add(LoadPeerProfile(currentPeer));
-      },
-      onError: (err) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(err), backgroundColor: AppColors.danger),
-        );
-      },
-    );
-  }
+  // void _showLogP2pSheet(BuildContext context, PeerModel currentPeer) {
+  //   LogP2PBottomSheet.show(
+  //     context,
+  //     peer: currentPeer,
+  //     onMeetingLogged: () {
+  //       context.read<PeerProfileBloc>().add(LoadPeerProfile(currentPeer));
+  //     },
+  //     onError: (err) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text(err), backgroundColor: AppColors.danger),
+  //       );
+  //     },
+  //   );
+  // }
 
-  void _showSendReferralSheet(BuildContext context, PeerModel currentPeer) {
-    SendReferralBottomSheet.show(
-      context,
-      peer: currentPeer,
-      onReferralSent: () {
-        context.read<PeerProfileBloc>().add(LoadPeerProfile(currentPeer));
-      },
-      onError: (err) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(err), backgroundColor: AppColors.danger),
-        );
-      },
-    );
-  }
+  // void _showSendReferralSheet(BuildContext context, PeerModel currentPeer) {
+  //   SendReferralBottomSheet.show(
+  //     context,
+  //     peer: currentPeer,
+  //     onReferralSent: () {
+  //       context.read<PeerProfileBloc>().add(LoadPeerProfile(currentPeer));
+  //     },
+  //     onError: (err) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text(err), backgroundColor: AppColors.danger),
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -174,11 +174,11 @@ class _PeerProfileContent extends StatelessWidget {
                       ),
                     ),
                   ),
-            bottomNavigationBar: PeerProfileBottomActions(
-              onLogP2PTap: () => _showLogP2pSheet(context, displayPeer),
-              onSendReferralTap: () =>
-                  _showSendReferralSheet(context, displayPeer),
-            ),
+            // bottomNavigationBar: PeerProfileBottomActions(
+            //   onLogP2PTap: () => _showLogP2pSheet(context, displayPeer),
+            //   onSendReferralTap: () =>
+            //       _showSendReferralSheet(context, displayPeer),
+            // ),
           );
         },
       ),

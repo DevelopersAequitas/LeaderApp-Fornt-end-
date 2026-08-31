@@ -4,7 +4,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../model/testimonial_model.dart';
 import 'testimonial_detail_bottom_sheet.dart';
 
-/// Renders a Material 3 peer testimonial card with endorsement quotes, star ratings, and both users' details.
+/// Renders a Material 3 peer testimonial card showing Given By, Received By, Circle, and testimonial quote.
 class TestimonialCard extends StatelessWidget {
   final TestimonialModel testimonial;
   final VoidCallback? onTap;
@@ -17,6 +17,13 @@ class TestimonialCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void openDetails() {
+      TestimonialDetailBottomSheet.show(
+        context,
+        testimonial: testimonial,
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
@@ -25,9 +32,9 @@ class TestimonialCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -35,28 +42,25 @@ class TestimonialCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap ??
-              () => TestimonialDetailBottomSheet.show(
-                    context,
-                    testimonial: testimonial,
-                  ),
+          onTap: onTap ?? openDetails,
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Both Users Header Row
+                // Top Row: Author & Recipient
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Author Avatar
                     InitialsAvatar(
-                      name: testimonial.fromName,
-                      radius: 17,
-                      backgroundColor: const Color(0xFF1E3C72),
-                      fontSize: 10,
+                      name: testimonial.authorName,
+                      radius: 20,
+                      backgroundColor: AppColors.primary,
+                      fontSize: 11,
                     ),
-                    const SizedBox(width: 8),
-                    // Author & Recipient Name Flow
+                    const SizedBox(width: 10),
+                    // Author & Recipient Flow
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +69,7 @@ class TestimonialCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  testimonial.fromName,
+                                  testimonial.authorName,
                                   style: const TextStyle(
                                     color: AppColors.text,
                                     fontSize: 13,
@@ -75,7 +79,7 @@ class TestimonialCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (testimonial.toName.isNotEmpty) ...[
+                              if (testimonial.targetPeerName.isNotEmpty) ...[
                                 const Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 4),
                                   child: Icon(
@@ -86,9 +90,9 @@ class TestimonialCard extends StatelessWidget {
                                 ),
                                 Flexible(
                                   child: Text(
-                                    testimonial.toName,
+                                    testimonial.targetPeerName,
                                     style: const TextStyle(
-                                      color: Color(0xFF1E3C72),
+                                      color: AppColors.primary,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
                                     ),
@@ -99,11 +103,14 @@ class TestimonialCard extends StatelessWidget {
                               ],
                             ],
                           ),
-                          const SizedBox(height: 1),
+                          const SizedBox(height: 2),
                           Text(
-                            testimonial.toCompany.isNotEmpty
-                                ? '${testimonial.fromCompany} · ${testimonial.toCompany}'
-                                : testimonial.fromCompany,
+                            [
+                              if (testimonial.authorRole.isNotEmpty)
+                                testimonial.authorRole,
+                              if (testimonial.circleName.isNotEmpty)
+                                testimonial.circleName,
+                            ].join(' · '),
                             style: const TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 11,
@@ -115,15 +122,10 @@ class TestimonialCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    StarRatingDisplay(
-                      rating: testimonial.rating,
-                      size: 14,
-                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                // Quoted Endorsement Box
+                // Quoted Testimonial Message Box (with Read more opening details)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(10),
@@ -132,19 +134,21 @@ class TestimonialCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: Text(
-                    '"${testimonial.content}"',
+                  child: ExpandableText(
+                    text: '"${testimonial.content}"',
+                    maxLines: 2,
+                    onReadMoreTap: openDetails,
                     style: TextStyle(
-                      color: AppColors.text.withValues(alpha: 0.85),
+                      color: AppColors.text.withValues(alpha: 0.9),
                       fontSize: 12,
                       fontStyle: FontStyle.italic,
-                      height: 1.4,
+                      height: 1.45,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Date tag and Tap hint
+                // Date tag & Tap hint
                 Row(
                   children: [
                     const Icon(
@@ -162,18 +166,26 @@ class TestimonialCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    const Text(
-                      'View details',
-                      style: TextStyle(
-                        color: Color(0xFF2563EB),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                    InkWell(
+                      onTap: openDetails,
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'View details',
+                            style: TextStyle(
+                              color: Color(0xFF1E6091),
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 14,
+                            color: Color(0xFF1E6091),
+                          ),
+                        ],
                       ),
-                    ),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 14,
-                      color: Color(0xFF2563EB),
                     ),
                   ],
                 ),

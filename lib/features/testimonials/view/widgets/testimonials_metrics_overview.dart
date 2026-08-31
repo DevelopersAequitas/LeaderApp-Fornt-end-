@@ -3,7 +3,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../model/testimonial_model.dart';
 
-/// Overview summary banner displaying computed total endorsements, avg rating, and 5-star count.
+/// Overview summary banner displaying total testimonials count.
 class TestimonialsMetricsOverview extends StatelessWidget {
   final List<TestimonialModel> testimonials;
 
@@ -12,11 +12,6 @@ class TestimonialsMetricsOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final total = testimonials.length;
-    final fiveStarCount = testimonials.where((t) => t.rating == 5).length;
-    final avgRating = total > 0
-        ? (testimonials.map((t) => t.rating).reduce((a, b) => a + b) / total)
-            .toStringAsFixed(1)
-        : '5.0';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -38,32 +33,8 @@ class TestimonialsMetricsOverview extends StatelessWidget {
           Expanded(
             child: StatCard(
               value: '$total',
-              label: 'endorsements',
+              label: 'TESTIMONIALS',
               valueColor: AppColors.primary,
-              labelColor: AppColors.textSecondary,
-              valueFontSize: 16,
-              labelFontSize: 10,
-              padding: EdgeInsets.zero,
-            ),
-          ),
-          Container(width: 1, height: 28, color: AppColors.border),
-          Expanded(
-            child: StatCard(
-              value: '$avgRating★',
-              label: 'avg rating',
-              valueColor: const Color(0xFFD97706),
-              labelColor: AppColors.textSecondary,
-              valueFontSize: 16,
-              labelFontSize: 10,
-              padding: EdgeInsets.zero,
-            ),
-          ),
-          Container(width: 1, height: 28, color: AppColors.border),
-          Expanded(
-            child: StatCard(
-              value: '$fiveStarCount',
-              label: '5-star',
-              valueColor: const Color(0xFF16A34A),
               labelColor: AppColors.textSecondary,
               valueFontSize: 16,
               labelFontSize: 10,

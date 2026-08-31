@@ -91,7 +91,7 @@ class CircleOverviewSection extends StatelessWidget {
                       child: Text(
                         tag,
                         style: const TextStyle(
-                          color: Color(0xFF1E3C72),
+                          color: AppColors.primary,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),

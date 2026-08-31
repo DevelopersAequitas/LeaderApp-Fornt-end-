@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class SegmentedControl extends StatelessWidget {
   final List<String> labels;
@@ -59,7 +60,7 @@ class SegmentedControl extends StatelessWidget {
                         icon,
                         size: 14,
                         color: isSelected
-                            ? const Color(0xFF1E3C72)
+                            ? AppColors.primary
                             : const Color(0xFF64748B),
                       ),
                       const SizedBox(width: 6),
@@ -68,7 +69,7 @@ class SegmentedControl extends StatelessWidget {
                       labels[index],
                       style: TextStyle(
                         color: isSelected
-                            ? const Color(0xFF1E3C72)
+                            ? AppColors.primary
                             : const Color(0xFF64748B),
                         fontSize: 12,
                         fontWeight:

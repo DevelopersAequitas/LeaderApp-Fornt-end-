@@ -160,7 +160,7 @@ class FinanceRestrictedView extends StatelessWidget {
                           child: Text(
                             cap,
                             style: const TextStyle(
-                              color: Color(0xFF1E3C72),
+                              color: AppColors.primary,
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
                             ),
@@ -185,7 +185,7 @@ class FinanceRestrictedView extends StatelessWidget {
                 TextSpan(
                   text: permission.role,
                   style: const TextStyle(
-                    color: Color(0xFF1E3C72),
+                    color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

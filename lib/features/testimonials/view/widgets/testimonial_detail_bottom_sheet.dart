@@ -5,7 +5,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
 import '../../model/testimonial_model.dart';
 
-/// Modal bottom sheet showing full endorsement details and profile navigation for both users.
+/// Modal bottom sheet showing complete Testimonial details, Given By, Received By, and full testimonial message.
 class TestimonialDetailBottomSheet extends StatelessWidget {
   final TestimonialModel testimonial;
 
@@ -30,14 +30,15 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
     BuildContext context, {
     required String peerId,
     required String name,
-    required String company,
+    required String role,
+    required String circle,
   }) {
     final peer = PeerModel(
       id: peerId,
       initials: name.length >= 2 ? name.substring(0, 2).toUpperCase() : 'PR',
       name: name,
-      company: company,
-      circle: '',
+      company: role,
+      circle: circle,
       location: '',
       tags: '',
       impactCount: 0,
@@ -74,33 +75,28 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 14),
-            // Title & Rating
-            Row(
+            const SizedBox(height: 16),
+            // Header Title
+            const Row(
               children: [
-                const Icon(
-                  Icons.verified_rounded,
+                Icon(
+                  Icons.format_quote_rounded,
                   color: AppColors.primary,
-                  size: 20,
+                  size: 22,
                 ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Endorsement Details',
+                SizedBox(width: 8),
+                Text(
+                  'Testimonial Details',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.text,
                   ),
                 ),
-                const Spacer(),
-                StarRatingDisplay(
-                  rating: testimonial.rating,
-                  size: 16,
-                ),
               ],
             ),
             const SizedBox(height: 16),
-            // Both Users Visual Card
+            // Given By & Received By Visual Card
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -110,15 +106,15 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Endorsed By (Author)
+                  // Given By (Author)
                   _buildUserTile(
                     context: context,
-                    roleLabel: 'ENDORSED BY',
-                    name: testimonial.fromName,
-                    company: testimonial.fromCompany,
-                    initials: testimonial.fromInitials,
-                    peerId: testimonial.fromPeerId,
-                    badgeColor: const Color(0xFF1E3C72),
+                    roleLabel: 'GIVEN BY',
+                    name: testimonial.authorName,
+                    subtitle: testimonial.authorRole,
+                    initials: testimonial.authorInitials,
+                    peerId: testimonial.authorId,
+                    badgeColor: AppColors.primary,
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
@@ -137,25 +133,25 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Endorsed To (Recipient)
+                  // Received By (Target Peer)
                   _buildUserTile(
                     context: context,
-                    roleLabel: 'ENDORSED TO',
-                    name: testimonial.toName.isNotEmpty
-                        ? testimonial.toName
-                        : 'Circle Member',
-                    company: testimonial.toCompany,
-                    initials: testimonial.toInitials,
-                    peerId: testimonial.toPeerId,
+                    roleLabel: 'RECEIVED BY',
+                    name: testimonial.targetPeerName.isNotEmpty
+                        ? testimonial.targetPeerName
+                        : 'Circle Peer',
+                    subtitle: testimonial.circleName,
+                    initials: testimonial.targetPeerInitials,
+                    peerId: testimonial.targetPeerId,
                     badgeColor: const Color(0xFF16A34A),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            // Testimonial Message
+            // Testimonial Message Box
             const Text(
-              'ENDORSEMENT MESSAGE',
+              'TESTIMONIAL MESSAGE',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 10,
@@ -165,7 +161,7 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(12),
@@ -174,15 +170,16 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
               child: Text(
                 '"${testimonial.content}"',
                 style: const TextStyle(
-                  color: Color(0xFF1E3C72),
+                  color: AppColors.primary,
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
-                  height: 1.4,
+                  height: 1.45,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
             const SizedBox(height: 12),
+            // Date
             Row(
               children: [
                 const Icon(
@@ -190,9 +187,9 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                   size: 13,
                   color: AppColors.textSecondary,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 5),
                 Text(
-                  'Endorsed on ${testimonial.date}',
+                  'Given on ${testimonial.date}',
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 11,
@@ -211,7 +208,7 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
     required BuildContext context,
     required String roleLabel,
     required String name,
-    required String company,
+    required String subtitle,
     required String initials,
     required String peerId,
     required Color badgeColor,
@@ -249,9 +246,9 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (company.isNotEmpty) ...[
+              if (subtitle.isNotEmpty) ...[
                 Text(
-                  company,
+                  subtitle,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 11,
@@ -272,7 +269,8 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                 context,
                 peerId: peerId,
                 name: name,
-                company: company,
+                role: subtitle,
+                circle: subtitle,
               );
             },
             borderRadius: BorderRadius.circular(8),

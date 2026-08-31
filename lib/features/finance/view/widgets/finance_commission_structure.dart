@@ -140,7 +140,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                           alignment: Alignment.center,
                           child: Icon(
                             item.icon,
-                            color: const Color(0xFF1E3C72),
+                            color: AppColors.primary,
                             size: 14,
                           ),
                         ),

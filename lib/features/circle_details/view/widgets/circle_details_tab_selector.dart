@@ -59,7 +59,7 @@ class CircleDetailsTabSelector extends StatelessWidget {
                   tabs[idx],
                   style: TextStyle(
                     color: isSelected
-                        ? const Color(0xFF1E3C72)
+                        ? AppColors.primary
                         : AppColors.textSecondary,
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,

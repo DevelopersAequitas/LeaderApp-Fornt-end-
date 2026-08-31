@@ -31,14 +31,14 @@ class PeerRoleManagementSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(
                 Icons.admin_panel_settings_outlined,
-                color: Color(0xFF1E3C72),
+                color: AppColors.primary,
                 size: 18,
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(
                 'Role Management',
                 style: TextStyle(
@@ -120,10 +120,10 @@ class PeerRoleManagementSection extends StatelessWidget {
                 color: const Color(0xFFE2E8F0),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Text(
+              child: Text(
                 'Manage',
                 style: TextStyle(
-                  color: Color(0xFF1E3C72),
+                  color: AppColors.primary,
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                 ),

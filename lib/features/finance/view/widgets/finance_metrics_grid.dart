@@ -30,7 +30,7 @@ class FinanceMetricsGrid extends StatelessWidget {
                 child: _buildMetricCard(
                   value: metrics.circleRevenue,
                   label: 'Circle Revenue',
-                  valueColor: const Color(0xFF1E3C72),
+                  valueColor: AppColors.primary,
                   icon: Icons.account_balance_wallet_outlined,
                   iconBg: const Color(0xFFEBF3FB),
                 ),

@@ -57,11 +57,11 @@ class NotificationCard extends StatelessWidget {
         break;
       case NotificationType.report:
         iconBg = const Color(0xFFEBF3FB);
-        iconColor = const Color(0xFF1E3C72);
+        iconColor = AppColors.primary;
         iconData = Icons.description_outlined;
         badgeLabel = 'REPORT';
         badgeBg = const Color(0xFFEBF3FB);
-        badgeTextColor = const Color(0xFF1E3C72);
+        badgeTextColor = AppColors.primary;
         break;
     }
 

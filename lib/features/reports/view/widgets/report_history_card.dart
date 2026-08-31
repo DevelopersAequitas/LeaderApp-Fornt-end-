@@ -131,7 +131,7 @@ class ReportHistoryCard extends StatelessWidget {
                         children: [
                           const CircleAvatar(
                             radius: 18,
-                            backgroundColor: Color(0xFF1E3C72),
+                            backgroundColor: AppColors.primary,
                             child: Icon(Icons.person, color: Colors.white, size: 18),
                           ),
                           const SizedBox(width: 10),
@@ -431,7 +431,7 @@ class ReportHistoryCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF1E3C72),
+                          color: AppColors.primary,
                         ),
                       ),
                     ],
@@ -535,7 +535,7 @@ class ReportHistoryCard extends StatelessWidget {
                   child: Text(
                     report.type,
                     style: const TextStyle(
-                      color: Color(0xFF1E3C72),
+                      color: AppColors.primary,
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                     ),
@@ -649,7 +649,7 @@ class ReportHistoryCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E3C72),
+                    color: AppColors.primary,
                   ),
                 ),
               ],

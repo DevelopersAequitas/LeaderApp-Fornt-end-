@@ -79,7 +79,7 @@ class ReferralCard extends StatelessWidget {
                         InitialsAvatar(
                           name: referral.name,
                           radius: 20,
-                          backgroundColor: const Color(0xFF1E3C72),
+                          backgroundColor: AppColors.primary,
                           fontSize: 12,
                         ),
                         Positioned(

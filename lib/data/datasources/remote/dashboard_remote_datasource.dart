@@ -44,7 +44,26 @@ class DashboardRemoteDataSource {
       queryParameters: params.isNotEmpty ? params : null,
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => ImpacterModel.fromJson(item as Map<String, dynamic>)).toList();
+          return json.asMap().entries.map((entry) {
+            final item = entry.value;
+            if (item is Map<String, dynamic>) {
+              return ImpacterModel.fromJson(item, defaultRank: entry.key + 1);
+            } else if (item is Map) {
+              return ImpacterModel.fromJson(Map<String, dynamic>.from(item), defaultRank: entry.key + 1);
+            }
+            return null;
+          }).whereType<ImpacterModel>().toList();
+        } else if (json is Map && json['data'] is List) {
+          final list = json['data'] as List;
+          return list.asMap().entries.map((entry) {
+            final item = entry.value;
+            if (item is Map<String, dynamic>) {
+              return ImpacterModel.fromJson(item, defaultRank: entry.key + 1);
+            } else if (item is Map) {
+              return ImpacterModel.fromJson(Map<String, dynamic>.from(item), defaultRank: entry.key + 1);
+            }
+            return null;
+          }).whereType<ImpacterModel>().toList();
         }
         return <ImpacterModel>[];
       },

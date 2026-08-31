@@ -17,6 +17,7 @@ import '../../features/circle_details/view/circle_details_view.dart';
 import '../../features/role_management/view/role_management_view.dart';
 import '../../features/circulars/view/circulars_view.dart';
 import '../../features/maintenance/view/maintenance_view.dart';
+import '../../features/peers/view/peers_view.dart';
 
 /// Centralized routing configuration for the Leader App.
 abstract class AppRoutes {
@@ -28,6 +29,9 @@ abstract class AppRoutes {
 
   /// Home screen route
   static const String home = '/home';
+
+  /// Peers list route
+  static const String peers = '/peers';
 
   /// OTP verification route
   static const String otp = '/otp';
@@ -78,6 +82,37 @@ abstract class AppRoutes {
       case home:
         return MaterialPageRoute(
           builder: (_) => const DashboardView(),
+          settings: settings,
+        );
+      case peers:
+        String? sort;
+        String? circle;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          sort = map['sort']?.toString();
+          circle = map['circle']?.toString();
+        } else if (settings.arguments is String) {
+          sort = settings.arguments as String;
+        }
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            appBar: AppBar(
+              title: Text(
+                sort != null ? 'Peers · $sort' : 'Peers Directory',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
+              ),
+              backgroundColor: const Color(0xFF102640),
+              iconTheme: const IconThemeData(color: Colors.white),
+            ),
+            body: PeersView(
+              selectedCircle: circle,
+              initialSort: sort,
+            ),
+          ),
           settings: settings,
         );
       case otp:

@@ -30,15 +30,22 @@ import 'widgets/peers_filter_bar.dart';
 /// Pure StatelessWidget powered 100% by BLoC state machine.
 class PeersView extends StatelessWidget {
   final String? selectedCircle;
+  final String? initialSort;
 
-  const PeersView({super.key, this.selectedCircle});
+  const PeersView({super.key, this.selectedCircle, this.initialSort});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<PeersBloc>(
-      key: ValueKey(selectedCircle),
-      create: (context) =>
-          PeersBloc()..add(LoadPeersData(selectedCircle: selectedCircle)),
+      key: ValueKey('${selectedCircle}_$initialSort'),
+      create: (context) {
+        final bloc = PeersBloc()
+          ..add(LoadPeersData(selectedCircle: selectedCircle));
+        if (initialSort != null && initialSort!.isNotEmpty) {
+          bloc.add(MetricSortChanged(initialSort!));
+        }
+        return bloc;
+      },
       child: _PeersContent(selectedCircle: selectedCircle),
     );
   }

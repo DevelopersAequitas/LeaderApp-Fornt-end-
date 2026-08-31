@@ -56,7 +56,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
                 child: Text(
                   '${circles.length} ${circles.length == 1 ? 'Circle' : 'Circles'}',
                   style: const TextStyle(
-                    color: Color(0xFF1E3C72),
+                    color: AppColors.primary,
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                   ),
@@ -93,7 +93,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
                       InitialsAvatar(
                         name: circleName,
                         radius: 15,
-                        backgroundColor: const Color(0xFF1E3C72),
+                        backgroundColor: AppColors.primary,
                         borderRadius: BorderRadius.circular(8),
                         fontSize: 10,
                       ),

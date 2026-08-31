@@ -13,7 +13,10 @@ class TestimonialsBloc extends Bloc<TestimonialsEvent, TestimonialsState> {
     on<FilterTestimonials>(_onFilterTestimonials);
   }
 
-  Future<void> _onLoadTestimonials(LoadTestimonials event, Emitter<TestimonialsState> emit) async {
+  Future<void> _onLoadTestimonials(
+    LoadTestimonials event,
+    Emitter<TestimonialsState> emit,
+  ) async {
     emit(state.copyWith(isLoading: true, errorMessage: ''));
 
     try {
@@ -30,16 +33,12 @@ class TestimonialsBloc extends Bloc<TestimonialsEvent, TestimonialsState> {
     }
   }
 
-  void _onFilterTestimonials(FilterTestimonials event, Emitter<TestimonialsState> emit) {
-    final rating = event.rating;
-    final filtered = rating == null
-        ? state.allTestimonials
-        : state.allTestimonials.where((t) => t.rating == rating).toList();
-
+  void _onFilterTestimonials(
+    FilterTestimonials event,
+    Emitter<TestimonialsState> emit,
+  ) {
     emit(state.copyWith(
-      selectedRatingFilter: rating,
-      filteredTestimonials: filtered,
-      clearRatingFilter: rating == null,
+      filteredTestimonials: state.allTestimonials,
     ));
   }
 }

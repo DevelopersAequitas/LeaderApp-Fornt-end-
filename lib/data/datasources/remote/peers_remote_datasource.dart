@@ -85,6 +85,27 @@ class PeersRemoteDataSource {
     );
   }
 
+  /// Fetches full peer profile details model including metrics, milestones, bio, contact and meetings.
+  Future<ApiResponse<PeerProfileDetailModel>> getPeerProfileDetail(String id) async {
+    if (!_isValidId(id)) {
+      return const ApiResponse<PeerProfileDetailModel>(
+        success: false,
+        message: 'Invalid peer identifier',
+      );
+    }
+    return _apiClient.get<PeerProfileDetailModel>(
+      ApiEndpoints.peerDetails(id.trim()),
+      fromJsonT: (json) {
+        if (json is Map<String, dynamic>) {
+          return PeerProfileDetailModel.fromJson(json);
+        } else if (json is Map) {
+          return PeerProfileDetailModel.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const PeerProfileDetailModel();
+      },
+    );
+  }
+
   /// Fetches celebrations for the active circle.
   Future<ApiResponse<CelebrationsResponse>> getCelebrations({String? circleId}) async {
     final params = <String, String>{};

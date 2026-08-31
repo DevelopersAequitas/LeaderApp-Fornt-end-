@@ -167,7 +167,7 @@ class CircleLeadershipCard extends StatelessWidget {
               roleBadge: 'Founder 🔒',
               badgeBg: const Color(0xFFFEF3C7),
               badgeFg: const Color(0xFFD97706),
-              avatarBg: const Color(0xFF1E3C72),
+              avatarBg: AppColors.primary,
               responsibility: 'Vision, Founding Network & Core Strategy',
             )
           else
@@ -188,7 +188,7 @@ class CircleLeadershipCard extends StatelessWidget {
                     roleBadge: 'Founder 🔒',
                     badgeBg: const Color(0xFFFEF3C7),
                     badgeFg: const Color(0xFFD97706),
-                    avatarBg: const Color(0xFF1E3C72),
+                    avatarBg: AppColors.primary,
                     responsibility: 'Vision, Founding Network & Core Strategy',
                   ),
                 ],
@@ -211,7 +211,7 @@ class CircleLeadershipCard extends StatelessWidget {
               ),
               roleBadge: 'Director',
               badgeBg: const Color(0xFFEBF3FB),
-              badgeFg: const Color(0xFF1E3C72),
+              badgeFg: AppColors.primary,
               avatarBg: const Color(0xFF2563EB),
               responsibility: 'Regional Growth, Alignment & Guidance',
             )
@@ -232,7 +232,7 @@ class CircleLeadershipCard extends StatelessWidget {
                     leader: director,
                     roleBadge: 'Director',
                     badgeBg: const Color(0xFFEBF3FB),
-                    badgeFg: const Color(0xFF1E3C72),
+                    badgeFg: AppColors.primary,
                     avatarBg: const Color(0xFF2563EB),
                     responsibility: 'Regional Growth, Alignment & Guidance',
                   ),
@@ -367,7 +367,7 @@ class CircleLeadershipCard extends StatelessWidget {
                   Text(
                     displayRole,
                     style: const TextStyle(
-                      color: Color(0xFF1E3C72),
+                      color: AppColors.primary,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),

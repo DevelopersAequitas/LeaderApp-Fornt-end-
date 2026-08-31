@@ -56,7 +56,7 @@ class TeamsMetricsBanner extends StatelessWidget {
             child: _buildMetricItem(
               value: '$totalCircles',
               label: 'Circles',
-              valueColor: const Color(0xFF1E3C72),
+              valueColor: AppColors.primary,
             ),
           ),
           Container(width: 1, height: 32, color: AppColors.border),
@@ -80,7 +80,7 @@ class TeamsMetricsBanner extends StatelessWidget {
             child: _buildMetricItem(
               value: totalRevenue,
               label: 'Revenue',
-              valueColor: const Color(0xFF1E3C72),
+              valueColor: AppColors.primary,
             ),
           ),
         ],

@@ -29,7 +29,7 @@ class DashboardBottomNavBar extends StatelessWidget {
               child: Icon(
                 icon,
                 color: isSelected
-                    ? const Color(0xFF1E3C72)
+                    ? AppColors.primary
                     : AppColors.textSecondary,
                 size: 22,
               ),
@@ -41,7 +41,7 @@ class DashboardBottomNavBar extends StatelessWidget {
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                 color: isSelected
-                    ? const Color(0xFF1E3C72)
+                    ? AppColors.primary
                     : AppColors.textSecondary,
               ),
             ),

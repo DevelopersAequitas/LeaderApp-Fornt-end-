@@ -177,7 +177,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
                   minY: 0.0,
                   maxY: 100.0,
                   yLabels: const [0, 25, 50, 75, 100],
-                  lineColor: const Color(0xFF1E3C72),
+                  lineColor: AppColors.primary,
                 ),
               ],
             ),
@@ -215,7 +215,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
               ),
               child: const Icon(
                 Icons.cloud_download_rounded,
-                color: Color(0xFF1E3C72),
+                color: AppColors.primary,
                 size: 22,
               ),
             ),

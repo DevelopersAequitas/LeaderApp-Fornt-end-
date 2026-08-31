@@ -53,11 +53,11 @@ class TeamsIndustryFilterChips extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF1E3C72) : Colors.white,
+                  color: isSelected ? AppColors.primary : Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF1E3C72)
+                        ? AppColors.primary
                         : AppColors.border,
                   ),
                   boxShadow: [
@@ -76,7 +76,7 @@ class TeamsIndustryFilterChips extends StatelessWidget {
                       Icon(
                         Icons.apps_rounded,
                         size: 13,
-                        color: isSelected ? Colors.white : const Color(0xFF1E3C72),
+                        color: isSelected ? Colors.white : AppColors.primary,
                       ),
                       const SizedBox(width: 5),
                     ] else if (iconUrl.isNotEmpty) ...[

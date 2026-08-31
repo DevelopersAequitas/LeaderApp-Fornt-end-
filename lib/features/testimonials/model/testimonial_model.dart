@@ -1,112 +1,120 @@
-/// Model representing a peer testimonial endorsement.
+/// Model representing a peer testimonial.
 class TestimonialModel {
   final String id;
-  final String fromPeerId;
-  final String toPeerId;
-  final String fromName;
-  final String toName;
-  final String fromCompany;
-  final String toCompany;
-  final String fromInitials;
-  final String toInitials;
-  final int rating;
+  final String authorId;
+  final String targetPeerId;
+  final String authorName;
+  final String authorRole;
+  final String targetPeerName;
+  final String circleName;
+  final String authorInitials;
+  final String targetPeerInitials;
   final String content;
   final String date;
 
   const TestimonialModel({
     required this.id,
-    this.fromPeerId = '',
-    this.toPeerId = '',
-    required this.fromName,
-    required this.toName,
-    required this.fromCompany,
-    required this.toCompany,
-    required this.fromInitials,
-    required this.toInitials,
-    required this.rating,
+    this.authorId = '',
+    this.targetPeerId = '',
+    required this.authorName,
+    required this.authorRole,
+    required this.targetPeerName,
+    required this.circleName,
+    required this.authorInitials,
+    required this.targetPeerInitials,
     required this.content,
     required this.date,
   });
 
+  // Backwards compatibility getters
+  String get fromName => authorName;
+  String get toName => targetPeerName;
+  String get fromCompany => authorRole;
+  String get toCompany => circleName;
+  String get fromInitials => authorInitials;
+  String get toInitials => targetPeerInitials;
+  String get fromPeerId => authorId;
+  String get toPeerId => targetPeerId;
+
   factory TestimonialModel.fromJson(Map<String, dynamic> json) {
-    String fromNameStr = 'Peer';
-    String fromPeerIdStr = '';
-    final rawFromName = json['author_name'] ?? json['from_name'] ?? json['author'];
-    if (rawFromName is Map) {
-      fromNameStr = rawFromName['name']?.toString() ??
-          rawFromName['author_name']?.toString() ??
+    String authorStr = 'Peer';
+    String authorIdStr = '';
+    final rawAuthor = json['author_name'] ?? json['from_name'] ?? json['author'];
+    if (rawAuthor is Map) {
+      authorStr = rawAuthor['name']?.toString() ??
+          rawAuthor['author_name']?.toString() ??
           'Peer';
-      fromPeerIdStr = rawFromName['id']?.toString() ??
-          rawFromName['peer_id']?.toString() ??
+      authorIdStr = rawAuthor['id']?.toString() ??
+          rawAuthor['peer_id']?.toString() ??
           '';
-    } else if (rawFromName is String) {
-      fromNameStr = rawFromName;
+    } else if (rawAuthor is String) {
+      authorStr = rawAuthor;
     }
-    if (fromPeerIdStr.isEmpty) {
-      fromPeerIdStr = json['author_id']?.toString() ??
+    if (authorIdStr.isEmpty) {
+      authorIdStr = json['author_id']?.toString() ??
           json['from_peer_id']?.toString() ??
           json['from_id']?.toString() ??
           '';
     }
 
-    final fromParts = fromNameStr.trim().split(' ');
-    final fromInitials = fromParts.length > 1
-        ? '${fromParts[0].isNotEmpty ? fromParts[0][0] : ""}${fromParts[1].isNotEmpty ? fromParts[1][0] : ""}'
-        : (fromNameStr.length >= 2 ? fromNameStr.substring(0, 2).toUpperCase() : fromNameStr.toUpperCase());
+    final authorParts = authorStr.trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+    final aInitials = authorParts.length > 1
+        ? '${authorParts[0][0]}${authorParts[1][0]}'.toUpperCase()
+        : (authorStr.length >= 2 ? authorStr.substring(0, 2).toUpperCase() : authorStr.toUpperCase());
 
-    String toNameStr = '';
-    String toPeerIdStr = '';
-    final rawToName = json['target_peer_name'] ??
+    String targetStr = '';
+    String targetIdStr = '';
+    final rawTarget = json['target_peer_name'] ??
         json['to_name'] ??
         json['target_peer'] ??
         json['recipient'];
-    if (rawToName is Map) {
-      toNameStr = rawToName['name']?.toString() ??
-          rawToName['peer_name']?.toString() ??
+    if (rawTarget is Map) {
+      targetStr = rawTarget['name']?.toString() ??
+          rawTarget['peer_name']?.toString() ??
           '';
-      toPeerIdStr = rawToName['id']?.toString() ??
-          rawToName['peer_id']?.toString() ??
+      targetIdStr = rawTarget['id']?.toString() ??
+          rawTarget['peer_id']?.toString() ??
           '';
-    } else if (rawToName is String) {
-      toNameStr = rawToName;
+    } else if (rawTarget is String) {
+      targetStr = rawTarget;
     }
-    if (toPeerIdStr.isEmpty) {
-      toPeerIdStr = json['target_peer_id']?.toString() ??
+    if (targetIdStr.isEmpty) {
+      targetIdStr = json['target_peer_id']?.toString() ??
           json['to_peer_id']?.toString() ??
           json['to_id']?.toString() ??
           '';
     }
 
-    final toParts = toNameStr.trim().split(' ');
-    final toInitials = toParts.length > 1
-        ? '${toParts[0].isNotEmpty ? toParts[0][0] : ""}${toParts[1].isNotEmpty ? toParts[1][0] : ""}'
-        : (toNameStr.length >= 2 ? toNameStr.substring(0, 2).toUpperCase() : toNameStr.toUpperCase());
+    final targetParts = targetStr.trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+    final tInitials = targetParts.length > 1
+        ? '${targetParts[0][0]}${targetParts[1][0]}'.toUpperCase()
+        : (targetStr.length >= 2 ? targetStr.substring(0, 2).toUpperCase() : (targetStr.isNotEmpty ? targetStr.toUpperCase() : 'PR'));
 
-    String fromCompanyStr = '';
-    final rawFromCompany = json['author_role'] ??
+    String roleStr = '';
+    final rawRole = json['author_role'] ??
         json['from_company'] ??
         json['author_company'] ??
         json['company'];
-    if (rawFromCompany is Map) {
-      fromCompanyStr = rawFromCompany['name']?.toString() ??
-          rawFromCompany['company']?.toString() ??
-          rawFromCompany['role']?.toString() ??
+    if (rawRole is Map) {
+      roleStr = rawRole['name']?.toString() ??
+          rawRole['role']?.toString() ??
+          rawRole['company']?.toString() ??
           '';
-    } else if (rawFromCompany is String) {
-      fromCompanyStr = rawFromCompany;
+    } else if (rawRole is String) {
+      roleStr = rawRole;
     }
 
-    String toCompanyStr = '';
-    final rawToCompany = json['circle_name'] ??
+    String circleStr = '';
+    final rawCircle = json['circle_name'] ??
         json['to_company'] ??
         json['target_company'] ??
         json['circle'];
-    if (rawToCompany is Map) {
-      toCompanyStr = rawToCompany['name']?.toString() ??
-          rawToCompany['circle_name']?.toString() ??
+    if (rawCircle is Map) {
+      circleStr = rawCircle['name']?.toString() ??
+          rawCircle['circle_name']?.toString() ??
           '';
-    } else if (rawToCompany is String) {
-      toCompanyStr = rawToCompany;
+    } else if (rawCircle is String) {
+      circleStr = rawCircle;
     }
 
     String dateStr = '';
@@ -119,15 +127,14 @@ class TestimonialModel {
 
     return TestimonialModel(
       id: json['id']?.toString() ?? '',
-      fromPeerId: fromPeerIdStr,
-      toPeerId: toPeerIdStr,
-      fromName: fromNameStr,
-      toName: toNameStr,
-      fromCompany: fromCompanyStr,
-      toCompany: toCompanyStr,
-      fromInitials: fromInitials.isNotEmpty ? fromInitials : 'PR',
-      toInitials: toInitials.isNotEmpty ? toInitials : 'PR',
-      rating: json['rating'] as int? ?? 5,
+      authorId: authorIdStr,
+      targetPeerId: targetIdStr,
+      authorName: authorStr,
+      authorRole: roleStr,
+      targetPeerName: targetStr,
+      circleName: circleStr,
+      authorInitials: aInitials.isNotEmpty ? aInitials : 'PR',
+      targetPeerInitials: tInitials.isNotEmpty ? tInitials : 'PR',
       content: json['content'] as String? ?? json['message'] as String? ?? '',
       date: dateStr.isNotEmpty ? dateStr : 'Recent',
     );
@@ -135,13 +142,12 @@ class TestimonialModel {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'from_peer_id': fromPeerId,
-        'to_peer_id': toPeerId,
-        'author_name': fromName,
-        'target_peer_name': toName,
-        'author_role': fromCompany,
-        'circle_name': toCompany,
-        'rating': rating,
+        'author_id': authorId,
+        'target_peer_id': targetPeerId,
+        'author_name': authorName,
+        'author_role': authorRole,
+        'target_peer_name': targetPeerName,
+        'circle_name': circleName,
         'content': content,
         'date': date,
       };

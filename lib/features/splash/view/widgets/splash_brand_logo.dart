@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'splash_animated_title.dart';
 
 /// Clean brand emblem with 12px border radius and bottom-edge animated "PEERS GLOBAL" title.
@@ -43,7 +44,7 @@ class SplashBrandLogo extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1E3C72).withValues(alpha: 0.06),
+                  color: AppColors.primary.withValues(alpha: 0.08),
                   blurRadius: 18,
                   spreadRadius: 2,
                   offset: const Offset(0, 6),

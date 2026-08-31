@@ -118,7 +118,7 @@ class CircleEventsSection extends StatelessWidget {
               final ev = events[idx];
 
               Color bg = const Color(0xFFEBF3FB);
-              Color fg = const Color(0xFF1E3C72);
+              Color fg = AppColors.primary;
               IconData icon = Icons.mic_none_rounded;
               if (ev.title.contains('Summit') || ev.title.contains('Assembly')) {
                 bg = const Color(0xFFFEF3C7);
@@ -200,7 +200,7 @@ class CircleEventsSection extends StatelessWidget {
                         ev.status,
                         style: TextStyle(
                           color: isUpcoming
-                              ? const Color(0xFF1E3C72)
+                              ? AppColors.primary
                               : Colors.grey,
                           fontSize: 10,
                           fontWeight: FontWeight.w700,

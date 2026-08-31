@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/expandable_text.dart';
 import '../../model/peer_profile_model.dart';
 
 /// Renders the Activity tab list items for Peer Profile.
@@ -107,7 +108,7 @@ class PeerProfileActivitySection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 34,
@@ -132,15 +133,19 @@ class PeerProfileActivitySection extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 1),
-                    Text(
-                      activity.subtitle,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
+                    if (activity.subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      ExpandableText(
+                        text: activity.subtitle,
+                        maxLines: 2,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          height: 1.35,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
