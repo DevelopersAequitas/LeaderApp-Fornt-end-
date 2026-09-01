@@ -3,41 +3,74 @@ import '../models/leader_permissions.dart';
 import '../storage/secure_storage_service.dart';
 import '../storage/hive_cache_service.dart';
 
-/// A session profile model describing a logged-in user.
+/// A session profile model describing a logged-in user matching GET /api/v1/auth/profile.
 class UserSession {
   final String id;
   final String name;
+  final String firstName;
+  final String lastName;
   final String email;
   final String phone;
+  final String companyName;
+  final String company;
+  final String city;
+  final String location;
+  final String designation;
+  final String businessCategory;
+  final String industry;
+  final String level4Category;
+  final String? profilePhotoUrl;
+  final String? avatarUrl;
+  final int lifeImpact;
   final UserRole role;
   final String regionalScope;
   final List<String> managedCircles;
   final String memberSince;
   final int capabilitiesCount;
   final String? customRoleLabel;
-  final String? avatarUrl;
 
   const UserSession({
     this.id = '',
     required this.name,
+    this.firstName = '',
+    this.lastName = '',
     required this.email,
     required this.phone,
+    this.companyName = '',
+    this.company = '',
+    this.city = '',
+    this.location = '',
+    this.designation = '',
+    this.businessCategory = '',
+    this.industry = '',
+    this.level4Category = '',
+    this.profilePhotoUrl,
+    this.avatarUrl,
+    this.lifeImpact = 0,
     required this.role,
     required this.regionalScope,
     required this.managedCircles,
     required this.memberSince,
     required this.capabilitiesCount,
     this.customRoleLabel,
-    this.avatarUrl,
   });
 
   factory UserSession.fromJson(Map<String, dynamic> json) {
     final rawRole = json['role'] as String? ?? 'circleChair';
-    final normalizedRaw = rawRole.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+    final normalizedRaw = rawRole
+        .toLowerCase()
+        .replaceAll('_', '')
+        .replaceAll(' ', '');
     UserRole resolvedRole = UserRole.circleChair;
     for (final r in UserRole.values) {
-      final normName = r.name.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
-      final normLabel = r.label.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+      final normName = r.name
+          .toLowerCase()
+          .replaceAll('_', '')
+          .replaceAll(' ', '');
+      final normLabel = r.label
+          .toLowerCase()
+          .replaceAll('_', '')
+          .replaceAll(' ', '');
       if (normName == normalizedRaw ||
           normLabel == normalizedRaw ||
           normalizedRaw.contains(normName)) {
@@ -57,18 +90,37 @@ class UserSession {
       }
     }
 
+    final companyStr = (json['company_name'] ?? json['company'] ?? '').toString();
+    final cityStr = (json['city'] ?? json['location'] ?? '').toString();
+    final industryStr = (json['business_category'] ?? json['industry'] ?? '').toString();
+    final level4Str = (json['level_4_category'] ?? json['level4_category'] ?? '').toString();
+    final photoUrl = (json['profile_photo_url'] ?? json['avatar_url'])?.toString();
+    final impactVal = (json['life_impact'] as int?) ?? (json['life_impacted_count'] as int?) ?? 0;
+
     return UserSession(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? 'User',
+      firstName: json['first_name'] as String? ?? '',
+      lastName: json['last_name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
+      companyName: json['company_name'] as String? ?? companyStr,
+      company: companyStr,
+      city: cityStr,
+      location: cityStr,
+      designation: json['designation'] as String? ?? '',
+      businessCategory: json['business_category'] as String? ?? industryStr,
+      industry: industryStr,
+      level4Category: level4Str,
+      profilePhotoUrl: photoUrl,
+      avatarUrl: photoUrl,
+      lifeImpact: impactVal,
       role: resolvedRole,
       regionalScope: json['regional_scope'] as String? ?? 'Own Circle',
       managedCircles: managedList,
       memberSince: json['member_since'] as String? ?? 'Aug 2026',
       capabilitiesCount: (json['capabilities_count'] as int?) ?? 14,
       customRoleLabel: json['custom_role_label'] as String?,
-      avatarUrl: json['avatar_url'] as String?,
     );
   }
 }
@@ -156,7 +208,8 @@ class SessionManager {
         : data;
     _currentSession = UserSession.fromJson(userMap);
 
-    if (data['permissions'] is Map && data['permissions']['enabled_capabilities'] is List) {
+    if (data['permissions'] is Map &&
+        data['permissions']['enabled_capabilities'] is List) {
       final caps = (data['permissions']['enabled_capabilities'] as List)
           .map((e) => e.toString())
           .toList();

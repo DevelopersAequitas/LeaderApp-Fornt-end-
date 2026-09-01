@@ -5,6 +5,7 @@ import '../model/celebration_model.dart';
 @immutable
 class PeersState {
   final bool isLoading;
+  final bool isLoadingMore;
   final List<PeerModel> allPeers;
   final List<PeerModel> filteredPeers;
   final List<CelebrationModel> birthdays;
@@ -15,9 +16,13 @@ class PeersState {
   final String selectedSort; // "Impact", "Deals", "Coins", "Attendance"
   final String errorMessage;
   final String? selectedCircle;
+  final int currentPage;
+  final int lastPage;
+  final int totalPeersCount;
 
   const PeersState({
     this.isLoading = false,
+    this.isLoadingMore = false,
     this.allPeers = const [],
     this.filteredPeers = const [],
     this.birthdays = const [],
@@ -28,11 +33,17 @@ class PeersState {
     this.selectedSort = 'Impact',
     this.errorMessage = '',
     this.selectedCircle,
+    this.currentPage = 1,
+    this.lastPage = 1,
+    this.totalPeersCount = 0,
   });
+
+  bool get hasMore => currentPage < lastPage;
 
   /// Helper to copy the state with updated parameters.
   PeersState copyWith({
     bool? isLoading,
+    bool? isLoadingMore,
     List<PeerModel>? allPeers,
     List<PeerModel>? filteredPeers,
     List<CelebrationModel>? birthdays,
@@ -43,9 +54,13 @@ class PeersState {
     String? selectedSort,
     String? errorMessage,
     String? selectedCircle,
+    int? currentPage,
+    int? lastPage,
+    int? totalPeersCount,
   }) {
     return PeersState(
       isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       allPeers: allPeers ?? this.allPeers,
       filteredPeers: filteredPeers ?? this.filteredPeers,
       birthdays: birthdays ?? this.birthdays,
@@ -56,6 +71,9 @@ class PeersState {
       selectedSort: selectedSort ?? this.selectedSort,
       errorMessage: errorMessage ?? this.errorMessage,
       selectedCircle: selectedCircle ?? this.selectedCircle,
+      currentPage: currentPage ?? this.currentPage,
+      lastPage: lastPage ?? this.lastPage,
+      totalPeersCount: totalPeersCount ?? this.totalPeersCount,
     );
   }
 }

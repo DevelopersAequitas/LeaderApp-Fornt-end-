@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../model/profile_model.dart';
 
-/// MD3-styled contact details and executive bio card for the leader profile.
+/// Clean contact details and executive bio card for the leader profile without duplicate fields or copy buttons.
 class ProfileContactCard extends StatelessWidget {
   final UserProfileModel profile;
   final VoidCallback onEditTap;
@@ -16,19 +15,6 @@ class ProfileContactCard extends StatelessWidget {
     this.canEdit = true,
   });
 
-  void _copyToClipboard(BuildContext context, String label, String text) {
-    if (text.isEmpty) return;
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label copied to clipboard'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.primary,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -38,8 +24,8 @@ class ProfileContactCard extends StatelessWidget {
         border: Border.all(color: AppColors.border, width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
+            color: AppColors.primary.withValues(alpha: 0.03),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -48,6 +34,7 @@ class ProfileContactCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header Row: Title & Edit Button
           Row(
             children: [
               const Icon(
@@ -62,7 +49,7 @@ class ProfileContactCard extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.text,
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -71,7 +58,8 @@ class ProfileContactCard extends StatelessWidget {
                   onTap: onEditTap,
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.selectionBg,
                       borderRadius: BorderRadius.circular(8),
@@ -79,13 +67,17 @@ class ProfileContactCard extends StatelessWidget {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.edit_outlined, size: 12, color: AppColors.primary),
+                        Icon(
+                          Icons.edit_outlined,
+                          size: 12,
+                          color: AppColors.primary,
+                        ),
                         SizedBox(width: 4),
                         Text(
                           'Edit',
                           style: TextStyle(
                             fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                             color: AppColors.primary,
                           ),
                         ),
@@ -96,35 +88,23 @@ class ProfileContactCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
+
+          // 1. Mobile Phone (without copy button)
           _buildInfoRow(
-            context: context,
             icon: Icons.phone_outlined,
             label: 'Mobile Phone',
             value: profile.phone.isNotEmpty ? profile.phone : 'Not provided',
-            onCopy: profile.phone.isNotEmpty
-                ? () => _copyToClipboard(context, 'Phone number', profile.phone)
-                : null,
           ),
           const Divider(color: AppColors.border, height: 14),
+
+          // 2. Official Email (without copy button)
           _buildInfoRow(
-            context: context,
             icon: Icons.mail_outline_rounded,
             label: 'Official Email',
             value: profile.email.isNotEmpty ? profile.email : 'Not provided',
-            onCopy: profile.email.isNotEmpty
-                ? () => _copyToClipboard(context, 'Email address', profile.email)
-                : null,
           ),
-          if (profile.company.isNotEmpty) ...[
-            const Divider(color: AppColors.border, height: 14),
-            _buildInfoRow(
-              context: context,
-              icon: Icons.business_outlined,
-              label: 'Company / Organization',
-              value: profile.company,
-              onCopy: () => _copyToClipboard(context, 'Company name', profile.company),
-            ),
-          ],
+
+          // 3. Executive Bio (if present)
           if (profile.bio.isNotEmpty) ...[
             const Divider(color: AppColors.border, height: 14),
             Column(
@@ -135,7 +115,7 @@ class ProfileContactCard extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.4,
                   ),
                 ),
@@ -146,7 +126,7 @@ class ProfileContactCard extends StatelessWidget {
                     color: AppColors.text,
                     fontSize: 12,
                     height: 1.35,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -158,11 +138,9 @@ class ProfileContactCard extends StatelessWidget {
   }
 
   Widget _buildInfoRow({
-    required BuildContext context,
     required IconData icon,
     required String label,
     required String value,
-    VoidCallback? onCopy,
   }) {
     return Row(
       children: [
@@ -186,7 +164,7 @@ class ProfileContactCard extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 10,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 1),
@@ -195,7 +173,7 @@ class ProfileContactCard extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.text,
                   fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -203,14 +181,6 @@ class ProfileContactCard extends StatelessWidget {
             ],
           ),
         ),
-        if (onCopy != null)
-          IconButton(
-            icon: const Icon(Icons.copy_rounded, size: 14, color: AppColors.textSecondary),
-            onPressed: onCopy,
-            tooltip: 'Copy',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-          ),
       ],
     );
   }

@@ -80,7 +80,7 @@ class PeerModel {
         : (name.length >= 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase());
 
     String companyStr = '';
-    final rawCompany = json['company'];
+    final rawCompany = json['company_name'] ?? json['company'];
     if (rawCompany is Map) {
       companyStr = rawCompany['name']?.toString() ?? '';
     } else if (rawCompany is String) {
@@ -194,7 +194,7 @@ class PeerModel {
       company: companyStr,
       circle: circleStr,
       circleId: json['circle_id']?.toString(),
-      location: json['location'] as String? ?? '',
+      location: json['location'] as String? ?? json['city'] as String? ?? '',
       tags: parsedTags,
       impactCount: parsedImpact,
       dealsFormatted: metrics?['deals_closed']?.toString() ?? json['deals_formatted']?.toString() ?? json['deals']?.toString() ?? '₹0.0',

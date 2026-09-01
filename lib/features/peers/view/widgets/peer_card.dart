@@ -6,14 +6,12 @@ import '../../model/peer_model.dart';
 
 /// Standard Material 3 Peer Card used across all peer listings in the app.
 /// Prominently displays the 6 key peer information points:
-/// 1. Peer Profile Name (+ Verified badge & Avatar photo/initials)
+/// 1. Peer Profile Name (Uppercase, max w500 font weight)
 /// 2. City / Location
 /// 3. Designation
 /// 4. Company Name
 /// 5. Category (Level 4 Category / Specialization)
 /// 6. Lives Impacted Count
-/// 
-/// Fully clickable with ripple animation to navigate directly to the Peer Profile screen.
 class PeerCard extends StatelessWidget {
   final PeerModel peer;
   final String? selectedSort;
@@ -30,7 +28,9 @@ class PeerCard extends StatelessWidget {
     final s = status.toLowerCase();
     if (s.contains('active')) return const Color(0xFFDCFCE7);
     if (s.contains('risk')) return const Color(0xFFFEE2E2);
-    if (s.contains('attention') || s.contains('pending')) return const Color(0xFFFEF3C7);
+    if (s.contains('attention') || s.contains('pending')) {
+      return const Color(0xFFFEF3C7);
+    }
     return const Color(0xFFF3F4F6);
   }
 
@@ -38,7 +38,9 @@ class PeerCard extends StatelessWidget {
     final s = status.toLowerCase();
     if (s.contains('active')) return const Color(0xFF16A34A);
     if (s.contains('risk')) return const Color(0xFFDC2626);
-    if (s.contains('attention') || s.contains('pending')) return const Color(0xFFD97706);
+    if (s.contains('attention') || s.contains('pending')) {
+      return const Color(0xFFD97706);
+    }
     return const Color(0xFF4B5563);
   }
 
@@ -67,9 +69,7 @@ class PeerCard extends StatelessWidget {
     final displayCategory = peer.level4Category != null &&
             peer.level4Category!.trim().isNotEmpty
         ? peer.level4Category!.trim()
-        : (peer.tags.isNotEmpty
-            ? peer.tags
-            : (peer.industry ?? ''));
+        : (peer.tags.isNotEmpty ? peer.tags : (peer.industry ?? ''));
 
     // Optional Sort Specific Metric Tag
     String? sortMetricText;
@@ -98,7 +98,7 @@ class PeerCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: AppColors.primary.withValues(alpha: 0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -120,20 +120,20 @@ class PeerCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top Row: Avatar + Name & Designation/Company + Status Pill + Chevron
+                // Top Row: Avatar + Uppercase Name & Designation/Company + Status Pill + Chevron
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // 1. Avatar (Network photo with initials fallback)
+                    // 1. Avatar
                     InitialsAvatar(
-                      name: peer.name,
+                      name: peer.name.toUpperCase(),
                       imageUrl: peer.avatarUrl,
                       radius: 22,
                       backgroundColor: AppColors.primary,
                       fontSize: 13,
                     ),
                     const SizedBox(width: 10),
-                    // 2. Name, Verified Badge & Designation/Company
+                    // 2. Name (Uppercase, max w500), Verified Badge & Designation/Company
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,12 +142,12 @@ class PeerCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  peer.name,
+                                  peer.name.toUpperCase(),
                                   style: const TextStyle(
                                     color: AppColors.text,
                                     fontSize: 13.5,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.2,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 0.2,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -168,9 +168,9 @@ class PeerCard extends StatelessWidget {
                             Text(
                               subtitle,
                               style: const TextStyle(
-                                color: AppColors.primary,
+                                color: AppColors.textSecondary,
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w400,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -196,7 +196,7 @@ class PeerCard extends StatelessWidget {
                           style: TextStyle(
                             color: statusText,
                             fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -211,7 +211,7 @@ class PeerCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 const Divider(height: 1, color: AppColors.border),
                 const SizedBox(height: 8),
-                // Mandatory Badges Row (The 6 key pieces of info)
+                // Badges Row
                 Wrap(
                   spacing: 6,
                   runSpacing: 4,
@@ -235,7 +235,7 @@ class PeerCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(
-                            Icons.lightbulb_outline_rounded,
+                            Icons.favorite_rounded,
                             size: 11,
                             color: Color(0xFFD97706),
                           ),
@@ -245,7 +245,7 @@ class PeerCard extends StatelessWidget {
                             style: const TextStyle(
                               color: Color(0xFFB45309),
                               fontSize: 10,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -282,7 +282,7 @@ class PeerCard extends StatelessWidget {
                                 style: const TextStyle(
                                   color: AppColors.text,
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w500,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -320,7 +320,7 @@ class PeerCard extends StatelessWidget {
                               style: const TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ],
@@ -342,7 +342,7 @@ class PeerCard extends StatelessWidget {
                           style: TextStyle(
                             color: sortMetricTextCol,
                             fontSize: 10,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),

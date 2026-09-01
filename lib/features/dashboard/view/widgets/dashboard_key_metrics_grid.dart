@@ -38,22 +38,22 @@ class DashboardKeyMetricsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = SessionManager().currentSession;
-    final now = DateTime.now();
-    final months = const [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    final currentMonthYear = '${months[now.month - 1]} ${now.year}';
+    // final now = DateTime.now();
+    // final months = const [
+    //   'Jan',
+    //   'Feb',
+    //   'Mar',
+    //   'Apr',
+    //   'May',
+    //   'Jun',
+    //   'Jul',
+    //   'Aug',
+    //   'Sep',
+    //   'Oct',
+    //   'Nov',
+    //   'Dec',
+    // ];
+    // final currentMonthYear = '${months[now.month - 1]} ${now.year}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -71,14 +71,14 @@ class DashboardKeyMetricsGrid extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              Text(
-                currentMonthYear,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              // Text(
+              //   currentMonthYear,
+              //   style: const TextStyle(
+              //     color: AppColors.textSecondary,
+              //     fontSize: 11,
+              //     fontWeight: FontWeight.w500,
+              //   ),
+              // ),
             ],
           ),
           const SizedBox(height: 10),

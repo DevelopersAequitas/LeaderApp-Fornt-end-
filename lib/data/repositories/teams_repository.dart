@@ -9,7 +9,14 @@ abstract class TeamsRepository {
   Future<ApiResponse<TeamsSummaryModel>> getTeamsSummary();
   Future<ApiResponse<List<CircleTeamModel>>> getCircles({String? industry, String? status, String? search});
   Future<ApiResponse<CircleTeamModel>> getCircleDetails(String id);
-  Future<ApiResponse<List<PeerModel>>> getCirclePeers(String circleId, {String? status, String? search, String? sort});
+  Future<ApiResponse<List<PeerModel>>> getCirclePeers(
+    String circleId, {
+    String? status,
+    String? search,
+    String? sort,
+    int? page,
+    int? perPage,
+  });
   Future<ApiResponse<CircleSubIndustriesResponse>> getSubIndustries(String circleId);
   Future<ApiResponse<List<CircleEventModel>>> getCircleEvents(String circleId, {String? filter});
   Future<ApiResponse<List<String>>> getIndustries();
@@ -52,12 +59,16 @@ class TeamsRepositoryImpl implements TeamsRepository {
     String? status,
     String? search,
     String? sort,
+    int? page,
+    int? perPage,
   }) async {
     return _remoteDataSource.getCirclePeers(
       circleId,
       status: status,
       search: search,
       sort: sort,
+      page: page,
+      perPage: perPage,
     );
   }
 

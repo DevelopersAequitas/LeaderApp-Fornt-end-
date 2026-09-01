@@ -13,6 +13,7 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     : _peersRepository = peersRepository ?? PeersRepositoryImpl(),
       super(const PeersState()) {
     on<LoadPeersData>(_onLoadPeersData);
+    on<LoadMorePeersData>(_onLoadMorePeersData);
     on<SearchQueryChanged>(_onSearchQueryChanged);
     on<StatusFilterChanged>(_onStatusFilterChanged);
     on<MetricSortChanged>(_onMetricSortChanged);
@@ -49,6 +50,8 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
         circleId: activeCircle,
         status: state.selectedStatus,
         search: state.searchQuery,
+        page: 1,
+        perPage: 20,
       );
 
       final celebrationsResponse = await _peersRepository.getCelebrations(
@@ -63,11 +66,17 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
         state.selectedSort,
       );
 
+      final meta = peersResponse.meta;
+      final total = meta?.total ?? (allPeers.isNotEmpty ? allPeers.length : 0);
+
       emit(
         state.copyWith(
           isLoading: false,
           allPeers: allPeers,
           filteredPeers: filtered,
+          currentPage: meta?.currentPage ?? 1,
+          lastPage: meta?.lastPage ?? 1,
+          totalPeersCount: total,
           birthdays: celebrationsResponse.data?.birthdays ?? const [],
           anniversaries: celebrationsResponse.data?.anniversaries ?? const [],
           selectedCircle: activeCircle,
@@ -75,6 +84,53 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
       );
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onLoadMorePeersData(
+    LoadMorePeersData event,
+    Emitter<PeersState> emit,
+  ) async {
+    if (state.isLoadingMore || !state.hasMore) return;
+
+    emit(state.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = state.currentPage + 1;
+      final peersResponse = await _peersRepository.getPeers(
+        circleId: state.selectedCircle,
+        status: state.selectedStatus,
+        search: state.searchQuery,
+        page: nextPage,
+        perPage: 20,
+      );
+
+      final newPeers = peersResponse.data ?? const [];
+      final existingIds = state.allPeers.map((p) => p.id).toSet();
+      final combined = [
+        ...state.allPeers,
+        ...newPeers.where((p) => !existingIds.contains(p.id)),
+      ];
+
+      final filtered = _filterAndSort(
+        combined,
+        state.searchQuery,
+        state.selectedStatus,
+        state.selectedSort,
+      );
+
+      final meta = peersResponse.meta;
+      emit(
+        state.copyWith(
+          isLoadingMore: false,
+          allPeers: combined,
+          filteredPeers: filtered,
+          currentPage: meta?.currentPage ?? nextPage,
+          lastPage: meta?.lastPage ?? state.lastPage,
+          totalPeersCount: meta?.total ?? state.totalPeersCount,
+        ),
+      );
+    } catch (e) {
+      emit(state.copyWith(isLoadingMore: false));
     }
   }
 

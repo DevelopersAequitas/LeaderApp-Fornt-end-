@@ -77,7 +77,9 @@ class _CircleDetailsContent extends StatelessWidget {
                     CircleLeadershipCard(circle: activeCircle),
                     CircleDetailsTabSelector(
                       activeTab: state.activeSubTab,
-                      peersCount: state.circlePeers.length,
+                      peersCount: state.totalPeersCount > 0
+                          ? state.totalPeersCount
+                          : state.circlePeers.length,
                       eventsCount: state.filteredEvents.length,
                       onTabChanged: (idx) =>
                           bloc.add(ChangeCircleSubTabEvent(idx)),
@@ -88,6 +90,12 @@ class _CircleDetailsContent extends StatelessWidget {
                       CirclePeersSection(
                         peers: state.circlePeers,
                         isLoading: state.isLoadingPeers,
+                        isLoadingMore: state.isLoadingMorePeers,
+                        hasMore: state.hasMorePeers,
+                        totalCount: state.totalPeersCount,
+                        onLoadMore: () => bloc.add(LoadMoreCirclePeersEvent(
+                          circleId: initialCircle.id,
+                        )),
                       ),
                     if (state.activeSubTab == 2)
                       CircleSubIndustriesSection(

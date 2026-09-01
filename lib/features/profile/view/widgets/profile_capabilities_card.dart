@@ -98,7 +98,7 @@ class ProfileCapabilitiesCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        cap,
+                        _formatCapabilityName(cap),
                         style: const TextStyle(
                           color: Color(0xFF15803D),
                           fontSize: 11,
@@ -113,5 +113,15 @@ class ProfileCapabilitiesCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatCapabilityName(String raw) {
+    if (raw.contains(' ') || raw.contains('/')) return raw;
+    return raw
+        .split('_')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+            : '')
+        .join(' ');
   }
 }

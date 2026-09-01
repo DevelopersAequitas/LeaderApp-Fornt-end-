@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Renders the executive 5-tab Material 3 bottom navigation bar.
+/// Renders the executive 5-tab Material 3 bottom navigation bar with clear semantic icons and max w500 typography.
 class DashboardBottomNavBar extends StatelessWidget {
   final int activeTab;
   final ValueChanged<int> onTabSelected;
@@ -12,7 +12,12 @@ class DashboardBottomNavBar extends StatelessWidget {
     required this.onTabSelected,
   });
 
-  Widget _buildNavBarItem(int index, IconData icon, String label) {
+  Widget _buildNavBarItem(
+    int index,
+    IconData activeIcon,
+    IconData inactiveIcon,
+    String label,
+  ) {
     final isSelected = activeTab == index;
     return Expanded(
       child: InkWell(
@@ -27,7 +32,7 @@ class DashboardBottomNavBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
-                icon,
+                isSelected ? activeIcon : inactiveIcon,
                 color: isSelected
                     ? AppColors.primary
                     : AppColors.textSecondary,
@@ -39,7 +44,7 @@ class DashboardBottomNavBar extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                 color: isSelected
                     ? AppColors.primary
                     : AppColors.textSecondary,
@@ -64,11 +69,36 @@ class DashboardBottomNavBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildNavBarItem(0, Icons.dashboard_rounded, 'Dashboard'),
-          _buildNavBarItem(1, Icons.people_outline_rounded, 'Peers'),
-          _buildNavBarItem(2, Icons.group_work_outlined, 'Teams'),
-          _buildNavBarItem(3, Icons.credit_card_rounded, 'Finance'),
-          _buildNavBarItem(4, Icons.description_outlined, 'Report'),
+          _buildNavBarItem(
+            0,
+            Icons.dashboard_rounded,
+            Icons.dashboard_outlined,
+            'Dashboard',
+          ),
+          _buildNavBarItem(
+            1,
+            Icons.people_alt_rounded,
+            Icons.people_alt_outlined,
+            'Peers',
+          ),
+          _buildNavBarItem(
+            2,
+            Icons.diversity_3_rounded,
+            Icons.diversity_3_outlined,
+            'Teams',
+          ),
+          _buildNavBarItem(
+            3,
+            Icons.credit_card_rounded,
+            Icons.credit_card_outlined,
+            'Finance',
+          ),
+          _buildNavBarItem(
+            4,
+            Icons.description_rounded,
+            Icons.description_outlined,
+            'Report',
+          ),
         ],
       ),
     );

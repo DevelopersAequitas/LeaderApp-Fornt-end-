@@ -13,6 +13,7 @@ class CircleDetailsBloc extends Bloc<CircleDetailsEvent, CircleDetailsState> {
     on<LoadCircleDetailsData>(_onLoadCircleDetailsData);
     on<ChangeCircleSubTabEvent>(_onChangeCircleSubTab);
     on<FilterCircleEventsEvent>(_onFilterCircleEvents);
+    on<LoadMoreCirclePeersEvent>(_onLoadMoreCirclePeers);
   }
 
   List<CircleEventModel> _applyEventFilter(List<CircleEventModel> events, String filter) {
@@ -53,9 +54,9 @@ class CircleDetailsBloc extends Bloc<CircleDetailsEvent, CircleDetailsState> {
       emit(state.copyWith(isLoadingCircle: false));
     }
 
-    // 2. Fetch Circle Peers
+    // 2. Fetch Circle Peers (Page 1)
     try {
-      final peersRes = await _teamsRepository.getCirclePeers(cId);
+      final peersRes = await _teamsRepository.getCirclePeers(cId, page: 1, perPage: 20);
       final peers = (peersRes.data ?? []).where((p) {
         final peerCircleId = p.circleId;
         if (peerCircleId != null && peerCircleId.isNotEmpty && peerCircleId != cId) {
@@ -64,7 +65,16 @@ class CircleDetailsBloc extends Bloc<CircleDetailsEvent, CircleDetailsState> {
         return true;
       }).toList();
 
-      emit(state.copyWith(circlePeers: peers, isLoadingPeers: false));
+      final meta = peersRes.meta;
+      final total = meta?.total ?? (peers.isNotEmpty ? peers.length : state.circle?.peersCount ?? 0);
+
+      emit(state.copyWith(
+        circlePeers: peers,
+        peersCurrentPage: meta?.currentPage ?? 1,
+        peersLastPage: meta?.lastPage ?? 1,
+        totalPeersCount: total,
+        isLoadingPeers: false,
+      ));
     } catch (_) {
       emit(state.copyWith(isLoadingPeers: false));
     }
@@ -93,6 +103,48 @@ class CircleDetailsBloc extends Bloc<CircleDetailsEvent, CircleDetailsState> {
       ));
     } catch (_) {
       emit(state.copyWith(isLoadingEvents: false));
+    }
+  }
+
+  Future<void> _onLoadMoreCirclePeers(
+    LoadMoreCirclePeersEvent event,
+    Emitter<CircleDetailsState> emit,
+  ) async {
+    if (state.isLoadingMorePeers || !state.hasMorePeers) return;
+
+    emit(state.copyWith(isLoadingMorePeers: true));
+    try {
+      final nextPage = state.peersCurrentPage + 1;
+      final peersRes = await _teamsRepository.getCirclePeers(
+        event.circleId,
+        page: nextPage,
+        perPage: 20,
+      );
+
+      final newPeers = (peersRes.data ?? []).where((p) {
+        final peerCircleId = p.circleId;
+        if (peerCircleId != null && peerCircleId.isNotEmpty && peerCircleId != event.circleId) {
+          return false;
+        }
+        return true;
+      }).toList();
+
+      final existingIds = state.circlePeers.map((p) => p.id).toSet();
+      final combined = [
+        ...state.circlePeers,
+        ...newPeers.where((p) => !existingIds.contains(p.id)),
+      ];
+
+      final meta = peersRes.meta;
+      emit(state.copyWith(
+        circlePeers: combined,
+        peersCurrentPage: meta?.currentPage ?? nextPage,
+        peersLastPage: meta?.lastPage ?? state.peersLastPage,
+        totalPeersCount: meta?.total ?? state.totalPeersCount,
+        isLoadingMorePeers: false,
+      ));
+    } catch (_) {
+      emit(state.copyWith(isLoadingMorePeers: false));
     }
   }
 

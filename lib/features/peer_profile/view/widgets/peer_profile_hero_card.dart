@@ -3,8 +3,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
 
-/// Renders the luxury dark hero banner for Peer Profile with mandatory 5-point key peer information:
-/// 1. Peer Profile Name (+ Verified badge & Avatar)
+/// Renders the luxury dark hero banner for Peer Profile with mandatory key peer information:
+/// 1. Peer Profile Name (Uppercase, max w500 font weight)
 /// 2. City / Location
 /// 3. Designation
 /// 4. Company Name
@@ -79,8 +79,9 @@ class PeerProfileHeroCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
+            Color(0xFF0A192B), // Brand Deep Midnight #0A192B
             AppColors.primary, // Brand Primary Navy #102640
-            Color(0xFF1A3860), // Harmonized Executive Blue #1A3860
+            Color(0xFF1B3C66), // Executive Blue #1B3C66
           ],
         ),
         borderRadius: BorderRadius.circular(18),
@@ -101,7 +102,7 @@ class PeerProfileHeroCard extends StatelessWidget {
             children: [
               // Avatar with image / initials fallback
               InitialsAvatar(
-                name: peer.name,
+                name: peer.name.toUpperCase(),
                 imageUrl: peer.avatarUrl,
                 radius: 28,
                 border: Border.all(
@@ -112,7 +113,7 @@ class PeerProfileHeroCard extends StatelessWidget {
                 fontSize: 16,
               ),
               const SizedBox(width: 12),
-              // Name, Verified Badge, Designation & Company Name
+              // Name (Uppercase, max w500), Verified Badge, Designation & Company Name
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,12 +123,12 @@ class PeerProfileHeroCard extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            peer.name,
+                            peer.name.toUpperCase(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.2,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.3,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -150,7 +151,7 @@ class PeerProfileHeroCard extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -162,7 +163,8 @@ class PeerProfileHeroCard extends StatelessWidget {
               // Status Pill
               if (peer.status.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusBg,
                     borderRadius: BorderRadius.circular(12),
@@ -172,21 +174,22 @@ class PeerProfileHeroCard extends StatelessWidget {
                     style: TextStyle(
                       color: statusText,
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 14),
-          // Mandatory Badges Row: Impact Count, Level 4 Category & City
+          // Badges Row: Lives Impacted, Level 4 Category & City
           Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
               // 1. Lives Impacted Count
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: const Color(0xFFD97706),
                   borderRadius: BorderRadius.circular(12),
@@ -195,7 +198,7 @@ class PeerProfileHeroCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.lightbulb_outline_rounded,
+                      Icons.favorite_rounded,
                       color: Colors.white,
                       size: 13,
                     ),
@@ -205,7 +208,7 @@ class PeerProfileHeroCard extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -214,7 +217,8 @@ class PeerProfileHeroCard extends StatelessWidget {
               // 2. Level 4 Category / Specialization
               if (displayCategory.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(12),
@@ -234,7 +238,7 @@ class PeerProfileHeroCard extends StatelessWidget {
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -246,7 +250,8 @@ class PeerProfileHeroCard extends StatelessWidget {
               // 3. City / Location
               if (peer.location.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(12),
@@ -265,7 +270,7 @@ class PeerProfileHeroCard extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],

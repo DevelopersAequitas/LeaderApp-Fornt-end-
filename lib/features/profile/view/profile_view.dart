@@ -21,7 +21,9 @@ import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
 import '../model/profile_model.dart';
 import 'widgets/edit_profile_bottom_sheet.dart';
-import 'widgets/profile_app_version_tile.dart';
+// import 'widgets/profile_app_version_tile.dart';
+// import 'widgets/profile_assigned_circles_card.dart';
+// import 'widgets/profile_capabilities_card.dart';
 import 'widgets/profile_circulars_tile.dart';
 import 'widgets/profile_contact_card.dart';
 import 'widgets/profile_hero_card.dart';
@@ -136,8 +138,9 @@ class _ProfileContent extends StatelessWidget {
                             ProfileHeroCard(profile: profile),
                             const SizedBox(height: 8),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                               child: ProfileContactCard(
                                 profile: profile,
                                 onEditTap: () =>
@@ -145,6 +148,20 @@ class _ProfileContent extends StatelessWidget {
                                 canEdit: true,
                               ),
                             ),
+                            // const SizedBox(height: 12),
+                            // Padding(
+                            //   padding:
+                            //       const EdgeInsets.symmetric(horizontal: 16),
+                            //   child: ProfileCapabilitiesCard(profile: profile),
+                            // ),
+                            // if (profile.managedCircles.isNotEmpty) ...[
+                            //   const SizedBox(height: 12),
+                            //   Padding(
+                            //     padding:
+                            //         const EdgeInsets.symmetric(horizontal: 16),
+                            //     child: ProfileAssignedCirclesCard(profile: profile),
+                            //   ),
+                            // ],
                           ],
                           const SizedBox(height: 12),
 
@@ -158,15 +175,22 @@ class _ProfileContent extends StatelessWidget {
                                   const SizedBox(height: 8),
                                 ],
                                 const ProfileCircularsTile(),
-                                const SizedBox(height: 8),
-                                const ProfileAppVersionTile(),
+                                // const SizedBox(height: 8),
+                                // const ProfileAppVersionTile(),
                                 const SizedBox(height: 16),
                                 // Sign Out Button
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
                                   child: OutlinedButton.icon(
-                                    onPressed: () => _showSignOutDialog(context),
-                                    icon: const Icon(Icons.logout_rounded, color: AppColors.danger, size: 18),
+                                    onPressed: () =>
+                                        _showSignOutDialog(context),
+                                    icon: const Icon(
+                                      Icons.logout_rounded,
+                                      color: AppColors.danger,
+                                      size: 18,
+                                    ),
                                     label: const Text(
                                       'Sign Out from Account',
                                       style: TextStyle(
@@ -176,9 +200,14 @@ class _ProfileContent extends StatelessWidget {
                                       ),
                                     ),
                                     style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(color: AppColors.dangerBorder),
+                                      side: const BorderSide(
+                                        color: AppColors.dangerBorder,
+                                      ),
                                       backgroundColor: AppColors.dangerBg,
-                                      minimumSize: const Size(double.infinity, 44),
+                                      minimumSize: const Size(
+                                        double.infinity,
+                                        44,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),

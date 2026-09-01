@@ -41,3 +41,8 @@ class SendWish extends PeersEvent {
   final String type;
   const SendWish(this.peerName, this.type);
 }
+
+/// Dispatched to load the next page of peers.
+class LoadMorePeersData extends PeersEvent {
+  const LoadMorePeersData();
+}

@@ -74,12 +74,14 @@ class TeamsRemoteDataSource {
     );
   }
 
-  /// Fetches dedicated circle peers for Module 2: GET /api/v1/teams/circles/{circle_id}/peers
+  /// Fetches dedicated circle peers with pagination for Module 2: GET /api/v1/teams/circles/{circle_id}/peers
   Future<ApiResponse<List<PeerModel>>> getCirclePeers(
     String circleId, {
     String? status,
     String? search,
     String? sort,
+    int? page,
+    int? perPage,
   }) async {
     return _apiClient.get<List<PeerModel>>(
       ApiEndpoints.circlePeers(circleId),
@@ -87,6 +89,8 @@ class TeamsRemoteDataSource {
         if (status != null && status != 'All') 'status': status,
         if (search != null && search.isNotEmpty) 'search': search,
         if (sort != null && sort.isNotEmpty) 'sort': sort,
+        if (page != null) 'page': page.toString(),
+        if (perPage != null) 'per_page': perPage.toString(),
       },
       fromJsonT: (json) {
         if (json is List) {

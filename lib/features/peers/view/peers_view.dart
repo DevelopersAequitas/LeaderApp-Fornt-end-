@@ -22,7 +22,7 @@ import '../model/celebration_model.dart';
 import '../model/peer_model.dart';
 import 'widgets/celebration_card.dart';
 import 'widgets/peer_card.dart';
-import 'widgets/peer_role_management_section.dart';
+// import 'widgets/peer_role_management_section.dart';
 import 'widgets/peers_empty_state.dart';
 import 'widgets/peers_filter_bar.dart';
 
@@ -90,6 +90,10 @@ class _PeersContent extends StatelessWidget {
     List<PeerModel> peers,
     bool isRoleManagementEnabled,
     String selectedSort,
+    bool hasMore,
+    bool isLoadingMore,
+    int totalCount,
+    VoidCallback onLoadMore,
   ) {
     if (peers.isEmpty) {
       return const PeersEmptyState(
@@ -100,16 +104,56 @@ class _PeersContent extends StatelessWidget {
     }
     return ListView.builder(
       padding: const EdgeInsets.only(top: 8, bottom: 24),
-      itemCount: peers.length + (isRoleManagementEnabled ? 1 : 0),
+      itemCount: peers.length + (hasMore || peers.length >= 20 ? 1 : 0),
       itemBuilder: (context, index) {
-        if (isRoleManagementEnabled && index == 0) {
-          return const PeerRoleManagementSection();
+        if (index == peers.length) {
+          if (hasMore) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: OutlinedButton(
+                onPressed: isLoadingMore ? null : onLoadMore,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primary, width: 1.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: isLoadingMore
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : const Text(
+                        'Load More Peers',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+              ),
+            );
+          }
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Text(
+                'All peers loaded',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          );
         }
-        final peerIndex = isRoleManagementEnabled ? index - 1 : index;
-        return PeerCard(
-          peer: peers[peerIndex],
-          selectedSort: selectedSort,
-        );
+        return PeerCard(peer: peers[index], selectedSort: selectedSort);
       },
     );
   }
@@ -124,7 +168,8 @@ class _PeersContent extends StatelessWidget {
 
     return BlocListener<PeersBloc, PeersState>(
       listenWhen: (prev, curr) =>
-          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+          prev.errorMessage != curr.errorMessage &&
+          curr.errorMessage.isNotEmpty,
       listener: (context, state) {
         if (state.errorMessage.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -142,7 +187,11 @@ class _PeersContent extends StatelessWidget {
           }
 
           final filteredPeers = state.filteredPeers;
-          final totalCelebrations = state.birthdays.length + state.anniversaries.length;
+          final totalCelebrations =
+              state.birthdays.length + state.anniversaries.length;
+          final displayPeersCount = state.totalPeersCount > 0
+              ? state.totalPeersCount
+              : state.allPeers.length;
 
           return Column(
             children: [
@@ -159,7 +208,7 @@ class _PeersContent extends StatelessWidget {
                     Expanded(
                       child: _buildSegmentButton(
                         context: context,
-                        label: 'All Peers (${state.allPeers.length})',
+                        label: 'All Peers ($displayPeersCount)',
                         isSelected: state.activeSubTab == 0,
                         onTap: () => bloc.add(const ToggleSubTab(0)),
                       ),
@@ -182,19 +231,15 @@ class _PeersContent extends StatelessWidget {
                   searchController: _searchController,
                   selectedStatus: state.selectedStatus,
                   selectedSort: state.selectedSort,
-                  onStatusSelected: (s) =>
-                      bloc.add(StatusFilterChanged(s)),
-                  onSortSelected: (m) =>
-                      bloc.add(MetricSortChanged(m)),
+                  onStatusSelected: (s) => bloc.add(StatusFilterChanged(s)),
+                  onSortSelected: (m) => bloc.add(MetricSortChanged(m)),
                 ),
 
               // Sub-Tab Content
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
-                    bloc.add(
-                      LoadPeersData(selectedCircle: selectedCircle),
-                    );
+                    bloc.add(LoadPeersData(selectedCircle: selectedCircle));
                   },
                   child: state.activeSubTab == 1
                       ? _buildCelebrationsSubTab(
@@ -207,6 +252,10 @@ class _PeersContent extends StatelessWidget {
                           filteredPeers,
                           isRoleManagementEnabled,
                           state.selectedSort,
+                          state.hasMore,
+                          state.isLoadingMore,
+                          state.totalPeersCount,
+                          () => bloc.add(const LoadMorePeersData()),
                         ),
                 ),
               ),

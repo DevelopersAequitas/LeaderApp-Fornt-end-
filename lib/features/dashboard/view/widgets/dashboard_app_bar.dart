@@ -167,6 +167,7 @@ class DashboardAppBar extends StatelessWidget {
                       Navigator.of(context).pushNamed(AppRoutes.profile),
                   child: InitialsAvatar(
                     name: session.name,
+                    imageUrl: session.avatarUrl,
                     radius: 17,
                     backgroundColor: AppColors.secondaryBg,
                     textColor: AppColors.text,

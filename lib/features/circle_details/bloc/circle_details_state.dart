@@ -9,9 +9,13 @@ class CircleDetailsState extends Equatable {
   final int activeSubTab;
   final bool isLoadingCircle;
   final bool isLoadingPeers;
+  final bool isLoadingMorePeers;
   final bool isLoadingSubIndustries;
   final bool isLoadingEvents;
   final List<PeerModel> circlePeers;
+  final int peersCurrentPage;
+  final int peersLastPage;
+  final int totalPeersCount;
   final CircleSubIndustriesResponse? subIndustries;
   final List<CircleEventModel> allEvents;
   final List<CircleEventModel> filteredEvents;
@@ -23,9 +27,13 @@ class CircleDetailsState extends Equatable {
     this.activeSubTab = 0,
     this.isLoadingCircle = false,
     this.isLoadingPeers = false,
+    this.isLoadingMorePeers = false,
     this.isLoadingSubIndustries = false,
     this.isLoadingEvents = false,
     this.circlePeers = const [],
+    this.peersCurrentPage = 1,
+    this.peersLastPage = 1,
+    this.totalPeersCount = 0,
     this.subIndustries,
     this.allEvents = const [],
     this.filteredEvents = const [],
@@ -36,14 +44,20 @@ class CircleDetailsState extends Equatable {
   bool get isAnyLoading =>
       isLoadingCircle || isLoadingPeers || isLoadingSubIndustries || isLoadingEvents;
 
+  bool get hasMorePeers => peersCurrentPage < peersLastPage;
+
   CircleDetailsState copyWith({
     CircleTeamModel? circle,
     int? activeSubTab,
     bool? isLoadingCircle,
     bool? isLoadingPeers,
+    bool? isLoadingMorePeers,
     bool? isLoadingSubIndustries,
     bool? isLoadingEvents,
     List<PeerModel>? circlePeers,
+    int? peersCurrentPage,
+    int? peersLastPage,
+    int? totalPeersCount,
     CircleSubIndustriesResponse? subIndustries,
     List<CircleEventModel>? allEvents,
     List<CircleEventModel>? filteredEvents,
@@ -55,9 +69,13 @@ class CircleDetailsState extends Equatable {
       activeSubTab: activeSubTab ?? this.activeSubTab,
       isLoadingCircle: isLoadingCircle ?? this.isLoadingCircle,
       isLoadingPeers: isLoadingPeers ?? this.isLoadingPeers,
+      isLoadingMorePeers: isLoadingMorePeers ?? this.isLoadingMorePeers,
       isLoadingSubIndustries: isLoadingSubIndustries ?? this.isLoadingSubIndustries,
       isLoadingEvents: isLoadingEvents ?? this.isLoadingEvents,
       circlePeers: circlePeers ?? this.circlePeers,
+      peersCurrentPage: peersCurrentPage ?? this.peersCurrentPage,
+      peersLastPage: peersLastPage ?? this.peersLastPage,
+      totalPeersCount: totalPeersCount ?? this.totalPeersCount,
       subIndustries: subIndustries ?? this.subIndustries,
       allEvents: allEvents ?? this.allEvents,
       filteredEvents: filteredEvents ?? this.filteredEvents,
@@ -72,9 +90,13 @@ class CircleDetailsState extends Equatable {
         activeSubTab,
         isLoadingCircle,
         isLoadingPeers,
+        isLoadingMorePeers,
         isLoadingSubIndustries,
         isLoadingEvents,
         circlePeers,
+        peersCurrentPage,
+        peersLastPage,
+        totalPeersCount,
         subIndustries,
         allEvents,
         filteredEvents,

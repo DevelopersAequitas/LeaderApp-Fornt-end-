@@ -34,3 +34,12 @@ class FilterCircleEventsEvent extends CircleDetailsEvent {
   @override
   List<Object?> get props => [filter];
 }
+
+class LoadMoreCirclePeersEvent extends CircleDetailsEvent {
+  final String circleId;
+
+  const LoadMoreCirclePeersEvent({required this.circleId});
+
+  @override
+  List<Object?> get props => [circleId];
+}
