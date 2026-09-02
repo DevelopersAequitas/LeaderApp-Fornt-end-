@@ -46,7 +46,7 @@ class _RecordPaymentBottomSheetState extends State<RecordPaymentBottomSheet> {
   final _amountCtrl = TextEditingController();
   final _modeCtrl = TextEditingController(text: 'Bank Transfer');
   final _refCtrl = TextEditingController();
-  final _typeCtrl = TextEditingController(text: 'Annual Membership Fee');
+  final _typeCtrl = TextEditingController(text: 'Annual Peer Fee');
   bool _isSaving = false;
 
   @override
@@ -142,7 +142,7 @@ class _RecordPaymentBottomSheetState extends State<RecordPaymentBottomSheet> {
             TextField(
               controller: _peerIdCtrl,
               decoration: InputDecoration(
-                labelText: 'Peer ID / Member Name',
+                labelText: 'Peer ID / Peer Name',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),

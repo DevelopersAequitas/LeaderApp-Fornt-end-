@@ -121,7 +121,11 @@ class ImpacterModel {
 
     // Impact count / lives parsing
     int lives = 0;
-    final rawLives = json['impact_count'] ?? json['lives'] ?? json['impact'] ?? json['impact_score'];
+    final rawLives = json['life_impacted_count'] ??
+        json['impact_count'] ??
+        json['lives'] ??
+        json['impact'] ??
+        json['impact_score'];
     if (rawLives is int) {
       lives = rawLives;
     } else if (rawLives is num) {
@@ -146,13 +150,27 @@ class ImpacterModel {
       rank: rank,
       name: name,
       initials: initials,
-      avatarUrl: json['avatar_url'] as String? ?? json['avatar'] as String?,
-      company: json['company'] as String? ?? '',
-      location: json['location'] as String? ?? '',
-      circle: json['circle'] as String? ?? json['circle_name'] as String? ?? '',
+      avatarUrl: json['profile_photo_url'] as String? ??
+          json['avatar_url'] as String? ??
+          json['avatar'] as String?,
+      company: json['company_name'] as String? ??
+          json['company'] as String? ??
+          '',
+      location: json['city'] as String? ??
+          json['location'] as String? ??
+          '',
+      circle: json['circle_name'] as String? ??
+          json['circle'] as String? ??
+          '',
       circleId: json['circle_id'] as String?,
-      tags: json['tags'] as String? ?? json['category'] as String? ?? json['industry'] as String? ?? '',
-      dealsFormatted: json['deals_formatted'] as String? ?? json['deals'] as String? ?? '',
+      tags: json['level4_category'] as String? ??
+          json['tags'] as String? ??
+          json['category'] as String? ??
+          json['industry'] as String? ??
+          '',
+      dealsFormatted: json['deals_formatted'] as String? ??
+          json['deals'] as String? ??
+          '',
       attendance: json['attendance'] as String? ?? '',
       status: json['status'] as String? ?? 'Active',
       lives: lives,
@@ -160,7 +178,7 @@ class ImpacterModel {
       phone: json['phone'] as String?,
       email: json['email'] as String?,
       designation: json['designation'] as String?,
-      industry: json['industry'] as String?,
+      industry: json['industry'] as String? ?? json['level4_category'] as String?,
       level4Category: json['level4_category'] as String?,
       isVerified: json['is_verified'] as bool? ?? false,
       introVideoUrl: json['intro_video_url'] as String?,

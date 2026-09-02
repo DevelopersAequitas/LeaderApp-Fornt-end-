@@ -73,7 +73,7 @@ class _PeersByCoinsContent extends StatelessWidget {
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Peers by Coins',
-              subtitle: '${allPeers.length} members ranked',
+              subtitle: '${allPeers.length} peers ranked',
               showBackButton: true,
             ),
             body: Column(

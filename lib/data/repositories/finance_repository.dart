@@ -10,7 +10,7 @@ abstract class FinanceRepository {
     String? status,
   });
   Future<ApiResponse<Map<String, dynamic>>> updateCommissionRates(
-    List<Map<String, dynamic>> commissionRates,
+    dynamic commissionRates,
   );
   Future<ApiResponse<Map<String, dynamic>>> recordOfflinePayment({
     required String peerId,
@@ -90,7 +90,7 @@ class FinanceRepositoryImpl implements FinanceRepository {
 
   @override
   Future<ApiResponse<Map<String, dynamic>>> updateCommissionRates(
-    List<Map<String, dynamic>> commissionRates,
+    dynamic commissionRates,
   ) async {
     return _remoteDataSource.updateCommissionRates(commissionRates);
   }

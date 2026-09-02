@@ -18,10 +18,11 @@ class AppConfigService {
   AppConfigModel get config => _config;
 
   /// Fetches system configuration and updates memory state.
-  Future<AppConfigModel> fetchAppConfig() async {
+  Future<AppConfigModel> fetchAppConfig({String product = 'leader'}) async {
     try {
       final response = await ApiClient().get<AppConfigModel>(
         ApiEndpoints.appConfig,
+        queryParameters: {'product': product},
         fromJsonT: (json) => AppConfigModel.fromJson(json as Map<String, dynamic>),
       );
       if (response.data != null) {

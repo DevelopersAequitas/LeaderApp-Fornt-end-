@@ -101,7 +101,7 @@ class _NotificationsContent extends StatelessWidget {
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Notifications',
-              subtitle: 'System updates & member alerts',
+              subtitle: 'System updates & peer alerts',
               showBackButton: true,
             ),
             body: Column(

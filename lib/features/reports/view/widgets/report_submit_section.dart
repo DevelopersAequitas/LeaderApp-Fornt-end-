@@ -66,158 +66,167 @@ class ReportSubmitSection extends StatelessWidget {
                 .where((c) => c.toLowerCase().contains(query.toLowerCase()))
                 .toList();
 
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.65,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            return Material(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
               ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.border,
-                      borderRadius: BorderRadius.circular(2),
+              clipBehavior: Clip.antiAlias,
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.65,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.border,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        const Text(
-                          'Select Circle for Report',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.text,
+                    const SizedBox(height: 14),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Select Circle for Report',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.text,
+                            ),
                           ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${circles.length} Available',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                          const Spacer(),
+                          Text(
+                            '${circles.length} Available',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        onChanged: (val) => setSheetState(() => query = val),
+                        decoration: InputDecoration(
+                          hintText: 'Search circle name...',
+                          hintStyle: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search_rounded,
+                            size: 18,
                             color: AppColors.textSecondary,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      onChanged: (val) => setSheetState(() => query = val),
-                      decoration: InputDecoration(
-                        hintText: 'Search circle name...',
-                        hintStyle: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          size: 18,
-                          color: AppColors.textSecondary,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.border),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: AppColors.primary,
-                            width: 1.5,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: AppColors.border,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: AppColors.border,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const Divider(height: 20),
-                  Expanded(
-                    child: filtered.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No matching circles found.',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
+                    const Divider(height: 20),
+                    Expanded(
+                      child: filtered.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No matching circles found.',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13,
+                                ),
                               ),
+                            )
+                          : ListView.separated(
+                              itemCount: filtered.length,
+                              separatorBuilder: (_, _) =>
+                                  const Divider(height: 1),
+                              itemBuilder: (ctx, idx) {
+                                final item = filtered[idx];
+                                final isSelected =
+                                    item.toLowerCase() ==
+                                    circleName.toLowerCase();
+                                return ListTile(
+                                  onTap: () {
+                                    Navigator.pop(ctx);
+                                    onCircleChanged?.call(item);
+                                  },
+                                  leading: Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : const Color(0xFFEBF3FB),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      Icons.group_work_rounded,
+                                      size: 18,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.primary,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    item,
+                                    style: TextStyle(
+                                      fontWeight: isSelected
+                                          ? FontWeight.w800
+                                          : FontWeight.w600,
+                                      fontSize: 13,
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : AppColors.text,
+                                    ),
+                                  ),
+                                  trailing: isSelected
+                                      ? const Icon(
+                                          Icons.check_circle_rounded,
+                                          color: Color(0xFF16A34A),
+                                          size: 20,
+                                        )
+                                      : const Icon(
+                                          Icons.chevron_right_rounded,
+                                          color: AppColors.textSecondary,
+                                          size: 20,
+                                        ),
+                                );
+                              },
                             ),
-                          )
-                        : ListView.separated(
-                            itemCount: filtered.length,
-                            separatorBuilder: (_, _) => const Divider(height: 1),
-                            itemBuilder: (ctx, idx) {
-                              final item = filtered[idx];
-                              final isSelected = item.toLowerCase() ==
-                                  circleName.toLowerCase();
-                              return ListTile(
-                                onTap: () {
-                                  Navigator.pop(ctx);
-                                  onCircleChanged?.call(item);
-                                },
-                                leading: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : const Color(0xFFEBF3FB),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.group_work_rounded,
-                                    size: 18,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : AppColors.primary,
-                                  ),
-                                ),
-                                title: Text(
-                                  item,
-                                  style: TextStyle(
-                                    fontWeight: isSelected
-                                        ? FontWeight.w800
-                                        : FontWeight.w600,
-                                    fontSize: 13,
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : AppColors.text,
-                                  ),
-                                ),
-                                trailing: isSelected
-                                    ? const Icon(
-                                        Icons.check_circle_rounded,
-                                        color: Color(0xFF16A34A),
-                                        size: 20,
-                                      )
-                                    : const Icon(
-                                        Icons.chevron_right_rounded,
-                                        color: AppColors.textSecondary,
-                                        size: 20,
-                                      ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -457,7 +466,6 @@ class ReportSubmitSection extends StatelessWidget {
       ],
     );
   }
-
 
   Widget _buildContentInput() {
     return Column(

@@ -49,11 +49,28 @@ class FinanceRemoteDataSource {
 
   /// Updates platform commission cut rates for leadership roles.
   Future<ApiResponse<Map<String, dynamic>>> updateCommissionRates(
-    List<Map<String, dynamic>> commissionRates,
+    dynamic commissionRates,
   ) async {
+    final List<Map<String, dynamic>> payload = [];
+    if (commissionRates is List<UpdateCommissionRateDto>) {
+      payload.addAll(commissionRates.map((r) => r.toJson()));
+    } else if (commissionRates is List<Map<String, dynamic>>) {
+      payload.addAll(commissionRates);
+    } else if (commissionRates is List) {
+      for (final e in commissionRates) {
+        if (e is UpdateCommissionRateDto) {
+          payload.add(e.toJson());
+        } else if (e is Map<String, dynamic>) {
+          payload.add(e);
+        } else if (e is Map) {
+          payload.add(Map<String, dynamic>.from(e));
+        }
+      }
+    }
+
     return _apiClient.put<Map<String, dynamic>>(
       ApiEndpoints.updateCommissionRates,
-      body: {'commission_rates': commissionRates},
+      body: {'commission_rates': payload},
       fromJsonT: (json) => json as Map<String, dynamic>,
     );
   }

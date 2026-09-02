@@ -49,7 +49,10 @@ class _FinanceContent extends StatelessWidget {
 
   const _FinanceContent({this.selectedCircle});
 
-  Widget _buildFounderFinanceView(FinanceMetricsModel metrics) {
+  Widget _buildFounderFinanceView(
+    BuildContext context,
+    FinanceMetricsModel metrics,
+  ) {
     final role = SessionManager().currentRole;
     final hideCommissionRates = role == UserRole.industryDirector ||
         role == UserRole.countryDirector ||
@@ -62,8 +65,17 @@ class _FinanceContent extends StatelessWidget {
         FinanceChartSection(metrics: metrics),
         if (!hideCommissionRates)
           FinanceCommissionRates(rates: metrics.commissionRates),
-        FinanceCommissionStructure(structure: metrics.commissionStructure),
-        const SizedBox(height: 48), // Generous bottom spacing for navigation bar clearance
+        FinanceCommissionStructure(
+          structure: metrics.commissionStructure,
+          onRatesUpdated: () {
+            context.read<FinanceBloc>().add(
+              LoadFinanceData(selectedCircle: selectedCircle),
+            );
+          },
+        ),
+        const SizedBox(
+          height: 48,
+        ), // Generous bottom spacing for navigation bar clearance
       ],
     );
   }
@@ -101,7 +113,7 @@ class _FinanceContent extends StatelessWidget {
               child: state.permission!.isRestricted
                   ? FinanceRestrictedView(permission: state.permission!)
                   : (state.metrics != null
-                      ? _buildFounderFinanceView(state.metrics!)
+                      ? _buildFounderFinanceView(context, state.metrics!)
                       : const SizedBox()),
             ),
           );

@@ -50,7 +50,7 @@ class CircleOverviewSection extends StatelessWidget {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Newly formed circle. Health and performance metrics will populate once initial sessions and member transactions are logged.',
+                      'Newly formed circle. Health and performance metrics will populate once initial sessions and peer transactions are logged.',
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 11,

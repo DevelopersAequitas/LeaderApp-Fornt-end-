@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:leaderapp/features/finance/view/widgets/commission_settings_bottom_sheet.dart';
 import '../../../../core/enums/user_role.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -7,8 +8,13 @@ import '../../model/finance_model.dart';
 /// Renders the Commission Structure breakdown table.
 class FinanceCommissionStructure extends StatelessWidget {
   final List<CommissionStructureItemModel> structure;
+  final VoidCallback? onRatesUpdated;
 
-  const FinanceCommissionStructure({super.key, required this.structure});
+  const FinanceCommissionStructure({
+    super.key,
+    required this.structure,
+    this.onRatesUpdated,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +50,68 @@ class FinanceCommissionStructure extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              if (!isSuperAdmin)
+              if (isSuperAdmin)
+                InkWell(
+                  onTap: () {
+                    CommissionSettingsBottomSheet.show(
+                      context,
+                      currentStructure: structure,
+                      onRatesUpdated: onRatesUpdated ??
+                          () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Commission rates updated successfully.',
+                                ),
+                                backgroundColor: AppColors.success,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                      onError: (msg) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(msg),
+                            backgroundColor: AppColors.danger,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondaryBg,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.tune_rounded,
+                          size: 13,
+                          color: AppColors.primary,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'Configure Rates',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
                 Row(
                   children: const [
                     Icon(

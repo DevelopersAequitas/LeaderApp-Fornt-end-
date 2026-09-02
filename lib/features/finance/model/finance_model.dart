@@ -43,19 +43,81 @@ class CommissionRateModel {
   });
 }
 
-/// Model representing a single row in the read-only commission structure table.
+/// Model representing a single row in the read-only or editable commission structure table.
 class CommissionStructureItemModel {
   final String role;
+  final String? roleId;
   final String directReferralCut;
   final String appJoinCut;
+  final String? renewalCut;
   final IconData icon;
 
   const CommissionStructureItemModel({
     required this.role,
+    this.roleId,
     required this.directReferralCut,
     required this.appJoinCut,
+    this.renewalCut,
     required this.icon,
   });
+
+  factory CommissionStructureItemModel.fromJson(Map<String, dynamic> json) {
+    final roleName = json['role']?.toString() ?? json['role_name']?.toString() ?? '';
+    final roleId = json['role_id']?.toString() ?? _inferRoleId(roleName);
+
+    return CommissionStructureItemModel(
+      role: roleName,
+      roleId: roleId,
+      directReferralCut: json['direct_referral_cut']?.toString() ?? '0%',
+      appJoinCut: json['app_join_cut']?.toString() ?? '0%',
+      renewalCut: json['renewal_cut']?.toString(),
+      icon: _getRoleIcon(roleName),
+    );
+  }
+
+  static String _inferRoleId(String role) {
+    final r = role.toLowerCase().replaceAll(' ', '').replaceAll('_', '');
+    if (r.contains('founder')) return 'circleFounder';
+    if (r.contains('chair')) return 'circleChair';
+    if (r.contains('director')) return 'countryDirector';
+    if (r.contains('admin')) return 'superAdmin';
+    return role;
+  }
+
+  static IconData _getRoleIcon(String role) {
+    final r = role.toLowerCase();
+    if (r.contains('founder')) return const IconData(0xe5f9, fontFamily: 'MaterialIcons'); // star
+    if (r.contains('chair')) return const IconData(0xe165, fontFamily: 'MaterialIcons'); // chair
+    if (r.contains('director')) return const IconData(0xe11b, fontFamily: 'MaterialIcons'); // business_center
+    if (r.contains('admin')) return const IconData(0xe08f, fontFamily: 'MaterialIcons'); // admin_panel_settings
+    return const IconData(0xf0621, fontFamily: 'MaterialIcons'); // workspace_premium
+  }
+}
+
+/// DTO for updating commission rates (Super Admin Only)
+class UpdateCommissionRateDto {
+  final String roleId;
+  final String roleName;
+  final double directReferralCutPercentage;
+  final double appJoinCutPercentage;
+  final double? renewalCutPercentage;
+
+  const UpdateCommissionRateDto({
+    required this.roleId,
+    required this.roleName,
+    required this.directReferralCutPercentage,
+    required this.appJoinCutPercentage,
+    this.renewalCutPercentage,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'role_id': roleId,
+        'role_name': roleName,
+        'direct_referral_cut_percentage': directReferralCutPercentage,
+        'app_join_cut_percentage': appJoinCutPercentage,
+        if (renewalCutPercentage != null)
+          'renewal_cut_percentage': renewalCutPercentage,
+      };
 }
 
 /// Model representing a financial transaction or fee due.
@@ -166,12 +228,13 @@ class FinanceMetricsModel {
     if (json['commission_structure'] is List) {
       for (final item in json['commission_structure']) {
         if (item is Map<String, dynamic>) {
-          commStruct.add(CommissionStructureItemModel(
-            role: item['role']?.toString() ?? '',
-            directReferralCut: item['direct_referral_cut']?.toString() ?? '0%',
-            appJoinCut: item['app_join_cut']?.toString() ?? '0%',
-            icon: const IconData(0xe491, fontFamily: 'MaterialIcons'),
-          ));
+          commStruct.add(CommissionStructureItemModel.fromJson(item));
+        } else if (item is Map) {
+          commStruct.add(
+            CommissionStructureItemModel.fromJson(
+              Map<String, dynamic>.from(item),
+            ),
+          );
         }
       }
     }

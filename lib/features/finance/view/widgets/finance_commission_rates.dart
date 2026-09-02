@@ -27,7 +27,7 @@ class FinanceCommissionRates extends StatelessWidget {
           ),
           const SizedBox(height: 1),
           const Text(
-            'Your cut from member joining fees',
+            'Your cut from peer joining fees',
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,

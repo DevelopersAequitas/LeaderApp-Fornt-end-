@@ -72,7 +72,7 @@ class _ReferralsContent extends StatelessWidget {
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Peers by Referrals',
-              subtitle: '${allReferrals.length} members ranked',
+              subtitle: '${allReferrals.length} peers ranked',
               showBackButton: true,
             ),
             body: Column(
