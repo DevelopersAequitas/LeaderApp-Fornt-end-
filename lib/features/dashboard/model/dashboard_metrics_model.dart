@@ -51,23 +51,37 @@ class DashboardMetricsModel {
     this.pendingRequestsCount = 0,
   });
 
-  factory DashboardMetricsModel.fromJson(Map<String, dynamic> json) {
+  static int _parseInt(dynamic value, [int defaultValue = 0]) {
+    if (value == null) return defaultValue;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) {
+      final clean = value.replaceAll(',', '').trim();
+      return int.tryParse(clean) ?? (double.tryParse(clean)?.toInt() ?? defaultValue);
+    }
+    return defaultValue;
+  }
+
+  factory DashboardMetricsModel.fromJson(Map<dynamic, dynamic> json) {
     return DashboardMetricsModel(
-      impact: json['impact'] as int? ?? 0,
+      impact: _parseInt(json['impact'] ?? json['impact_count']),
       deals: json['deals']?.toString() ?? '₹0.0L',
-      p2pMeetings: json['p2p_meetings'] as int? ?? 0,
-      totalPeers: json['total_peers'] as int? ?? 0,
-      totalPeersGrowth: json['total_peers_growth'] as int? ?? 0,
-      referrals: json['referrals'] as int? ?? 0,
-      testimonials: json['testimonials'] as int? ?? 0,
-      coins: json['coins'] as int? ?? 0,
+      p2pMeetings: _parseInt(json['p2p_meetings'] ?? json['p2p_sessions']),
+      totalPeers: _parseInt(json['total_peers']),
+      totalPeersGrowth: _parseInt(json['total_peers_growth']),
+      referrals: _parseInt(json['referrals'] ?? json['referrals_count']),
+      testimonials: _parseInt(json['testimonials'] ?? json['testimonials_count']),
+      coins: _parseInt(json['coins'] ?? json['coins_count']),
       overallRevenue: json['overall_revenue']?.toString(),
       overallDealsClosed: json['overall_deals_closed']?.toString(),
       circleName: json['circle_name']?.toString() ?? json['circle']?.toString(),
-      pendingRequestsCount: json['pending_requests_count'] as int? ??
-          json['pending_requests'] as int? ??
-          json['pending_peers'] as int? ??
-          0,
+      pendingRequestsCount: _parseInt(
+        json['pending_peers_count'] ??
+            json['pending_requests_count'] ??
+            json['pending_requests'] ??
+            json['pending_peers'],
+        0,
+      ),
     );
   }
 

@@ -175,6 +175,31 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
   }
 
   Future<void> _onSendWish(SendWish event, Emitter<PeersState> emit) async {
+    final updatedBirthdays = state.birthdays.map((b) {
+      if (b.peerId == event.peerName ||
+          b.peerName == event.peerName ||
+          b.id == event.peerName) {
+        return b.copyWith(wished: true);
+      }
+      return b;
+    }).toList();
+
+    final updatedAnniversaries = state.anniversaries.map((a) {
+      if (a.peerId == event.peerName ||
+          a.peerName == event.peerName ||
+          a.id == event.peerName) {
+        return a.copyWith(wished: true);
+      }
+      return a;
+    }).toList();
+
+    emit(
+      state.copyWith(
+        birthdays: updatedBirthdays,
+        anniversaries: updatedAnniversaries,
+      ),
+    );
+
     try {
       await _peersRepository.sendWish(event.peerName, type: event.type);
     } catch (_) {}

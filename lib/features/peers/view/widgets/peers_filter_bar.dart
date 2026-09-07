@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Renders a Material 3 compact search bar and streamlined status & sort filters.
+/// Renders a Material 3 compact search bar and streamlined sort filters.
 class PeersFilterBar extends StatelessWidget {
   final TextEditingController searchController;
-  final String selectedStatus;
+  final String? selectedStatus;
   final String selectedSort;
-  final ValueChanged<String> onStatusSelected;
+  final ValueChanged<String>? onStatusSelected;
   final ValueChanged<String> onSortSelected;
 
   const PeersFilterBar({
     super.key,
     required this.searchController,
-    required this.selectedStatus,
+    this.selectedStatus,
     required this.selectedSort,
-    required this.onStatusSelected,
+    this.onStatusSelected,
     required this.onSortSelected,
   });
 
@@ -77,60 +77,10 @@ class PeersFilterBar extends StatelessWidget {
           ),
         ),
 
-        // Status Filter Chips Row
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-          child: Row(
-            children: const ['All', 'Active', 'Needs Attention', 'At Risk'].map(
-              (status) {
-                final isSelected =
-                    selectedStatus.toLowerCase() == status.toLowerCase();
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6.0),
-                  child: InkWell(
-                    onTap: () => onStatusSelected(status),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.border,
-                        ),
-                      ),
-                      child: Text(
-                        status,
-                        style: TextStyle(
-                          color: isSelected
-                              ? Colors.white
-                              : AppColors.textSecondary,
-                          fontSize: 11,
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ).toList(),
-          ),
-        ),
-
         // Sort Metric Chips Row
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
           child: Row(
             children: [
               Container(

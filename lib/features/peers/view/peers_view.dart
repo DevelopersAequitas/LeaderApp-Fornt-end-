@@ -78,7 +78,12 @@ class _PeersContent extends StatelessWidget {
         return CelebrationCard(
           celebration: item,
           onWishTap: () {
-            context.read<PeersBloc>().add(SendWish(item.peerName, item.type));
+            context.read<PeersBloc>().add(
+                  SendWish(
+                    item.peerId.isNotEmpty ? item.peerId : item.peerName,
+                    item.type,
+                  ),
+                );
           },
         );
       },

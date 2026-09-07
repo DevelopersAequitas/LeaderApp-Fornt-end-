@@ -58,6 +58,19 @@ class _DashboardContent extends StatefulWidget {
 
 class _DashboardContentState extends State<_DashboardContent> {
   DateTime? _lastBackPress;
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Widget _buildDashboardTab({
     required BuildContext context,
@@ -116,14 +129,20 @@ class _DashboardContentState extends State<_DashboardContent> {
 
     return BlocListener<DashboardBloc, DashboardState>(
       listenWhen: (prev, curr) =>
-          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+          prev.errorMessage != curr.errorMessage || prev.activeTab != curr.activeTab,
       listener: (context, state) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.errorMessage),
-            backgroundColor: AppColors.danger,
-          ),
-        );
+        if (state.errorMessage.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        }
+        if (_pageController.hasClients &&
+            _pageController.page?.round() != state.activeTab) {
+          _pageController.jumpToPage(state.activeTab);
+        }
       },
       child: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {
@@ -168,28 +187,44 @@ class _DashboardContentState extends State<_DashboardContent> {
                     },
                   ),
                   Expanded(
-                    child: IndexedStack(
-                      index: state.activeTab,
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (idx) {
+                        if (state.activeTab != idx) {
+                          bloc.add(TabChanged(idx));
+                        }
+                      },
+                      physics: const PageScrollPhysics(),
                       children: [
-                        RefreshIndicator(
-                          onRefresh: () async {
-                            bloc.add(const LoadDashboardData(isRefresh: true));
-                          },
-                          child: SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            child: _buildDashboardTab(
-                              context: context,
-                              isLoading: state.isLoading,
-                              metrics: state.metrics,
-                              impacters: state.impacters,
-                              selectedCircle: state.selectedCircle,
+                        _KeepAlivePage(
+                          child: RefreshIndicator(
+                            onRefresh: () async {
+                              bloc.add(const LoadDashboardData(isRefresh: true));
+                            },
+                            child: SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: _buildDashboardTab(
+                                context: context,
+                                isLoading: state.isLoading,
+                                metrics: state.metrics,
+                                impacters: state.impacters,
+                                selectedCircle: state.selectedCircle,
+                              ),
                             ),
                           ),
                         ),
-                        PeersView(selectedCircle: state.selectedCircle),
-                        TeamsView(selectedCircle: state.selectedCircle),
-                        FinanceView(selectedCircle: state.selectedCircle),
-                        ReportsView(selectedCircle: state.selectedCircle),
+                        _KeepAlivePage(
+                          child: PeersView(selectedCircle: state.selectedCircle),
+                        ),
+                        _KeepAlivePage(
+                          child: TeamsView(selectedCircle: state.selectedCircle),
+                        ),
+                        _KeepAlivePage(
+                          child: FinanceView(selectedCircle: state.selectedCircle),
+                        ),
+                        _KeepAlivePage(
+                          child: ReportsView(selectedCircle: state.selectedCircle),
+                        ),
                       ],
                     ),
                   ),
@@ -197,12 +232,38 @@ class _DashboardContentState extends State<_DashboardContent> {
               ),
               bottomNavigationBar: DashboardBottomNavBar(
                 activeTab: state.activeTab,
-                onTabSelected: (idx) => bloc.add(TabChanged(idx)),
+                onTabSelected: (idx) {
+                  bloc.add(TabChanged(idx));
+                  if (_pageController.hasClients) {
+                    _pageController.jumpToPage(idx);
+                  }
+                },
               ),
             ),
           );
         },
       ),
     );
+  }
+}
+
+/// State-preserving wrapper for PageView pages.
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+  const _KeepAlivePage({required this.child});
+
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

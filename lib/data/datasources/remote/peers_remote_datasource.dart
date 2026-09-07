@@ -14,18 +14,22 @@ class CelebrationsResponse {
     required this.anniversaries,
   });
 
-  factory CelebrationsResponse.fromJson(Map<String, dynamic> json) {
+  factory CelebrationsResponse.fromJson(Map<dynamic, dynamic> json) {
     final bdays = <CelebrationModel>[];
     if (json['birthdays'] is List) {
       for (final item in json['birthdays']) {
-        bdays.add(CelebrationModel.fromJson(item as Map<String, dynamic>, 'birthday'));
+        if (item is Map) {
+          bdays.add(CelebrationModel.fromJson(item, 'birthday'));
+        }
       }
     }
 
     final annivs = <CelebrationModel>[];
     if (json['anniversaries'] is List) {
       for (final item in json['anniversaries']) {
-        annivs.add(CelebrationModel.fromJson(item as Map<String, dynamic>, 'anniversary'));
+        if (item is Map) {
+          annivs.add(CelebrationModel.fromJson(item, 'anniversary'));
+        }
       }
     }
 
@@ -114,7 +118,7 @@ class PeersRemoteDataSource {
     return _apiClient.get<CelebrationsResponse>(
       ApiEndpoints.peerCelebrations,
       queryParameters: params.isNotEmpty ? params : null,
-      fromJsonT: (json) => CelebrationsResponse.fromJson(json as Map<String, dynamic>),
+      fromJsonT: (json) => CelebrationsResponse.fromJson(json is Map ? json : const {}),
     );
   }
 
@@ -124,19 +128,24 @@ class PeersRemoteDataSource {
     required String type,
     String? message,
   }) async {
-    if (!_isValidId(peerId)) {
+    final cleanId = peerId.trim().replaceAll('cel_b_', '').replaceAll('cel_a_', '');
+    if (!_isValidId(cleanId)) {
       return const ApiResponse<Map<String, dynamic>>(
         success: false,
         message: 'Invalid peer identifier',
       );
     }
     return _apiClient.post<Map<String, dynamic>>(
-      ApiEndpoints.peerSendWish(peerId.trim()),
+      ApiEndpoints.peerSendWish(cleanId),
       body: {
         'type': type,
         'message': message ?? 'Wishing you the very best!',
       },
-      fromJsonT: (json) => json as Map<String, dynamic>,
+      fromJsonT: (json) {
+        if (json is Map<String, dynamic>) return json;
+        if (json is Map) return Map<String, dynamic>.from(json);
+        return <String, dynamic>{'success': true};
+      },
     );
   }
 

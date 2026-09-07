@@ -28,7 +28,21 @@ class DashboardRemoteDataSource {
     return _apiClient.get<DashboardMetricsModel>(
       ApiEndpoints.dashboardMetrics,
       queryParameters: params.isNotEmpty ? params : null,
-      fromJsonT: (json) => DashboardMetricsModel.fromJson(json as Map<String, dynamic>),
+      fromJsonT: (json) {
+        if (json is Map) {
+          return DashboardMetricsModel.fromJson(json);
+        }
+        return const DashboardMetricsModel(
+          impact: 0,
+          deals: '₹0.0L',
+          p2pMeetings: 0,
+          totalPeers: 0,
+          totalPeersGrowth: 0,
+          referrals: 0,
+          testimonials: 0,
+          coins: 0,
+        );
+      },
     );
   }
 

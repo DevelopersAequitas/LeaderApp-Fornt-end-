@@ -31,8 +31,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
     } catch (e) {
       // Offline fallback: load from Hive cache
       final cachedJson = _cacheService.get(cacheKey);
-      if (cachedJson is Map<String, dynamic>) {
-        final cachedData = DashboardMetricsModel.fromJson(cachedJson);
+      if (cachedJson is Map) {
+        final cachedData = DashboardMetricsModel.fromJson(
+          Map<String, dynamic>.from(cachedJson),
+        );
         return ApiResponse<DashboardMetricsModel>(
           success: true,
           data: cachedData,
