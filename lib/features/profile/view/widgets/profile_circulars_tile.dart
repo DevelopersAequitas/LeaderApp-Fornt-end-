@@ -52,7 +52,7 @@ class ProfileCircularsTile extends StatelessWidget {
                         'Official Circulars & Updates',
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           color: AppColors.text,
                         ),
                       ),
@@ -74,7 +74,7 @@ class ProfileCircularsTile extends StatelessWidget {
                     'NEW',
                     style: TextStyle(
                       fontSize: 9,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       color: AppColors.warningDark,
                     ),
                   ),

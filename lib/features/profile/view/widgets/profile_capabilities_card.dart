@@ -42,7 +42,7 @@ class ProfileCapabilitiesCard extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const Spacer(),
@@ -57,7 +57,7 @@ class ProfileCapabilitiesCard extends StatelessWidget {
                   style: const TextStyle(
                     color: Color(0xFF16A34A),
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -102,7 +102,7 @@ class ProfileCapabilitiesCard extends StatelessWidget {
                         style: const TextStyle(
                           color: Color(0xFF15803D),
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],

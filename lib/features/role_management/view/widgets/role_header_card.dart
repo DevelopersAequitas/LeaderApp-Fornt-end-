@@ -75,7 +75,7 @@ class RoleHeaderCard extends StatelessWidget {
                             rolePermission.role.label,
                             style: const TextStyle(
                               fontSize: 15,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                             maxLines: 1,
@@ -94,7 +94,7 @@ class RoleHeaderCard extends StatelessWidget {
                             rolePermission.role.isSystemRole ? 'SYSTEM' : 'CUSTOM',
                             style: const TextStyle(
                               fontSize: 9,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.textSecondary,
                             ),
                           ),
@@ -152,7 +152,7 @@ class RoleHeaderCard extends StatelessWidget {
                 'Full Role Access (Enable All)',
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.text,
                 ),
               ),

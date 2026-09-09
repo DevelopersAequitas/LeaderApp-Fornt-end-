@@ -47,7 +47,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 14,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               if (isSuperAdmin)
@@ -104,7 +104,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                           style: TextStyle(
                             color: AppColors.primary,
                             fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -152,7 +152,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.4,
                   ),
                 ),
@@ -164,7 +164,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.4,
                   ),
                 ),
@@ -176,7 +176,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.4,
                   ),
                 ),
@@ -218,7 +218,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                             style: const TextStyle(
                               color: AppColors.text,
                               fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -232,7 +232,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.text,
                         fontSize: 12,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -243,7 +243,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.text,
                         fontSize: 12,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),

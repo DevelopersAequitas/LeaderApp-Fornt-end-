@@ -62,7 +62,7 @@ class RoleSaveBar extends StatelessWidget {
                     hasUnsavedChanges ? 'Unsaved' : 'Synced',
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                       color: hasUnsavedChanges ? AppColors.warningDark : AppColors.successDark,
                     ),
                   ),

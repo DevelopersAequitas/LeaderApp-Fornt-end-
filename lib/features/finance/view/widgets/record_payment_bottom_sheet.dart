@@ -132,7 +132,7 @@ class _RecordPaymentBottomSheetState extends State<RecordPaymentBottomSheet> {
                   'Record Offline / Dues Payment',
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.text,
                   ),
                 ),
@@ -223,7 +223,7 @@ class _RecordPaymentBottomSheetState extends State<RecordPaymentBottomSheet> {
                   : const Text(
                       'Record Payment',
                       style: TextStyle(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                         fontSize: 14,
                       ),
                     ),

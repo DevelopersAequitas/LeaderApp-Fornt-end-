@@ -7,11 +7,20 @@ import '../../features/profile/view/profile_view.dart';
 import '../../features/peers/model/peer_model.dart';
 import '../../features/peer_profile/view/peer_profile_view.dart';
 import '../../features/notifications/view/notifications_view.dart';
+import '../../features/testimonials/model/testimonial_model.dart';
 import '../../features/testimonials/view/testimonials_view.dart';
 import '../../features/referrals/model/referral_model.dart';
 import '../../features/referrals/view/referrals_view.dart';
 import '../../features/peers_by_coins/model/coin_balance_model.dart';
 import '../../features/peers_by_coins/view/peers_by_coins_view.dart';
+import '../../features/impacts/model/impact_model.dart';
+import '../../features/impacts/view/impacts_view.dart';
+import '../../features/p2p_meetings/model/p2p_meeting_model.dart';
+import '../../features/p2p_meetings/view/p2p_meetings_view.dart';
+import '../../features/business_deals/model/business_deal_model.dart';
+import '../../features/business_deals/view/business_deals_view.dart';
+import '../../features/requirements/model/requirement_model.dart';
+import '../../features/requirements/view/requirements_view.dart';
 import '../../features/teams/model/teams_model.dart';
 import '../../features/circle_details/view/circle_details_view.dart';
 import '../../features/role_management/view/role_management_view.dart';
@@ -53,6 +62,18 @@ abstract class AppRoutes {
 
   /// Peers by Coins route
   static const String peersByCoins = '/peers-by-coins';
+
+  /// Impacts route
+  static const String impacts = '/impacts';
+
+  /// P2P Meetings route
+  static const String p2pMeetings = '/p2p-meetings';
+
+  /// Business Deals route
+  static const String businessDeals = '/business-deals';
+
+  /// Requirements route
+  static const String requirements = '/requirements';
 
   /// Circle Details route
   static const String circleDetails = '/circle-details';
@@ -101,7 +122,7 @@ abstract class AppRoutes {
                 sort != null ? 'Peers · $sort' : 'Peers Directory',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   fontSize: 16,
                 ),
               ),
@@ -130,38 +151,20 @@ abstract class AppRoutes {
         PeerModel peer;
         if (settings.arguments is PeerModel) {
           peer = settings.arguments as PeerModel;
+        } else if (settings.arguments is ImpactModel) {
+          peer = (settings.arguments as ImpactModel).toPeerModel();
+        } else if (settings.arguments is P2PMeetingModel) {
+          peer = (settings.arguments as P2PMeetingModel).toPeerModel();
+        } else if (settings.arguments is BusinessDealModel) {
+          peer = (settings.arguments as BusinessDealModel).toPeerModel();
+        } else if (settings.arguments is RequirementModel) {
+          peer = (settings.arguments as RequirementModel).toPeerModel();
         } else if (settings.arguments is ReferralModel) {
-          final r = settings.arguments as ReferralModel;
-          peer = PeerModel(
-            id: r.id,
-            initials: r.initials,
-            name: r.name,
-            company: r.company,
-            circle: '',
-            location: '',
-            tags: r.category,
-            impactCount: r.referralCount,
-            dealsFormatted: r.dealsCount,
-            coins: r.coinsCount,
-            attendance: r.attendanceRate,
-            status: r.status,
-          );
+          peer = (settings.arguments as ReferralModel).toPeerModel();
         } else if (settings.arguments is CoinBalanceModel) {
-          final c = settings.arguments as CoinBalanceModel;
-          peer = PeerModel(
-            id: c.id,
-            initials: c.initials,
-            name: c.name,
-            company: c.company,
-            circle: '',
-            location: '',
-            tags: c.category,
-            impactCount: c.referralsCount,
-            dealsFormatted: c.dealsCount,
-            coins: c.coins,
-            attendance: c.attendanceRate,
-            status: c.status,
-          );
+          peer = (settings.arguments as CoinBalanceModel).toPeerModel();
+        } else if (settings.arguments is TestimonialModel) {
+          peer = (settings.arguments as TestimonialModel).toPeerModel();
         } else if (settings.arguments is Map<String, dynamic>) {
           peer = PeerModel.fromJson(settings.arguments as Map<String, dynamic>);
         } else if (settings.arguments is String) {
@@ -218,6 +221,30 @@ abstract class AppRoutes {
       case peersByCoins:
         return MaterialPageRoute(
           builder: (_) => const PeersByCoinsView(),
+          settings: settings,
+        );
+      case impacts:
+        final circleId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => ImpactsView(circleId: circleId),
+          settings: settings,
+        );
+      case p2pMeetings:
+        final circleId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => P2PMeetingsView(circleId: circleId),
+          settings: settings,
+        );
+      case businessDeals:
+        final circleId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => BusinessDealsView(circleId: circleId),
+          settings: settings,
+        );
+      case requirements:
+        final circleId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => RequirementsView(circleId: circleId),
           settings: settings,
         );
       case circleDetails:

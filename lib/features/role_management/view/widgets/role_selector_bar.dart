@@ -74,7 +74,7 @@ class RoleSelectorBar extends StatelessWidget {
                             rp.role.label,
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                              fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                               color: isSelected ? Colors.white : AppColors.text,
                             ),
                           ),
@@ -91,7 +91,7 @@ class RoleSelectorBar extends StatelessWidget {
                               '${rp.enabledCapabilityIds.length}',
                               style: TextStyle(
                                 fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                                 color: isSelected ? Colors.white : AppColors.textSecondary,
                               ),
                             ),
@@ -128,7 +128,7 @@ class RoleSelectorBar extends StatelessWidget {
                         'New Role',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           color: AppColors.info,
                         ),
                       ),

@@ -47,7 +47,7 @@ class PeerProfileBottomActions extends StatelessWidget {
                 label: const Text(
                   'Log P2P',
                   style: TextStyle(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.primary,
                     fontSize: 12,
                   ),
@@ -74,7 +74,7 @@ class PeerProfileBottomActions extends StatelessWidget {
                 ),
                 label: const Text(
                   'Send Referral',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
                 ),
                 onPressed: onSendReferralTap,
               ),

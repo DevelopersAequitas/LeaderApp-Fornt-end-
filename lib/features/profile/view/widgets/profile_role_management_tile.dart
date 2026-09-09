@@ -55,7 +55,7 @@ class ProfileRoleManagementTile extends StatelessWidget {
                         style: TextStyle(
                           color: AppColors.text,
                           fontSize: 13,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       SizedBox(height: 1),

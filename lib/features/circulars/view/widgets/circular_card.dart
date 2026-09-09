@@ -96,7 +96,7 @@ class _CircularCardState extends State<CircularCard> {
                         c.priority.toUpperCase(),
                         style: TextStyle(
                           fontSize: 9,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                           color: priorityFg,
                           letterSpacing: 0.4,
                         ),
@@ -109,7 +109,7 @@ class _CircularCardState extends State<CircularCard> {
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -130,7 +130,7 @@ class _CircularCardState extends State<CircularCard> {
                   c.title,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.text,
                   ),
                 ),
@@ -164,7 +164,7 @@ class _CircularCardState extends State<CircularCard> {
                       style: const TextStyle(
                         fontSize: 10,
                         color: AppColors.text,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const Spacer(),
@@ -173,7 +173,7 @@ class _CircularCardState extends State<CircularCard> {
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.info,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     Icon(

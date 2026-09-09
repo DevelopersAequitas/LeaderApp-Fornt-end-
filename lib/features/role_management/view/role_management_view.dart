@@ -247,7 +247,7 @@ class _RoleManagementContent extends StatelessWidget {
                                 style: TextStyle(
                                   color: AppColors.text,
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],

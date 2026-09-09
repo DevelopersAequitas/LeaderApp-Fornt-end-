@@ -27,7 +27,7 @@ class TeamsStatusFilterHeader extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.text,
                 fontSize: 14,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -72,7 +72,7 @@ class TeamsStatusFilterHeader extends StatelessWidget {
                             : const Color(0xFF64748B),
                         fontSize: 11,
                         fontWeight:
-                            isSelected ? FontWeight.w800 : FontWeight.w600,
+                            isSelected ? FontWeight.w500 : FontWeight.w400,
                       ),
                     ),
                   ),

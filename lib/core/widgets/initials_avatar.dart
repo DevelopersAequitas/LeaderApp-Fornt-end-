@@ -43,7 +43,7 @@ class InitialsAvatar extends StatelessWidget {
       style: TextStyle(
         color: textColor ?? Colors.white,
         fontSize: fontSize ?? (radius * 0.65),
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w500,
       ),
     );
 

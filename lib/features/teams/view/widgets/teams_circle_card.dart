@@ -55,7 +55,7 @@ class TeamsCircleCard extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.text,
                       fontSize: 14,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -73,7 +73,7 @@ class TeamsCircleCard extends StatelessWidget {
                     style: TextStyle(
                       color: statusTextColor,
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -115,7 +115,7 @@ class TeamsCircleCard extends StatelessWidget {
                   style: TextStyle(
                     color: progressColor,
                     fontSize: 12,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -141,7 +141,7 @@ class TeamsCircleCard extends StatelessWidget {
                         style: const TextStyle(
                           color: Color(0xFF475569),
                           fontSize: 9,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     );
@@ -192,7 +192,7 @@ class TeamsCircleCard extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.text,
               fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

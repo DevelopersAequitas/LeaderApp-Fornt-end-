@@ -61,64 +61,67 @@ class _TestimonialsContent extends StatelessWidget {
               subtitle: '${testimonials.length} testimonials',
               showBackButton: true,
             ),
-            body: state.isLoading && testimonials.isEmpty
-                ? const CenteredLoadingIndicator(height: 300)
-                : RefreshIndicator(
-                    onRefresh: () async {
-                      bloc.add(const LoadTestimonials());
-                    },
-                    child: testimonials.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 56,
-                                  height: 56,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF1F5F9),
-                                    borderRadius: BorderRadius.circular(16),
+            body: SafeArea(
+              top: false,
+              child: state.isLoading && testimonials.isEmpty
+                  ? const CenteredLoadingIndicator(height: 300)
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        bloc.add(const LoadTestimonials());
+                      },
+                      child: testimonials.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                      Icons.format_quote_rounded,
+                                      color: AppColors.textSecondary,
+                                      size: 28,
+                                    ),
                                   ),
-                                  alignment: Alignment.center,
-                                  child: const Icon(
-                                    Icons.format_quote_rounded,
-                                    color: AppColors.textSecondary,
-                                    size: 28,
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'No testimonials found',
+                                    style: TextStyle(
+                                      color: AppColors.text,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'No testimonials found',
-                                  style: TextStyle(
-                                    color: AppColors.text,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'Peer testimonials and recommendations appear here.',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 12,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  'Peer testimonials and recommendations appear here.',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(
+                                top: 8,
+                                bottom: 24,
+                              ),
+                              itemCount: testimonials.length,
+                              itemBuilder: (context, index) {
+                                return TestimonialCard(
+                                  testimonial: testimonials[index],
+                                );
+                              },
                             ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(
-                              top: 8,
-                              bottom: 24,
-                            ),
-                            itemCount: testimonials.length,
-                            itemBuilder: (context, index) {
-                              return TestimonialCard(
-                                testimonial: testimonials[index],
-                              );
-                            },
-                          ),
-                  ),
+                    ),
+            ),
           );
         },
       ),

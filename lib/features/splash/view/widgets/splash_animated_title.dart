@@ -107,7 +107,7 @@ class _SplashAnimatedTitleState extends State<SplashAnimatedTitle>
                 style: const TextStyle(
                   color: AppColors.text, // Deep Navy / Dark (#102640)
                   fontSize: 24,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 2.0,
                 ),
               ),

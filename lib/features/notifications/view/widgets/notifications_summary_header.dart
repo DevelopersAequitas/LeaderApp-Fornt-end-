@@ -35,7 +35,7 @@ class NotificationsSummaryHeader extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.text,
                       fontSize: 14,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -58,7 +58,7 @@ class NotificationsSummaryHeader extends StatelessWidget {
                       style: const TextStyle(
                         color: Color(0xFFD97706),
                         fontSize: 9,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -91,7 +91,7 @@ class NotificationsSummaryHeader extends StatelessWidget {
                         style: TextStyle(
                           color: Color(0xFF2563EB),
                           fontSize: 10,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -121,7 +121,7 @@ class NotificationsSummaryHeader extends StatelessWidget {
                       style: TextStyle(
                         color: Color(0xFFDC2626),
                         fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

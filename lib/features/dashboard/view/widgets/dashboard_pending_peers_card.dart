@@ -46,7 +46,7 @@ class DashboardPendingPeersCard extends StatelessWidget {
                 '$count',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   fontSize: 15,
                 ),
               ),
@@ -62,7 +62,7 @@ class DashboardPendingPeersCard extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.text,
                       fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 1),
@@ -91,7 +91,7 @@ class DashboardPendingPeersCard extends StatelessWidget {
               ),
               child: const Text(
                 'Review',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
               ),
             ),
           ],

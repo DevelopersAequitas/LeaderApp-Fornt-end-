@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/error_formatter.dart';
 import '../../../data/repositories/auth_repository.dart';
 import 'otp_event.dart';
 import 'otp_state.dart';
@@ -74,12 +75,14 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
         emit(
           state.copyWith(
             isLoading: false,
-            errorMessage: response.message ?? 'Invalid verification code.',
+            errorMessage: response.message != null
+                ? ErrorFormatter.format(response.message)
+                : 'Invalid verification code. Please check and try again.',
           ),
         );
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(isLoading: false, errorMessage: ErrorFormatter.format(e)));
     }
   }
 
@@ -127,7 +130,9 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
           state.copyWith(
             isResending: false,
             canResend: true,
-            errorMessage: response.message ?? 'Failed to resend verification code.',
+            errorMessage: response.message != null
+                ? ErrorFormatter.format(response.message)
+                : 'Unable to resend verification code. Please try again.',
           ),
         );
       }
@@ -136,7 +141,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
         state.copyWith(
           isResending: false,
           canResend: true,
-          errorMessage: e.toString(),
+          errorMessage: ErrorFormatter.format(e),
         ),
       );
     }

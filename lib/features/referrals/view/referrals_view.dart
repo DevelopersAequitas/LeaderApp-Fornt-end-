@@ -75,80 +75,83 @@ class _ReferralsContent extends StatelessWidget {
               subtitle: '${allReferrals.length} peers ranked',
               showBackButton: true,
             ),
-            body: Column(
-              children: [
-                ReferralsFilterBar(
-                  selectedFilter: state.selectedFilter,
-                  allCount: allReferrals.length,
-                  activeCount: activeCount,
-                  atRiskCount: atRiskCount,
-                  onFilterSelected: (status) =>
-                      bloc.add(FilterReferrals(status)),
-                ),
-                Expanded(
-                  child: state.isLoading && allReferrals.isEmpty
-                      ? const CenteredLoadingIndicator(height: 300)
-                      : RefreshIndicator(
-                          onRefresh: () async {
-                            bloc.add(const LoadReferrals());
-                          },
-                          child: referrals.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 56,
-                                        height: 56,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF1F5F9),
-                                          borderRadius:
-                                              BorderRadius.circular(16),
+            body: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  ReferralsFilterBar(
+                    selectedFilter: state.selectedFilter,
+                    allCount: allReferrals.length,
+                    activeCount: activeCount,
+                    atRiskCount: atRiskCount,
+                    onFilterSelected: (status) =>
+                        bloc.add(FilterReferrals(status)),
+                  ),
+                  Expanded(
+                    child: state.isLoading && allReferrals.isEmpty
+                        ? const CenteredLoadingIndicator(height: 300)
+                        : RefreshIndicator(
+                            onRefresh: () async {
+                              bloc.add(const LoadReferrals());
+                            },
+                            child: referrals.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          width: 56,
+                                          height: 56,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFF1F5F9),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: const Icon(
+                                            Icons.share_outlined,
+                                            color: AppColors.textSecondary,
+                                            size: 26,
+                                          ),
                                         ),
-                                        alignment: Alignment.center,
-                                        child: const Icon(
-                                          Icons.share_outlined,
-                                          color: AppColors.textSecondary,
-                                          size: 26,
+                                        const SizedBox(height: 12),
+                                        const Text(
+                                          'No referrals found',
+                                          style: TextStyle(
+                                            color: AppColors.text,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      const Text(
-                                        'No referrals found',
-                                        style: TextStyle(
-                                          color: AppColors.text,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
+                                        const SizedBox(height: 4),
+                                        const Text(
+                                          'Try adjusting your search query or status filter.',
+                                          style: TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 12,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      const Text(
-                                        'Try adjusting your search query or status filter.',
-                                        style: TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    padding: const EdgeInsets.only(
+                                      top: 8,
+                                      bottom: 24,
+                                    ),
+                                    itemCount: referrals.length,
+                                    itemBuilder: (context, index) {
+                                      final item = referrals[index];
+                                      return ReferralCard(
+                                        referral: item,
+                                        onTap: () => _onPeerTap(context, item),
+                                      );
+                                    },
                                   ),
-                                )
-                              : ListView.builder(
-                                  padding: const EdgeInsets.only(
-                                    top: 8,
-                                    bottom: 24,
-                                  ),
-                                  itemCount: referrals.length,
-                                  itemBuilder: (context, index) {
-                                    final item = referrals[index];
-                                    return ReferralCard(
-                                      referral: item,
-                                      onTap: () => _onPeerTap(context, item),
-                                    );
-                                  },
-                                ),
-                        ),
-                ),
-              ],
+                          ),
+                  ),
+                ],
+              ),
             ),
           );
         },

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/error_formatter.dart';
 import '../../../data/repositories/auth_repository.dart';
 import 'login_event.dart';
 import 'login_state.dart';
@@ -45,12 +46,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         emit(
           state.copyWith(
             isLoading: false,
-            errorMessage: response.message ?? 'Failed to send OTP.',
+            errorMessage: response.message != null
+                ? ErrorFormatter.format(response.message)
+                : 'Unable to send OTP. Please verify your details and try again.',
           ),
         );
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(isLoading: false, errorMessage: ErrorFormatter.format(e)));
     }
   }
 

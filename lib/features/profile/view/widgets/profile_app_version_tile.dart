@@ -76,7 +76,7 @@ class _ProfileAppVersionTileState extends State<ProfileAppVersionTile> {
                   'App Version & Updates',
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.text,
                   ),
                 ),
@@ -104,7 +104,7 @@ class _ProfileAppVersionTileState extends State<ProfileAppVersionTile> {
                   )
                 : const Text(
                     'Check',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
                   ),
           ),
         ],

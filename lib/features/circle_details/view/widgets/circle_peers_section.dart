@@ -50,7 +50,7 @@ class CirclePeersSection extends StatelessWidget {
                 'No peers enrolled in this circle yet.',
                 style: TextStyle(
                   color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   fontSize: 13,
                 ),
               ),
@@ -74,7 +74,7 @@ class CirclePeersSection extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -111,7 +111,7 @@ class CirclePeersSection extends StatelessWidget {
                       'Load More Peers',
                       style: TextStyle(
                         color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                         fontSize: 13,
                       ),
                     ),

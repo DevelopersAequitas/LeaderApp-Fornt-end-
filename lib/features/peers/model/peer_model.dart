@@ -73,14 +73,34 @@ class PeerModel {
   });
 
   factory PeerModel.fromJson(Map<String, dynamic> json) {
-    final name = (json['name'] as String? ?? json['peer_name'] as String? ?? 'Peer').trim();
+    final peerMap = json['peer'] is Map<String, dynamic>
+        ? json['peer'] as Map<String, dynamic>
+        : (json['peer'] is Map ? Map<String, dynamic>.from(json['peer'] as Map) : null);
+
+    final id = json['id']?.toString() ??
+        json['peer_user_id']?.toString() ??
+        json['user_id']?.toString() ??
+        peerMap?['id']?.toString() ??
+        peerMap?['peer_user_id']?.toString() ??
+        '';
+
+    final name = (json['name'] as String? ??
+            json['peer_name'] as String? ??
+            peerMap?['name'] as String? ??
+            peerMap?['peer_name'] as String? ??
+            'Peer')
+        .trim();
     final nameParts = name.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
     final initials = nameParts.length > 1
         ? '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase()
         : (name.length >= 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase());
 
     String companyStr = '';
-    final rawCompany = json['company_name'] ?? json['company'];
+    final rawCompany = json['business_name'] ??
+        json['company_name'] ??
+        json['company'] ??
+        peerMap?['business_name'] ??
+        peerMap?['company_name'];
     if (rawCompany is Map) {
       companyStr = rawCompany['name']?.toString() ?? '';
     } else if (rawCompany is String) {
@@ -119,10 +139,11 @@ class PeerModel {
       designationStr = rawDesig;
     }
 
-    final avatar = json['avatar_url'] as String? ??
+    final avatar = json['profile_image'] as String? ??
         json['profile_photo_url'] as String? ??
+        json['avatar_url'] as String? ??
+        peerMap?['profile_image'] as String? ??
         json['avatar'] as String? ??
-        json['profile_image'] as String? ??
         json['profile_picture'] as String? ??
         json['image_url'] as String? ??
         json['image'] as String?;
@@ -132,8 +153,10 @@ class PeerModel {
         json['video_url'] as String? ??
         json['video'] as String?;
 
-    final level4 = json['level4_category'] as String? ??
+    final level4 = json['category_level4'] as String? ??
+        json['level4_category'] as String? ??
         json['sub_industry'] as String? ??
+        peerMap?['category_level4'] as String? ??
         json['level_4_category'] as String? ??
         json['category'] as String? ??
         json['specialization'] as String?;
@@ -187,14 +210,14 @@ class PeerModel {
     }
 
     return PeerModel(
-      id: json['id']?.toString() ?? '',
+      id: id,
       initials: initials.isNotEmpty ? initials : 'PR',
       name: name,
       avatarUrl: avatar,
       company: companyStr,
       circle: circleStr,
       circleId: json['circle_id']?.toString(),
-      location: json['location'] as String? ?? json['city'] as String? ?? '',
+      location: json['city'] as String? ?? json['location'] as String? ?? peerMap?['city'] as String? ?? '',
       tags: parsedTags,
       impactCount: parsedImpact,
       dealsFormatted: metrics?['deals_closed']?.toString() ?? json['deals_formatted']?.toString() ?? json['deals']?.toString() ?? '₹0.0',

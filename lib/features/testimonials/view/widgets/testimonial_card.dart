@@ -73,7 +73,7 @@ class TestimonialCard extends StatelessWidget {
                                   style: const TextStyle(
                                     color: AppColors.text,
                                     fontSize: 13,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -94,7 +94,7 @@ class TestimonialCard extends StatelessWidget {
                                     style: const TextStyle(
                                       color: AppColors.primary,
                                       fontSize: 13,
-                                      fontWeight: FontWeight.w800,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -162,7 +162,7 @@ class TestimonialCard extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const Spacer(),
@@ -176,7 +176,7 @@ class TestimonialCard extends StatelessWidget {
                             style: TextStyle(
                               color: Color(0xFF1E6091),
                               fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           Icon(

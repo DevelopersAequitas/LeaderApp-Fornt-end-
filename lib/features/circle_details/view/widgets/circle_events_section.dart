@@ -66,7 +66,7 @@ class CircleEventsSection extends StatelessWidget {
                       style: TextStyle(
                         color: isSelected ? Colors.white : AppColors.text,
                         fontSize: 11.5,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                       ),
                     ),
                   ),
@@ -101,7 +101,7 @@ class CircleEventsSection extends StatelessWidget {
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -168,7 +168,7 @@ class CircleEventsSection extends StatelessWidget {
                           Text(
                             ev.title,
                             style: const TextStyle(
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               fontSize: 13,
                               color: AppColors.text,
                             ),
@@ -203,7 +203,7 @@ class CircleEventsSection extends StatelessWidget {
                               ? AppColors.primary
                               : Colors.grey,
                           fontSize: 10,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),

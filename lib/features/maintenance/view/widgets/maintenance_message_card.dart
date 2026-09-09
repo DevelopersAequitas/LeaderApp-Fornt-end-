@@ -20,7 +20,7 @@ class MaintenanceMessageCard extends StatelessWidget {
           title,
           style: const TextStyle(
             fontSize: 22,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             color: AppColors.text,
             letterSpacing: -0.3,
           ),

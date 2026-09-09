@@ -44,7 +44,7 @@ class PeerRoleManagementSection extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 14,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -108,7 +108,7 @@ class PeerRoleManagementSection extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.text,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
           InkWell(
@@ -125,7 +125,7 @@ class PeerRoleManagementSection extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.primary,
                   fontSize: 11,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),

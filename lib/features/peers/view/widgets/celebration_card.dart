@@ -169,7 +169,7 @@ class CelebrationCard extends StatelessWidget {
                               style: TextStyle(
                                 color: Color(0xFF16A34A),
                                 fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -206,7 +206,7 @@ class CelebrationCard extends StatelessWidget {
                                       ? const Color(0xFFE11D48)
                                       : const Color(0xFF2563EB),
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
@@ -250,7 +250,7 @@ class CelebrationCard extends StatelessWidget {
                         style: TextStyle(
                           color: celebrationTextCol,
                           fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),

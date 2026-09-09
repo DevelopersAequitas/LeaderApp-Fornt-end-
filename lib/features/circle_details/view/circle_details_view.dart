@@ -61,58 +61,61 @@ class _CircleDetailsContent extends StatelessWidget {
               subtitle: activeCircle.name,
               showBackButton: true,
             ),
-            body: RefreshIndicator(
-              onRefresh: () async {
-                bloc.add(LoadCircleDetailsData(
-                  circleId: initialCircle.id,
-                  isRefresh: true,
-                ));
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    CircleDetailsHeroCard(circle: activeCircle),
-                    CircleLeadershipCard(circle: activeCircle),
-                    CircleDetailsTabSelector(
-                      activeTab: state.activeSubTab,
-                      peersCount: state.totalPeersCount > 0
-                          ? state.totalPeersCount
-                          : state.circlePeers.length,
-                      eventsCount: state.filteredEvents.length,
-                      onTabChanged: (idx) =>
-                          bloc.add(ChangeCircleSubTabEvent(idx)),
-                    ),
-                    if (state.activeSubTab == 0)
-                      CircleOverviewSection(circle: activeCircle),
-                    if (state.activeSubTab == 1)
-                      CirclePeersSection(
-                        peers: state.circlePeers,
-                        isLoading: state.isLoadingPeers,
-                        isLoadingMore: state.isLoadingMorePeers,
-                        hasMore: state.hasMorePeers,
-                        totalCount: state.totalPeersCount,
-                        onLoadMore: () => bloc.add(LoadMoreCirclePeersEvent(
-                          circleId: initialCircle.id,
-                        )),
+            body: SafeArea(
+              top: false,
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  bloc.add(LoadCircleDetailsData(
+                    circleId: initialCircle.id,
+                    isRefresh: true,
+                  ));
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CircleDetailsHeroCard(circle: activeCircle),
+                      CircleLeadershipCard(circle: activeCircle),
+                      CircleDetailsTabSelector(
+                        activeTab: state.activeSubTab,
+                        peersCount: state.totalPeersCount > 0
+                            ? state.totalPeersCount
+                            : state.circlePeers.length,
+                        eventsCount: state.filteredEvents.length,
+                        onTabChanged: (idx) =>
+                            bloc.add(ChangeCircleSubTabEvent(idx)),
                       ),
-                    if (state.activeSubTab == 2)
-                      CircleSubIndustriesSection(
-                        subIndustries: state.subIndustries,
-                        isLoading: state.isLoadingSubIndustries,
-                        categoryName: activeCircle.category,
-                      ),
-                    if (state.activeSubTab == 3)
-                      CircleEventsSection(
-                        events: state.filteredEvents,
-                        isLoading: state.isLoadingEvents,
-                        selectedFilter: state.selectedEventFilter,
-                        onFilterChanged: (filter) =>
-                            bloc.add(FilterCircleEventsEvent(filter)),
-                      ),
-                    const SizedBox(height: 24),
-                  ],
+                      if (state.activeSubTab == 0)
+                        CircleOverviewSection(circle: activeCircle),
+                      if (state.activeSubTab == 1)
+                        CirclePeersSection(
+                          peers: state.circlePeers,
+                          isLoading: state.isLoadingPeers,
+                          isLoadingMore: state.isLoadingMorePeers,
+                          hasMore: state.hasMorePeers,
+                          totalCount: state.totalPeersCount,
+                          onLoadMore: () => bloc.add(LoadMoreCirclePeersEvent(
+                            circleId: initialCircle.id,
+                          )),
+                        ),
+                      if (state.activeSubTab == 2)
+                        CircleSubIndustriesSection(
+                          subIndustries: state.subIndustries,
+                          isLoading: state.isLoadingSubIndustries,
+                          categoryName: activeCircle.category,
+                        ),
+                      if (state.activeSubTab == 3)
+                        CircleEventsSection(
+                          events: state.filteredEvents,
+                          isLoading: state.isLoadingEvents,
+                          selectedFilter: state.selectedEventFilter,
+                          onFilterChanged: (filter) =>
+                              bloc.add(FilterCircleEventsEvent(filter)),
+                        ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
             ),

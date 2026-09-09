@@ -66,7 +66,7 @@ class RestrictedAccessCard extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.text,
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 16),

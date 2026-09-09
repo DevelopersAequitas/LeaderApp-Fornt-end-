@@ -13,7 +13,7 @@ class ApiException implements Exception {
   });
 
   @override
-  String toString() => 'ApiException(code: $errorCode, status: $statusCode, message: $message)';
+  String toString() => message;
 }
 
 /// Thrown when 401 Unauthorized / Token Expired is returned.

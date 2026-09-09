@@ -26,7 +26,7 @@ class CircleOverviewSection extends StatelessWidget {
             style: TextStyle(
               color: AppColors.text,
               fontSize: 14,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 12),
@@ -69,7 +69,7 @@ class CircleOverviewSection extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.text,
                 fontSize: 14,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 8),
@@ -93,7 +93,7 @@ class CircleOverviewSection extends StatelessWidget {
                         style: const TextStyle(
                           color: AppColors.primary,
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -119,7 +119,7 @@ class CircleOverviewSection extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.text,
                 fontSize: 12,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
               ),
             ),
             Text(
@@ -127,7 +127,7 @@ class CircleOverviewSection extends StatelessWidget {
               style: TextStyle(
                 color: color,
                 fontSize: 12,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],

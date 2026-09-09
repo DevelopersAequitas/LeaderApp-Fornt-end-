@@ -66,7 +66,7 @@ class NotificationsFilterChips extends StatelessWidget {
                   style: TextStyle(
                     color: isSelected ? Colors.white : AppColors.text,
                     fontSize: 11.5,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                   ),
                 ),
               ),

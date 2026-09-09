@@ -8,12 +8,18 @@ import '../../model/testimonial_model.dart';
 /// Modal bottom sheet showing complete Testimonial details, Given By, Received By, and full testimonial message.
 class TestimonialDetailBottomSheet extends StatelessWidget {
   final TestimonialModel testimonial;
+  final bool showReceivedBy;
 
-  const TestimonialDetailBottomSheet({super.key, required this.testimonial});
+  const TestimonialDetailBottomSheet({
+    super.key,
+    required this.testimonial,
+    this.showReceivedBy = true,
+  });
 
   static Future<void> show(
     BuildContext context, {
     required TestimonialModel testimonial,
+    bool showReceivedBy = true,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -22,7 +28,10 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => TestimonialDetailBottomSheet(testimonial: testimonial),
+      builder: (_) => TestimonialDetailBottomSheet(
+        testimonial: testimonial,
+        showReceivedBy: showReceivedBy,
+      ),
     );
   }
 
@@ -52,6 +61,9 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasRecipient =
+        showReceivedBy && testimonial.targetPeerName.isNotEmpty;
+
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -76,27 +88,44 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Header Title
-            const Row(
+            // Header Title with Star Rating
+            Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.format_quote_rounded,
                   color: AppColors.primary,
                   size: 22,
                 ),
-                SizedBox(width: 8),
-                Text(
+                const SizedBox(width: 8),
+                const Text(
                   'Testimonial Details',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.text,
                   ),
                 ),
+                const Spacer(),
+                if (testimonial.rating > 0)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(
+                      5,
+                      (i) => Icon(
+                        i < testimonial.rating
+                            ? Icons.star_rounded
+                            : Icons.star_border_rounded,
+                        size: 16,
+                        color: i < testimonial.rating
+                            ? const Color(0xFFF59E0B)
+                            : Colors.grey.shade300,
+                      ),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 16),
-            // Given By & Received By Visual Card
+            // Given By (and optional Received By) Visual Card
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -116,35 +145,35 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                     peerId: testimonial.authorId,
                     badgeColor: AppColors.primary,
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(child: Divider(color: AppColors.border)),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Icon(
-                            Icons.arrow_downward_rounded,
-                            size: 16,
-                            color: AppColors.textSecondary,
+                  if (hasRecipient) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        children: [
+                          Expanded(child: Divider(color: AppColors.border)),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Icon(
+                              Icons.arrow_downward_rounded,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
-                        Expanded(child: Divider(color: AppColors.border)),
-                      ],
+                          Expanded(child: Divider(color: AppColors.border)),
+                        ],
+                      ),
                     ),
-                  ),
-                  // Received By (Target Peer)
-                  _buildUserTile(
-                    context: context,
-                    roleLabel: 'RECEIVED BY',
-                    name: testimonial.targetPeerName.isNotEmpty
-                        ? testimonial.targetPeerName
-                        : 'Circle Peer',
-                    subtitle: testimonial.circleName,
-                    initials: testimonial.targetPeerInitials,
-                    peerId: testimonial.targetPeerId,
-                    badgeColor: const Color(0xFF16A34A),
-                  ),
+                    // Received By (Target Peer)
+                    _buildUserTile(
+                      context: context,
+                      roleLabel: 'RECEIVED BY',
+                      name: testimonial.targetPeerName,
+                      subtitle: testimonial.circleName,
+                      initials: testimonial.targetPeerInitials,
+                      peerId: testimonial.targetPeerId,
+                      badgeColor: const Color(0xFF16A34A),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -155,7 +184,7 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 10,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
                 letterSpacing: 0.5,
               ),
             ),
@@ -193,7 +222,7 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -231,7 +260,7 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                 style: TextStyle(
                   color: badgeColor,
                   fontSize: 9,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 0.4,
                 ),
               ),
@@ -241,7 +270,7 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.text,
                   fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -288,7 +317,7 @@ class TestimonialDetailBottomSheet extends StatelessWidget {
                     'Profile',
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       color: AppColors.primary,
                     ),
                   ),

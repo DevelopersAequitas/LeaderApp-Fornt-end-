@@ -65,7 +65,7 @@ class OtpInputFields extends StatelessWidget {
               maxLength: 6, // Allow paste up to 6 digits in any box
               style: const TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
                 color: AppColors.text,
               ),
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],

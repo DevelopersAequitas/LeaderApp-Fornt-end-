@@ -43,7 +43,7 @@ class NotificationDateGroup extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 10,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 0.6,
                 ),
               ),
@@ -65,7 +65,7 @@ class NotificationDateGroup extends StatelessWidget {
                         ? const Color(0xFF2563EB)
                         : AppColors.textSecondary,
                     fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),

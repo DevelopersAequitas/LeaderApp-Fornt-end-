@@ -105,7 +105,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
               style: TextStyle(
                 color: textColor,
                 fontSize: 12,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -159,7 +159,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
                   style: TextStyle(
                     color: AppColors.text,
                     fontSize: 14,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 1),
@@ -227,7 +227,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
             style: TextStyle(
               color: AppColors.text,
               fontSize: 15,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 2),
@@ -291,7 +291,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
           ),
@@ -326,7 +326,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
             style: TextStyle(
               color: isSelected ? AppColors.primary : AppColors.text,
               fontSize: 11,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

@@ -165,7 +165,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -198,7 +198,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.7),
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -237,7 +237,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 13,
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
                                           IconButton(
@@ -330,7 +330,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 10,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -407,7 +407,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -491,7 +491,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 9,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -503,7 +503,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                           ? const Color(0xFF1E6091)
                           : AppColors.text,
                       fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -556,7 +556,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 10,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -633,7 +633,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                   style: TextStyle(
                     color: iconColor,
                     fontSize: 9.5,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -647,7 +647,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.text,
               fontSize: 11,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -698,7 +698,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -834,7 +834,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -848,7 +848,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
             style: TextStyle(
               color: valueColor,
               fontSize: 14,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -891,7 +891,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 10,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -915,7 +915,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               );
@@ -970,7 +970,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -981,7 +981,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 10,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -1015,7 +1015,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 13,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                                 height: 1.0,
                               ),
                             ),
@@ -1024,7 +1024,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: 9,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -1042,7 +1042,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                               style: const TextStyle(
                                 color: AppColors.text,
                                 fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                                 height: 1.35,
                               ),
                             ),
@@ -1090,7 +1090,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                           style: const TextStyle(
                             color: Color(0xFF16A34A),
                             fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -1151,7 +1151,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -1162,7 +1162,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 10,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -1215,7 +1215,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                               style: const TextStyle(
                                 color: AppColors.text,
                                 fontSize: 12,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             if (activity.subtitle.isNotEmpty) ...[

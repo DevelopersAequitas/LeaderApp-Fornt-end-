@@ -50,7 +50,7 @@ class MaintenanceActionButtons extends StatelessWidget {
                       'Check Status Again',
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -77,7 +77,7 @@ class MaintenanceActionButtons extends StatelessWidget {
                   'Bypass Maintenance (Admin Mode)',
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

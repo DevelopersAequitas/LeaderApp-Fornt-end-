@@ -76,7 +76,7 @@ class ReportHistoryCard extends StatelessWidget {
                                 : 'Circle Performance Report',
                             style: const TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                           ),
@@ -86,7 +86,7 @@ class ReportHistoryCard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -106,7 +106,7 @@ class ReportHistoryCard extends StatelessWidget {
                         style: TextStyle(
                           color: _getStatusText(report.status),
                           fontSize: 11,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -142,7 +142,7 @@ class ReportHistoryCard extends StatelessWidget {
                                 Text(
                                   report.author.isNotEmpty ? report.author : 'Circle Leader',
                                   style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w500,
                                     fontSize: 13,
                                     color: AppColors.text,
                                   ),
@@ -152,7 +152,7 @@ class ReportHistoryCard extends StatelessWidget {
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
@@ -203,7 +203,7 @@ class ReportHistoryCard extends StatelessWidget {
                       'Executive Summary & Notes',
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                         color: AppColors.text,
                       ),
                     ),
@@ -233,7 +233,7 @@ class ReportHistoryCard extends StatelessWidget {
                         'Action Items & Next Steps',
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           color: AppColors.text,
                         ),
                       ),
@@ -265,7 +265,7 @@ class ReportHistoryCard extends StatelessWidget {
                           'Peer Roster & Membership Dates',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                             color: AppColors.text,
                           ),
                         ),
@@ -275,7 +275,7 @@ class ReportHistoryCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -334,7 +334,7 @@ class ReportHistoryCard extends StatelessWidget {
             value,
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
               color: color,
             ),
           ),
@@ -342,7 +342,7 @@ class ReportHistoryCard extends StatelessWidget {
             title,
             style: const TextStyle(
               fontSize: 10,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
             ),
           ),
@@ -369,7 +369,7 @@ class ReportHistoryCard extends StatelessWidget {
                 child: Text(
                   peer.name,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     fontSize: 13,
                     color: AppColors.text,
                   ),
@@ -387,7 +387,7 @@ class ReportHistoryCard extends StatelessWidget {
                   peer.status,
                   style: TextStyle(
                     fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     color: peer.status.toLowerCase() == 'active'
                         ? const Color(0xFF16A34A)
                         : const Color(0xFFD97706),
@@ -424,13 +424,13 @@ class ReportHistoryCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       const Text(
                         'Peers App Validity: ',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
                       ),
                       Text(
                         '${peer.platformMembershipStart} ➔ ${peer.platformMembershipEnd.isNotEmpty ? peer.platformMembershipEnd : "Active"}',
                         style: const TextStyle(
                           fontSize: 10,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           color: AppColors.primary,
                         ),
                       ),
@@ -444,13 +444,13 @@ class ReportHistoryCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       const Text(
                         'Circle Membership: ',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
                       ),
                       Text(
                         '${peer.circleJoiningDate} ➔ ${peer.circleRenewalDate.isNotEmpty ? peer.circleRenewalDate : "Active"}',
                         style: const TextStyle(
                           fontSize: 10,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           color: Color(0xFF16A34A),
                         ),
                       ),
@@ -489,7 +489,7 @@ class ReportHistoryCard extends StatelessWidget {
         text,
         style: const TextStyle(
           fontSize: 9.5,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w500,
           color: AppColors.text,
         ),
       ),
@@ -537,7 +537,7 @@ class ReportHistoryCard extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -554,7 +554,7 @@ class ReportHistoryCard extends StatelessWidget {
                     style: TextStyle(
                       color: statusText,
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -577,7 +577,7 @@ class ReportHistoryCard extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 11,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
             if (report.attendancePercentage != null ||
@@ -602,7 +602,7 @@ class ReportHistoryCard extends StatelessWidget {
                         style: const TextStyle(
                           color: AppColors.text,
                           fontSize: 10,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -622,7 +622,7 @@ class ReportHistoryCard extends StatelessWidget {
                         style: const TextStyle(
                           color: Color(0xFF16A34A),
                           fontSize: 10,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -648,7 +648,7 @@ class ReportHistoryCard extends StatelessWidget {
                   'Tap to view full report & peer roster ➔',
                   style: TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.primary,
                   ),
                 ),

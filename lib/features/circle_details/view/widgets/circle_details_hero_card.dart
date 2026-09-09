@@ -51,7 +51,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -109,7 +109,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
                                   style: const TextStyle(
                                     color: Color(0xFF4ADE80),
                                     fontSize: 10,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
@@ -132,7 +132,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -164,7 +164,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -175,7 +175,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
                     style: TextStyle(
                       color: Color(0xFFB0C4DE),
                       fontSize: 9,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -229,7 +229,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -239,7 +239,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
             style: const TextStyle(
               color: Color(0xFFB0C4DE),
               fontSize: 9,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               letterSpacing: 0.3,
             ),
           ),

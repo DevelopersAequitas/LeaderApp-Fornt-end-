@@ -68,7 +68,7 @@ class DashboardKeyMetricsGrid extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 15,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               // Text(
@@ -179,7 +179,7 @@ class DashboardKeyMetricsGrid extends StatelessWidget {
                       style: TextStyle(
                         color: valueColor,
                         fontSize: 20,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -197,7 +197,7 @@ class DashboardKeyMetricsGrid extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.text,
                 fontSize: 12,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

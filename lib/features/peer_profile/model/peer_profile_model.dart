@@ -113,17 +113,29 @@ class PeerTestimonialModel {
       subtitle = rawSub;
     }
 
-    final nameParts = author.trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
-    final initials = nameParts.length > 1
-        ? '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase()
-        : (author.length >= 2 ? author.substring(0, 2).toUpperCase() : author.toUpperCase());
+    String initials = json['author_initials']?.toString() ?? '';
+    if (initials.isEmpty && author.isNotEmpty) {
+      final nameParts = author.trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+      initials = nameParts.length > 1
+          ? '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase()
+          : (author.length >= 2 ? author.substring(0, 2).toUpperCase() : author.toUpperCase());
+    }
+
+    int ratingVal = 5;
+    if (json['rating'] != null) {
+      if (json['rating'] is num) {
+        ratingVal = (json['rating'] as num).toInt();
+      } else {
+        ratingVal = int.tryParse(json['rating'].toString()) ?? 5;
+      }
+    }
 
     return PeerTestimonialModel(
       id: json['id']?.toString() ?? '',
       authorName: author.isNotEmpty ? author : 'Circle Peer',
       authorInitials: initials.isNotEmpty ? initials : 'P',
       subtitle: subtitle,
-      rating: json['rating'] as int? ?? 5,
+      rating: ratingVal,
       content: json['content'] as String? ?? json['message'] as String? ?? '',
       date: json['date'] as String? ?? json['created_at'] as String? ?? '',
     );

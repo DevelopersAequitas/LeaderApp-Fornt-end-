@@ -123,105 +123,92 @@ class _ProfileContent extends StatelessWidget {
                   ),
               ],
             ),
-            body: state.isLoading && profile == null
-                ? const CenteredLoadingIndicator(height: 300)
-                : RefreshIndicator(
-                    onRefresh: () async {
-                      bloc.add(const LoadProfileData());
-                    },
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (profile != null) ...[
-                            ProfileHeroCard(profile: profile),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: ProfileContactCard(
-                                profile: profile,
-                                onEditTap: () =>
-                                    _showEditProfileModal(context, profile),
-                                canEdit: true,
-                              ),
-                            ),
-                            // const SizedBox(height: 12),
-                            // Padding(
-                            //   padding:
-                            //       const EdgeInsets.symmetric(horizontal: 16),
-                            //   child: ProfileCapabilitiesCard(profile: profile),
-                            // ),
-                            // if (profile.managedCircles.isNotEmpty) ...[
-                            //   const SizedBox(height: 12),
-                            //   Padding(
-                            //     padding:
-                            //         const EdgeInsets.symmetric(horizontal: 16),
-                            //     child: ProfileAssignedCirclesCard(profile: profile),
-                            //   ),
-                            // ],
-                          ],
-                          const SizedBox(height: 12),
-
-                          // Administrative Tiles
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Column(
-                              children: [
-                                if (canManageRoles) ...[
-                                  const ProfileRoleManagementTile(),
-                                  const SizedBox(height: 8),
-                                ],
-                                const ProfileCircularsTile(),
-                                // const SizedBox(height: 8),
-                                // const ProfileAppVersionTile(),
-                                const SizedBox(height: 16),
-                                // Sign Out Button
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
-                                  child: OutlinedButton.icon(
-                                    onPressed: () =>
-                                        _showSignOutDialog(context),
-                                    icon: const Icon(
-                                      Icons.logout_rounded,
-                                      color: AppColors.danger,
-                                      size: 18,
-                                    ),
-                                    label: const Text(
-                                      'Sign Out from Account',
-                                      style: TextStyle(
-                                        color: AppColors.danger,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                        color: AppColors.dangerBorder,
-                                      ),
-                                      backgroundColor: AppColors.dangerBg,
-                                      minimumSize: const Size(
-                                        double.infinity,
-                                        44,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  ),
+            body: SafeArea(
+              top: false,
+              child: state.isLoading && profile == null
+                  ? const CenteredLoadingIndicator(height: 300)
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        bloc.add(const LoadProfileData());
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (profile != null) ...[
+                              ProfileHeroCard(profile: profile),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
                                 ),
-                              ],
+                                child: ProfileContactCard(
+                                  profile: profile,
+                                  onEditTap: () =>
+                                      _showEditProfileModal(context, profile),
+                                  canEdit: true,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 12),
+
+                            // Administrative Tiles
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Column(
+                                children: [
+                                  if (canManageRoles) ...[
+                                    const ProfileRoleManagementTile(),
+                                    const SizedBox(height: 8),
+                                  ],
+                                  const ProfileCircularsTile(),
+                                  const SizedBox(height: 16),
+                                  // Sign Out Button
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    child: OutlinedButton.icon(
+                                      onPressed: () =>
+                                          _showSignOutDialog(context),
+                                      icon: const Icon(
+                                        Icons.logout_rounded,
+                                        color: AppColors.danger,
+                                        size: 18,
+                                      ),
+                                      label: const Text(
+                                        'Sign Out from Account',
+                                        style: TextStyle(
+                                          color: AppColors.danger,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(
+                                          color: AppColors.dangerBorder,
+                                        ),
+                                        backgroundColor: AppColors.dangerBg,
+                                        minimumSize: const Size(
+                                          double.infinity,
+                                          44,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 32),
-                        ],
+                            const SizedBox(height: 32),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+            ),
           );
         },
       ),

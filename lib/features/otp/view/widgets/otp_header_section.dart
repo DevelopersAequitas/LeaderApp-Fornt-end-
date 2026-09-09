@@ -59,7 +59,7 @@ class OtpHeaderSection extends StatelessWidget {
           'PEERS GLOBAL',
           style: TextStyle(
             fontSize: 22,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             color: Colors.white,
             letterSpacing: 1.2,
           ),

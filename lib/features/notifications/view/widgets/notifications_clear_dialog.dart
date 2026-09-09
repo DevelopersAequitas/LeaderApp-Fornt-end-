@@ -23,7 +23,7 @@ class NotificationsClearDialog extends StatelessWidget {
           SizedBox(width: 8),
           Text(
             'Clear All Notifications',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
           ),
         ],
       ),
@@ -36,7 +36,7 @@ class NotificationsClearDialog extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text(
             'Cancel',
-            style: TextStyle(color: Color(0xFF8B9CB4), fontWeight: FontWeight.w700),
+            style: TextStyle(color: Color(0xFF8B9CB4), fontWeight: FontWeight.w500),
           ),
         ),
         ElevatedButton(
@@ -51,7 +51,7 @@ class NotificationsClearDialog extends StatelessWidget {
           },
           child: const Text(
             'Clear All',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
           ),
         ),
       ],

@@ -59,47 +59,52 @@ class DashboardBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 70,
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
           top: BorderSide(color: AppColors.border, width: 1.0),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildNavBarItem(
-            0,
-            Icons.dashboard_rounded,
-            Icons.dashboard_outlined,
-            'Dashboard',
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 62,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNavBarItem(
+                0,
+                Icons.dashboard_rounded,
+                Icons.dashboard_outlined,
+                'Dashboard',
+              ),
+              _buildNavBarItem(
+                1,
+                Icons.people_alt_rounded,
+                Icons.people_alt_outlined,
+                'Peers',
+              ),
+              _buildNavBarItem(
+                2,
+                Icons.diversity_3_rounded,
+                Icons.diversity_3_outlined,
+                'Teams',
+              ),
+              _buildNavBarItem(
+                3,
+                Icons.credit_card_rounded,
+                Icons.credit_card_outlined,
+                'Finance',
+              ),
+              _buildNavBarItem(
+                4,
+                Icons.description_rounded,
+                Icons.description_outlined,
+                'Report',
+              ),
+            ],
           ),
-          _buildNavBarItem(
-            1,
-            Icons.people_alt_rounded,
-            Icons.people_alt_outlined,
-            'Peers',
-          ),
-          _buildNavBarItem(
-            2,
-            Icons.diversity_3_rounded,
-            Icons.diversity_3_outlined,
-            'Teams',
-          ),
-          _buildNavBarItem(
-            3,
-            Icons.credit_card_rounded,
-            Icons.credit_card_outlined,
-            'Finance',
-          ),
-          _buildNavBarItem(
-            4,
-            Icons.description_rounded,
-            Icons.description_outlined,
-            'Report',
-          ),
-        ],
+        ),
       ),
     );
   }

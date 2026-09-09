@@ -36,7 +36,7 @@ class OtpResendSection extends StatelessWidget {
               'Sending code...',
               style: TextStyle(
                 fontSize: 13.5,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
                 color: AppColors.primary,
               ),
             ),
@@ -58,7 +58,7 @@ class OtpResendSection extends StatelessWidget {
             'Resend Code',
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
               color: AppColors.primary,
             ),
           ),
@@ -83,7 +83,7 @@ class OtpResendSection extends StatelessWidget {
             'Resend code in $minutes:${seconds}s',
             style: const TextStyle(
               fontSize: 13.5,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
             ),
           ),

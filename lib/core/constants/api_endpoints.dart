@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Defines the active server environment for the Leader App.
 enum AppEnvironment {
   dev('Development', 'https://dev.peersunity.com/api/v1'),
@@ -15,8 +17,9 @@ enum AppEnvironment {
 /// Adheres strictly to the Leader App API Specification and New Endpoints release.
 abstract class ApiEndpoints {
   /// Active Environment.
-  /// Defaulting to Production (`https://peersunity.com/api/v1`) since `dev.peersunity.com` is currently offline/unreachable.
-  static AppEnvironment activeEnvironment = AppEnvironment.prod;
+  /// Uses Development in debug mode and Production in release mode.
+  static AppEnvironment activeEnvironment =
+      kDebugMode ? AppEnvironment.dev : AppEnvironment.prod;
 
   /// Gets the current Base URL.
   static String get baseUrl => activeEnvironment.baseUrl;
@@ -43,7 +46,11 @@ abstract class ApiEndpoints {
   static String peerSendWish(String id) => '$baseUrl/peers/$id/send-wish';
   static String peerMeetings(String id) => '$baseUrl/peers/$id/meetings';
   static String peerActivities(String id) => '$baseUrl/peers/$id/activities';
-  static String get logP2pMeeting => '$baseUrl/peers/p2p-meetings';
+  static String get impacts => '$baseUrl/impacts';
+  static String get p2pMeetings => '$baseUrl/p2p-meetings';
+  static String get logP2pMeeting => '$baseUrl/p2p-meetings';
+  static String get businessDeals => '$baseUrl/business-deals';
+  static String get requirements => '$baseUrl/requirements';
 
   // --- 4. Teams & Circles ---
   static String get teamsSummary => '$baseUrl/teams/summary';

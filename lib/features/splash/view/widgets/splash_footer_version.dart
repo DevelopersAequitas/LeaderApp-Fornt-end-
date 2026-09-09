@@ -30,7 +30,7 @@ class SplashFooterVersion extends StatelessWidget {
               appVersion.isNotEmpty ? 'v$appVersion' : '',
               style: const TextStyle(
                 fontSize: 10.5,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
                 color: Color(0xFF64748B),
                 letterSpacing: 1.2,
               ),

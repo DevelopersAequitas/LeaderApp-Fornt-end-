@@ -43,7 +43,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const Spacer(),
@@ -58,7 +58,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -107,7 +107,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
                               style: const TextStyle(
                                 color: AppColors.text,
                                 fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             const SizedBox(height: 1),
@@ -116,7 +116,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
                               style: TextStyle(
                                 color: Color(0xFF16A34A),
                                 fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],

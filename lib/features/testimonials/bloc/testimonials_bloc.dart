@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/error_formatter.dart';
 import '../../../data/repositories/referrals_repository.dart';
 import 'testimonials_event.dart';
 import 'testimonials_state.dart';
@@ -29,7 +30,7 @@ class TestimonialsBloc extends Bloc<TestimonialsEvent, TestimonialsState> {
         filteredTestimonials: allTestimonials,
       ));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(isLoading: false, errorMessage: ErrorFormatter.format(e)));
     }
   }
 

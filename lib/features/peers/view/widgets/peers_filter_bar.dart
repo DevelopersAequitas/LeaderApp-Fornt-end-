@@ -99,7 +99,7 @@ class PeersFilterBar extends StatelessWidget {
                       'Sort:',
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w500,
                         color: Color(0xFF8B9CB4),
                       ),
                     ),
@@ -138,8 +138,8 @@ class PeersFilterBar extends StatelessWidget {
                               : const Color(0xFF64748B),
                           fontSize: 11,
                           fontWeight: isSelected
-                              ? FontWeight.w800
-                              : FontWeight.w600,
+                              ? FontWeight.w500
+                              : FontWeight.w400,
                         ),
                       ),
                     ),

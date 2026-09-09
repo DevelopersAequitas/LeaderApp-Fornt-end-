@@ -35,7 +35,7 @@ class NotificationsEmptyView extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.text,
               fontSize: 15,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 5),

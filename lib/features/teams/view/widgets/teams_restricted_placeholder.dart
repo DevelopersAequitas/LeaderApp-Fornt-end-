@@ -30,7 +30,7 @@ class TeamsRestrictedPlaceholder extends StatelessWidget {
                 TextSpan(
                   text: permission.role,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.text,
                   ),
                 ),
@@ -57,7 +57,7 @@ class TeamsRestrictedPlaceholder extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.grey.shade500,
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -85,7 +85,7 @@ class TeamsRestrictedPlaceholder extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.deepPurple,
                               fontSize: 11,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -109,7 +109,7 @@ class TeamsRestrictedPlaceholder extends StatelessWidget {
                   text: permission.role,
                   style: const TextStyle(
                     color: Colors.indigo,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

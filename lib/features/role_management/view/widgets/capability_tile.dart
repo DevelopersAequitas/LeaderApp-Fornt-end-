@@ -53,7 +53,7 @@ class CapabilityTile extends StatelessWidget {
                   capability.name,
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     color: isEnabled ? AppColors.text : AppColors.textSecondary,
                   ),
                 ),

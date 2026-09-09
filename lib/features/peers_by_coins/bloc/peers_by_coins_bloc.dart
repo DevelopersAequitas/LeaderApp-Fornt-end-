@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/error_formatter.dart';
 import '../../../data/repositories/referrals_repository.dart';
 import 'peers_by_coins_event.dart';
 import 'peers_by_coins_state.dart';
@@ -26,7 +27,7 @@ class PeersByCoinsBloc extends Bloc<PeersByCoinsEvent, PeersByCoinsState> {
         filteredPeers: allPeers,
       ));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(isLoading: false, errorMessage: ErrorFormatter.format(e)));
     }
   }
 

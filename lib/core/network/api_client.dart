@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../helpers/session_manager.dart';
+import '../utils/error_formatter.dart';
 import 'api_exception.dart';
 import 'api_response.dart';
 
@@ -230,73 +231,51 @@ class ApiClient {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Unexpected network error: $e');
+      throw ApiException(message: ErrorFormatter.format(e));
     }
   }
 
-  /// Translates DioException into standardized project ApiException hierarchy.
+  /// Translates DioException into standardized project ApiException hierarchy with user-friendly messages.
   ApiException _handleDioError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.sendTimeout ||
-        e.type == DioExceptionType.receiveTimeout) {
-      return const NetworkConnectionException(
-        message: 'Request timed out. Server took too long to respond.',
-      );
-    }
-
-    if (e.type == DioExceptionType.connectionError) {
-      return const NetworkConnectionException(
-        message: 'No internet connection or server unreachable.',
-      );
-    }
+    final friendlyMessage = ErrorFormatter.format(e);
 
     final response = e.response;
     final statusCode = response?.statusCode;
     final dynamic responseData = response?.data;
-
-    String errorMessage = 'An unexpected network error occurred.';
     String? errorCode;
     dynamic details;
 
     if (responseData is Map<String, dynamic>) {
-      errorMessage = responseData['message'] as String? ?? errorMessage;
       errorCode = responseData['error_code'] as String?;
-      details = responseData['details'];
-    } else if (responseData is String && responseData.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(responseData);
-        if (decoded is Map<String, dynamic>) {
-          errorMessage = decoded['message'] as String? ?? errorMessage;
-          errorCode = decoded['error_code'] as String?;
-          details = decoded['details'];
-        } else {
-          errorMessage = responseData;
-        }
-      } catch (_) {
-        errorMessage = responseData;
-      }
-    } else if (e.message != null && e.message!.isNotEmpty) {
-      errorMessage = e.message!;
+      details = responseData['details'] ?? responseData['errors'];
+    }
+
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.connectionError) {
+      return NetworkConnectionException(message: friendlyMessage);
     }
 
     if (statusCode == 401) {
-      return UnauthenticatedException(message: errorMessage, errorCode: errorCode);
+      return UnauthenticatedException(message: friendlyMessage, errorCode: errorCode);
     } else if (statusCode == 403) {
-      return UnauthorizedException(message: errorMessage, errorCode: errorCode);
+      return UnauthorizedException(message: friendlyMessage, errorCode: errorCode);
     } else if (statusCode == 404) {
-      return NotFoundException(message: errorMessage, errorCode: errorCode);
+      return NotFoundException(message: friendlyMessage, errorCode: errorCode);
     } else if (statusCode == 422) {
       return ValidationException(
-        message: errorMessage,
+        message: friendlyMessage,
         errorCode: errorCode,
         details: details,
       );
     }
 
     return ApiException(
-      message: errorMessage,
+      message: friendlyMessage,
       statusCode: statusCode,
       errorCode: errorCode,
+      details: details,
     );
   }
 }

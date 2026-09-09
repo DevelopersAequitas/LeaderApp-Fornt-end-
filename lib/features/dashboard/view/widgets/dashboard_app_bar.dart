@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 // import '../../../../core/enums/user_role.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/routes/app_routes.dart';
@@ -72,15 +73,24 @@ class DashboardAppBar extends StatelessWidget {
         tabSubtitle = session.customRoleLabel ?? session.role.label;
     }
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 1.0)),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: AppColors.border,
       ),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(bottom: BorderSide(color: AppColors.border, width: 1.0)),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -96,7 +106,7 @@ class DashboardAppBar extends StatelessWidget {
                         style: const TextStyle(
                           color: AppColors.text,
                           fontSize: 16,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                           letterSpacing: 0.2,
                         ),
                         maxLines: 1,
@@ -153,7 +163,7 @@ class DashboardAppBar extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 9,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               height: 1.0,
                             ),
                           ),
@@ -216,6 +226,7 @@ class DashboardAppBar extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

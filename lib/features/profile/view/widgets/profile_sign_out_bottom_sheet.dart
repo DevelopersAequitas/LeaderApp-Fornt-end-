@@ -55,7 +55,7 @@ class ProfileSignOutBottomSheet extends StatelessWidget {
             'Sign Out of Account',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
               color: AppColors.text,
             ),
           ),
@@ -85,7 +85,7 @@ class ProfileSignOutBottomSheet extends StatelessWidget {
                   ),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),
@@ -107,7 +107,7 @@ class ProfileSignOutBottomSheet extends StatelessWidget {
                   ),
                   child: const Text(
                     'Yes, Sign Out',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),

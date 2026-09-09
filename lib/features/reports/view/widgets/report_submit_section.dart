@@ -94,7 +94,7 @@ class ReportSubmitSection extends StatelessWidget {
                             'Select Circle for Report',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                           ),
@@ -103,7 +103,7 @@ class ReportSubmitSection extends StatelessWidget {
                             '${circles.length} Available',
                             style: const TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.textSecondary,
                             ),
                           ),
@@ -202,8 +202,8 @@ class ReportSubmitSection extends StatelessWidget {
                                     item,
                                     style: TextStyle(
                                       fontWeight: isSelected
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
+                                          ? FontWeight.w500
+                                          : FontWeight.w400,
                                       fontSize: 13,
                                       color: isSelected
                                           ? AppColors.primary
@@ -296,7 +296,7 @@ class ReportSubmitSection extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.text,
                     fontSize: 14,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -305,7 +305,7 @@ class ReportSubmitSection extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -345,7 +345,7 @@ class ReportSubmitSection extends StatelessWidget {
                       ? Colors.white
                       : AppColors.text,
                   fontSize: 12,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -378,7 +378,7 @@ class ReportSubmitSection extends StatelessWidget {
                       ? Colors.white
                       : AppColors.text,
                   fontSize: 12,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -399,7 +399,7 @@ class ReportSubmitSection extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 10,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
                 letterSpacing: 0.4,
               ),
             ),
@@ -410,7 +410,7 @@ class ReportSubmitSection extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.primary,
                   fontSize: 10,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
           ],
@@ -450,7 +450,7 @@ class ReportSubmitSection extends StatelessWidget {
                           ? AppColors.text
                           : AppColors.textSecondary,
                       fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -476,7 +476,7 @@ class ReportSubmitSection extends StatelessWidget {
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 10,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             letterSpacing: 0.4,
           ),
         ),
@@ -544,7 +544,7 @@ class ReportSubmitSection extends StatelessWidget {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 14,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
       ),

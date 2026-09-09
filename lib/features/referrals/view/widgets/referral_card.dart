@@ -102,7 +102,7 @@ class ReferralCard extends StatelessWidget {
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 8,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -119,7 +119,7 @@ class ReferralCard extends StatelessWidget {
                             style: const TextStyle(
                               color: AppColors.text,
                               fontSize: 13,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -157,7 +157,7 @@ class ReferralCard extends StatelessWidget {
                         style: TextStyle(
                           color: referralsBoxTextColor,
                           fontSize: 11,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -184,7 +184,7 @@ class ReferralCard extends StatelessWidget {
                         style: TextStyle(
                           color: statusTextColor,
                           fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -205,7 +205,7 @@ class ReferralCard extends StatelessWidget {
                         style: TextStyle(
                           color: sourceTextColor,
                           fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -227,7 +227,7 @@ class ReferralCard extends StatelessWidget {
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -289,7 +289,7 @@ class ReferralCard extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.text,
             fontSize: 12,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -300,7 +300,7 @@ class ReferralCard extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 9,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

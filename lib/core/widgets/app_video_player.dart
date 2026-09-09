@@ -95,7 +95,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
             const SizedBox(height: 8),
             const Text(
               'Unable to load intro video',
-              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -177,7 +177,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
                           children: [
                             Text(
                               _formatDuration(position),
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w500),
                             ),
                             Expanded(
                               child: SliderTheme(
@@ -200,7 +200,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
                             ),
                             Text(
                               _formatDuration(duration),
-                              style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600),
+                              style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
                             ),
                           ],
                         ),

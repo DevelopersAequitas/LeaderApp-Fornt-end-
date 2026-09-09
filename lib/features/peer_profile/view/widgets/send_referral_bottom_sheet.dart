@@ -133,7 +133,7 @@ class _SendReferralBottomSheetState extends State<SendReferralBottomSheet> {
                     'Send Referral · ${widget.peer.name}',
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       color: AppColors.text,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -243,7 +243,7 @@ class _SendReferralBottomSheetState extends State<SendReferralBottomSheet> {
                   : const Text(
                       'Send Referral',
                       style: TextStyle(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                         fontSize: 14,
                       ),
                     ),

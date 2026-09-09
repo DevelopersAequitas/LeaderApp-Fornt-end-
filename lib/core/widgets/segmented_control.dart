@@ -73,7 +73,7 @@ class SegmentedControl extends StatelessWidget {
                             : const Color(0xFF64748B),
                         fontSize: 12,
                         fontWeight:
-                            isSelected ? FontWeight.w800 : FontWeight.w600,
+                            isSelected ? FontWeight.w500 : FontWeight.w400,
                       ),
                     ),
                   ],

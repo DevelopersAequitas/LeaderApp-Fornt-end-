@@ -125,7 +125,7 @@ class _LogP2PBottomSheetState extends State<LogP2PBottomSheet> {
                     'Log P2P Meeting · ${widget.peer.name}',
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       color: AppColors.text,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -198,7 +198,7 @@ class _LogP2PBottomSheetState extends State<LogP2PBottomSheet> {
                   : const Text(
                       'Save P2P Meeting',
                       style: TextStyle(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                         fontSize: 14,
                       ),
                     ),

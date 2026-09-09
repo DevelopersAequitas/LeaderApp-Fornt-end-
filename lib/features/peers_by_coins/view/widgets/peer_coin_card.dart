@@ -128,7 +128,7 @@ class PeerCoinCard extends StatelessWidget {
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 8,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -145,7 +145,7 @@ class PeerCoinCard extends StatelessWidget {
                             style: const TextStyle(
                               color: AppColors.text,
                               fontSize: 13,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -186,7 +186,7 @@ class PeerCoinCard extends StatelessWidget {
                             style: TextStyle(
                               color: coinsBoxTextColor,
                               fontSize: 13,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               height: 1.1,
                             ),
                           ),
@@ -195,7 +195,7 @@ class PeerCoinCard extends StatelessWidget {
                             style: TextStyle(
                               color: coinsBoxTextColor.withValues(alpha: 0.75),
                               fontSize: 8,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               letterSpacing: 0.3,
                             ),
                           ),
@@ -225,7 +225,7 @@ class PeerCoinCard extends StatelessWidget {
                         style: TextStyle(
                           color: statusTextColor,
                           fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -246,7 +246,7 @@ class PeerCoinCard extends StatelessWidget {
                         style: TextStyle(
                           color: sourceTextColor,
                           fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -268,7 +268,7 @@ class PeerCoinCard extends StatelessWidget {
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -317,7 +317,7 @@ class PeerCoinCard extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.text,
             fontSize: 12,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -328,7 +328,7 @@ class PeerCoinCard extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 9,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

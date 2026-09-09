@@ -73,7 +73,7 @@ class RoleCategorySection extends StatelessWidget {
                         categoryName.toUpperCase(),
                         style: const TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           color: AppColors.text,
                           letterSpacing: 0.5,
                         ),
@@ -92,7 +92,7 @@ class RoleCategorySection extends StatelessWidget {
                         '$activeCount/${capabilities.length}',
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           color: activeCount > 0 ? AppColors.primary : AppColors.textSecondary,
                         ),
                       ),
@@ -103,7 +103,7 @@ class RoleCategorySection extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 isAllCategoryEnabled ? 'All ON' : 'All OFF',
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
               ),
               const SizedBox(width: 2),
               SizedBox(

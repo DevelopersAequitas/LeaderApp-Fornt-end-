@@ -111,7 +111,7 @@ class _PublishCircularBottomSheetState extends State<PublishCircularBottomSheet>
                     children: [
                       Text(
                         'Publish Role-Wise Circular',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.text),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.text),
                       ),
                       Text(
                         'Target critical announcements to leader roles',
@@ -129,7 +129,7 @@ class _PublishCircularBottomSheetState extends State<PublishCircularBottomSheet>
             const Divider(height: 24, color: AppColors.border),
             TextField(
               controller: _titleController,
-              style: const TextStyle(fontSize: 13, color: AppColors.text, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 13, color: AppColors.text, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 labelText: 'Circular Title *',
                 hintText: 'e.g. Q3 Leadership Summit Notice',
@@ -170,7 +170,7 @@ class _PublishCircularBottomSheetState extends State<PublishCircularBottomSheet>
             const SizedBox(height: 14),
             const Text(
               'Priority Level',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.text),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.text),
             ),
             const SizedBox(height: 8),
             Row(
@@ -209,7 +209,7 @@ class _PublishCircularBottomSheetState extends State<PublishCircularBottomSheet>
                         p,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isSel ? FontWeight.w700 : FontWeight.w600,
+                          fontWeight: isSel ? FontWeight.w500 : FontWeight.w400,
                           color: isSel ? Colors.white : AppColors.text,
                         ),
                       ),
@@ -221,7 +221,7 @@ class _PublishCircularBottomSheetState extends State<PublishCircularBottomSheet>
             const SizedBox(height: 14),
             const Text(
               'Target Leader Roles',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.text),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.text),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -272,7 +272,7 @@ class _PublishCircularBottomSheetState extends State<PublishCircularBottomSheet>
                           roleLabel,
                           style: TextStyle(
                             fontSize: 11.5,
-                            fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: isSel ? FontWeight.w500 : FontWeight.w400,
                             color: isSel ? Colors.white : AppColors.text,
                           ),
                         ),

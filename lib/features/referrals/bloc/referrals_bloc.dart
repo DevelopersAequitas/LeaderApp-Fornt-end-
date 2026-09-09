@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/error_formatter.dart';
 import '../../../data/repositories/referrals_repository.dart';
 import 'referrals_event.dart';
 import 'referrals_state.dart';
@@ -26,7 +27,7 @@ class ReferralsBloc extends Bloc<ReferralsEvent, ReferralsState> {
         filteredReferrals: allReferrals,
       ));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(isLoading: false, errorMessage: ErrorFormatter.format(e)));
     }
   }
 

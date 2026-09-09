@@ -255,7 +255,7 @@ class _CommissionSettingsBottomSheetState
                           'Configure Commission Rates',
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                             color: AppColors.text,
                           ),
                         ),
@@ -343,8 +343,8 @@ class _CommissionSettingsBottomSheetState
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: isSelected
-                                    ? FontWeight.w800
-                                    : FontWeight.w600,
+                                    ? FontWeight.w500
+                                    : FontWeight.w400,
                                 color: isSelected
                                     ? Colors.white
                                     : AppColors.text,
@@ -395,7 +395,7 @@ class _CommissionSettingsBottomSheetState
                                       Text(
                                         form.roleName,
                                         style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w500,
                                           fontSize: 13,
                                           color: AppColors.text,
                                         ),
@@ -421,7 +421,7 @@ class _CommissionSettingsBottomSheetState
                             'Direct Referral Cut (%)',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                           ),
@@ -441,7 +441,7 @@ class _CommissionSettingsBottomSheetState
                             ),
                             style: const TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                             cursorColor: AppColors.primary,
@@ -459,7 +459,7 @@ class _CommissionSettingsBottomSheetState
                               ),
                               suffixText: '%',
                               suffixStyle: const TextStyle(
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                                 color: AppColors.primary,
                                 fontSize: 14,
                               ),
@@ -495,7 +495,7 @@ class _CommissionSettingsBottomSheetState
                             'App Join Cut (%)',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                           ),
@@ -515,7 +515,7 @@ class _CommissionSettingsBottomSheetState
                             ),
                             style: const TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                             cursorColor: AppColors.primary,
@@ -533,7 +533,7 @@ class _CommissionSettingsBottomSheetState
                               ),
                               suffixText: '%',
                               suffixStyle: const TextStyle(
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                                 color: AppColors.primary,
                                 fontSize: 14,
                               ),
@@ -569,7 +569,7 @@ class _CommissionSettingsBottomSheetState
                             'Annual Renewal Cut (%)',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                           ),
@@ -589,7 +589,7 @@ class _CommissionSettingsBottomSheetState
                             ),
                             style: const TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                             cursorColor: AppColors.primary,
@@ -607,7 +607,7 @@ class _CommissionSettingsBottomSheetState
                               ),
                               suffixText: '%',
                               suffixStyle: const TextStyle(
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                                 color: AppColors.primary,
                                 fontSize: 14,
                               ),
@@ -675,7 +675,7 @@ class _CommissionSettingsBottomSheetState
                           Text(
                             'Save Commission Rates',
                             style: TextStyle(
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               fontSize: 14,
                             ),
                           ),

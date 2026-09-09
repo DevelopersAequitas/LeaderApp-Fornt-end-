@@ -50,8 +50,13 @@ class PeerProfileTestimonialsSection extends StatelessWidget {
         targetPeerInitials: '',
         content: testimonial.content,
         date: testimonial.date.isNotEmpty ? testimonial.date : 'Recent',
+        rating: testimonial.rating,
       );
-      TestimonialDetailBottomSheet.show(context, testimonial: tModel);
+      TestimonialDetailBottomSheet.show(
+        context,
+        testimonial: tModel,
+        showReceivedBy: false,
+      );
     }
 
     return Container(
@@ -88,7 +93,7 @@ class PeerProfileTestimonialsSection extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -102,7 +107,7 @@ class PeerProfileTestimonialsSection extends StatelessWidget {
                             style: const TextStyle(
                               color: AppColors.text,
                               fontSize: 12.5,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           if (testimonial.subtitle.isNotEmpty) ...[
@@ -119,15 +124,34 @@ class PeerProfileTestimonialsSection extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (testimonial.date.isNotEmpty)
-                      Text(
-                        testimonial.date,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (testimonial.rating > 0)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(
+                              testimonial.rating.clamp(1, 5),
+                              (i) => const Icon(
+                                Icons.star_rounded,
+                                size: 13,
+                                color: Color(0xFFF59E0B),
+                              ),
+                            ),
+                          ),
+                        if (testimonial.date.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            testimonial.date,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),

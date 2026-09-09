@@ -94,7 +94,7 @@ class _AddRoleBottomSheetState extends State<AddRoleBottomSheet> {
                       'Add Custom Role',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                         color: AppColors.text,
                       ),
                     ),
@@ -116,7 +116,7 @@ class _AddRoleBottomSheetState extends State<AddRoleBottomSheet> {
             onChanged: (_) {
               if (_errorText != null) setState(() => _errorText = null);
             },
-            style: const TextStyle(fontSize: 14, color: AppColors.text, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 14, color: AppColors.text, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
               labelText: 'Role Title',
               hintText: 'e.g., Regional Coordinator, Event Lead',

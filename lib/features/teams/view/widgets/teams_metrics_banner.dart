@@ -103,7 +103,7 @@ class TeamsMetricsBanner extends StatelessWidget {
             style: TextStyle(
               color: valueColor,
               fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -113,7 +113,7 @@ class TeamsMetricsBanner extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

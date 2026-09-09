@@ -68,7 +68,7 @@ class CapabilityFilterBar extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
             color: isSelected ? Colors.white : AppColors.text,
           ),
         ),

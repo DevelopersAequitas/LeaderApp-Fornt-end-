@@ -75,7 +75,7 @@ class PeerProfileTabSelector extends StatelessWidget {
                 style: TextStyle(
                   color: isSelected ? Colors.white : AppColors.textSecondary,
                   fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                 ),
               ),
               if (countBadge != null) ...[
@@ -96,7 +96,7 @@ class PeerProfileTabSelector extends StatelessWidget {
                     style: TextStyle(
                       color: isSelected ? Colors.white : AppColors.text,
                       fontSize: 9,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),

@@ -134,46 +134,49 @@ class _PeerProfileContent extends StatelessWidget {
                     ]
                   : null,
             ),
-            body: state.isLoading && details == null
-                ? const CenteredLoadingIndicator(height: 300)
-                : RefreshIndicator(
-                    onRefresh: () async {
-                      bloc.add(LoadPeerProfile(displayPeer));
-                    },
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          PeerProfileHeroCard(peer: displayPeer),
-                          const SizedBox(height: 8),
-                          PeerProfileTabSelector(
-                            activeIndex: state.activeSubTab,
-                            onTabSelected: (idx) =>
-                                bloc.add(ChangeProfileSubTab(idx)),
-                            activityCount: details?.activities.length ?? 0,
-                            testimonialCount:
-                                details?.testimonials.length ?? 0,
-                          ),
-                          const SizedBox(height: 12),
-                          if (state.activeSubTab == 0 && details != null)
-                            PeerProfileOverviewSection(
-                              peer: displayPeer,
-                              details: details,
-                            )
-                          else if (state.activeSubTab == 1 && details != null)
-                            PeerProfileActivitySection(
-                              activities: details.activities,
-                            )
-                          else if (state.activeSubTab == 2 && details != null)
-                            PeerProfileTestimonialsSection(
-                              testimonials: details.testimonials,
+            body: SafeArea(
+              top: false,
+              child: state.isLoading && details == null
+                  ? const CenteredLoadingIndicator(height: 300)
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        bloc.add(LoadPeerProfile(displayPeer));
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            PeerProfileHeroCard(peer: displayPeer),
+                            const SizedBox(height: 8),
+                            PeerProfileTabSelector(
+                              activeIndex: state.activeSubTab,
+                              onTabSelected: (idx) =>
+                                  bloc.add(ChangeProfileSubTab(idx)),
+                              activityCount: details?.activities.length ?? 0,
+                              testimonialCount:
+                                  details?.testimonials.length ?? 0,
                             ),
-                          const SizedBox(height: 24),
-                        ],
+                            const SizedBox(height: 12),
+                            if (state.activeSubTab == 0 && details != null)
+                              PeerProfileOverviewSection(
+                                peer: displayPeer,
+                                details: details,
+                              )
+                            else if (state.activeSubTab == 1 && details != null)
+                              PeerProfileActivitySection(
+                                activities: details.activities,
+                              )
+                            else if (state.activeSubTab == 2 && details != null)
+                              PeerProfileTestimonialsSection(
+                                testimonials: details.testimonials,
+                              ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+            ),
             // bottomNavigationBar: PeerProfileBottomActions(
             //   onLogP2PTap: () => _showLogP2pSheet(context, displayPeer),
             //   onSendReferralTap: () =>

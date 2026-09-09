@@ -1,3 +1,5 @@
+import '../../peers/model/peer_model.dart';
+
 /// Model representing a peer testimonial.
 class TestimonialModel {
   final String id;
@@ -9,8 +11,12 @@ class TestimonialModel {
   final String circleName;
   final String authorInitials;
   final String targetPeerInitials;
+  final String profileImage;
+  final String city;
+  final String categoryLevel4;
   final String content;
   final String date;
+  final int rating;
 
   const TestimonialModel({
     required this.id,
@@ -22,8 +28,12 @@ class TestimonialModel {
     required this.circleName,
     required this.authorInitials,
     required this.targetPeerInitials,
+    this.profileImage = '',
+    this.city = '',
+    this.categoryLevel4 = '',
     required this.content,
     required this.date,
+    this.rating = 5,
   });
 
   // Backwards compatibility getters
@@ -35,6 +45,27 @@ class TestimonialModel {
   String get toInitials => targetPeerInitials;
   String get fromPeerId => authorId;
   String get toPeerId => targetPeerId;
+
+  PeerModel toPeerModel() {
+    final effectiveId = authorId.isNotEmpty ? authorId : targetPeerId.isNotEmpty ? targetPeerId : id;
+    final effectiveName = authorName.isNotEmpty ? authorName : targetPeerName;
+    final effectiveInitials = authorInitials.isNotEmpty ? authorInitials : targetPeerInitials;
+    return PeerModel(
+      id: effectiveId,
+      initials: effectiveInitials,
+      name: effectiveName,
+      avatarUrl: profileImage.isNotEmpty ? profileImage : null,
+      company: authorRole.isNotEmpty ? authorRole : circleName,
+      circle: circleName,
+      location: city,
+      tags: categoryLevel4,
+      impactCount: 0,
+      dealsFormatted: '₹0',
+      coins: 0,
+      attendance: '95%',
+      status: 'Active',
+    );
+  }
 
   factory TestimonialModel.fromJson(Map<String, dynamic> json) {
     String authorStr = 'Peer';
@@ -125,18 +156,58 @@ class TestimonialModel {
       dateStr = rawDate;
     }
 
+    final peerMap = json['peer'] is Map<String, dynamic>
+        ? json['peer'] as Map<String, dynamic>
+        : (json['peer'] is Map ? Map<String, dynamic>.from(json['peer'] as Map) : null);
+
+    final profileImg = json['profile_image']?.toString() ??
+        json['profile_photo_url']?.toString() ??
+        json['avatar_url']?.toString() ??
+        peerMap?['profile_image']?.toString() ??
+        '';
+
+    final cityStr = json['city']?.toString() ??
+        json['location']?.toString() ??
+        peerMap?['city']?.toString() ??
+        '';
+
+    final catLevel4 = json['category_level4']?.toString() ??
+        json['level4_category']?.toString() ??
+        json['sub_industry']?.toString() ??
+        peerMap?['category_level4']?.toString() ??
+        '';
+
+    if (authorIdStr.isEmpty) {
+      authorIdStr = json['peer_user_id']?.toString() ??
+          json['user_id']?.toString() ??
+          peerMap?['peer_user_id']?.toString() ??
+          peerMap?['id']?.toString() ??
+          '';
+    }
+    if (authorStr == 'Peer' && (json['peer_name'] != null || peerMap?['name'] != null)) {
+      authorStr = json['peer_name']?.toString() ?? peerMap?['name']?.toString() ?? 'Peer';
+    }
+
+    final ratingVal = json['rating'] is num
+        ? (json['rating'] as num).round()
+        : int.tryParse(json['rating']?.toString() ?? '') ?? 5;
+
     return TestimonialModel(
       id: json['id']?.toString() ?? '',
       authorId: authorIdStr,
       targetPeerId: targetIdStr,
       authorName: authorStr,
-      authorRole: roleStr,
+      authorRole: roleStr.isNotEmpty ? roleStr : (json['business_name']?.toString() ?? peerMap?['business_name']?.toString() ?? ''),
       targetPeerName: targetStr,
       circleName: circleStr,
       authorInitials: aInitials.isNotEmpty ? aInitials : 'PR',
       targetPeerInitials: tInitials.isNotEmpty ? tInitials : 'PR',
+      profileImage: profileImg,
+      city: cityStr,
+      categoryLevel4: catLevel4,
       content: json['content'] as String? ?? json['message'] as String? ?? '',
       date: dateStr.isNotEmpty ? dateStr : 'Recent',
+      rating: ratingVal,
     );
   }
 
@@ -148,7 +219,11 @@ class TestimonialModel {
         'author_role': authorRole,
         'target_peer_name': targetPeerName,
         'circle_name': circleName,
+        'profile_image': profileImage,
+        'city': city,
+        'category_level4': categoryLevel4,
         'content': content,
         'date': date,
+        'rating': rating,
       };
 }

@@ -77,7 +77,7 @@ class DashboardTopImpacters extends StatelessWidget {
                     style: TextStyle(
                       color: AppColors.text,
                       fontSize: 15,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -98,7 +98,7 @@ class DashboardTopImpacters extends StatelessWidget {
                     style: const TextStyle(
                       color: Color(0xFF1D4ED8),
                       fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -311,7 +311,7 @@ class DashboardTopImpacters extends StatelessWidget {
                             style: TextStyle(
                               color: rankText,
                               fontSize: 10,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],

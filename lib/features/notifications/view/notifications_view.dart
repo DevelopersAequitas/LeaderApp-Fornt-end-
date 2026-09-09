@@ -104,58 +104,61 @@ class _NotificationsContent extends StatelessWidget {
               subtitle: 'System updates & peer alerts',
               showBackButton: true,
             ),
-            body: Column(
-              children: [
-                // Top Summary Row with Mark All Read / Clear actions
-                NotificationsSummaryHeader(
-                  totalCount: state.totalCount,
-                  unreadCount: state.unreadCount,
-                  onMarkAllRead: () => bloc.add(const MarkAllAsRead()),
-                  onClearAll: () => _showClearAllConfirm(context),
-                ),
+            body: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  // Top Summary Row with Mark All Read / Clear actions
+                  NotificationsSummaryHeader(
+                    totalCount: state.totalCount,
+                    unreadCount: state.unreadCount,
+                    onMarkAllRead: () => bloc.add(const MarkAllAsRead()),
+                    onClearAll: () => _showClearAllConfirm(context),
+                  ),
 
-                // Horizontal Filter Chips
-                NotificationsFilterChips(
-                  selectedFilter: state.selectedFilter,
-                  allCount: allList.length,
-                  unreadCount: state.unreadCount,
-                  onFilterSelected: (f) =>
-                      bloc.add(FilterNotifications(f)),
-                ),
+                  // Horizontal Filter Chips
+                  NotificationsFilterChips(
+                    selectedFilter: state.selectedFilter,
+                    allCount: allList.length,
+                    unreadCount: state.unreadCount,
+                    onFilterSelected: (f) =>
+                        bloc.add(FilterNotifications(f)),
+                  ),
 
-                const SizedBox(height: 4),
+                  const SizedBox(height: 4),
 
-                // Content list or Empty State
-                Expanded(
-                  child: state.isLoading && allList.isEmpty
-                      ? const CenteredLoadingIndicator(height: 300)
-                      : RefreshIndicator(
-                          onRefresh: () async {
-                            bloc.add(
-                              const LoadNotifications(isRefresh: true),
-                            );
-                          },
-                          child: filteredList.isEmpty
-                              ? NotificationsEmptyView(
-                                  selectedFilter: state.selectedFilter,
-                                )
-                              : ListView.builder(
-                                  padding:
-                                      const EdgeInsets.only(bottom: 32),
-                                  itemCount: grouped.keys.length,
-                                  itemBuilder: (context, index) {
-                                    final dateKey =
-                                        grouped.keys.elementAt(index);
-                                    final items = grouped[dateKey]!;
-                                    return NotificationDateGroup(
-                                      dateTitle: dateKey,
-                                      notifications: items,
-                                    );
-                                  },
-                                ),
-                        ),
-                ),
-              ],
+                  // Content list or Empty State
+                  Expanded(
+                    child: state.isLoading && allList.isEmpty
+                        ? const CenteredLoadingIndicator(height: 300)
+                        : RefreshIndicator(
+                            onRefresh: () async {
+                              bloc.add(
+                                const LoadNotifications(isRefresh: true),
+                              );
+                            },
+                            child: filteredList.isEmpty
+                                ? NotificationsEmptyView(
+                                    selectedFilter: state.selectedFilter,
+                                  )
+                                : ListView.builder(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 32),
+                                    itemCount: grouped.keys.length,
+                                    itemBuilder: (context, index) {
+                                      final dateKey =
+                                          grouped.keys.elementAt(index);
+                                      final items = grouped[dateKey]!;
+                                      return NotificationDateGroup(
+                                        dateTitle: dateKey,
+                                        notifications: items,
+                                      );
+                                    },
+                                  ),
+                          ),
+                  ),
+                ],
+              ),
             ),
           );
         },

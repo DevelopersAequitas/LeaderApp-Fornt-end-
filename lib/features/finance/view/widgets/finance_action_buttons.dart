@@ -39,7 +39,7 @@ class FinanceActionButtons extends StatelessWidget {
               label: const Text(
                 'Record Payment',
                 style: TextStyle(
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                   fontSize: 11,
                   color: AppColors.primary,
                 ),
@@ -67,7 +67,7 @@ class FinanceActionButtons extends StatelessWidget {
                 ),
                 label: const Text(
                   'Commission Setup',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
                 ),
                 onPressed: onCommissionSetupTap,
               ),

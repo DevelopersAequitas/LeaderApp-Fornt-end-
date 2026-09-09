@@ -40,7 +40,7 @@ class DetailRow extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.text,
                 fontSize: 14,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),

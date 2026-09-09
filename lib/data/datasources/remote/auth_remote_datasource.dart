@@ -21,7 +21,7 @@ class AuthVerifyResult {
 
   factory AuthVerifyResult.fromJson(Map<String, dynamic> json) {
     return AuthVerifyResult(
-      authToken: json['auth_token']?.toString() ?? '',
+      authToken: (json['access_token'] ?? json['auth_token'] ?? json['token'])?.toString() ?? '',
       refreshToken: json['refresh_token']?.toString(),
       user: UserSession.fromJson(json['user'] as Map<String, dynamic>? ?? {}),
       permissions: LeaderPermissions.fromJson(json['permissions'] as Map<String, dynamic>?),

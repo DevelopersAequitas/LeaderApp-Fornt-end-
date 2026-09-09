@@ -107,7 +107,7 @@ class _LoginFormSectionState extends State<LoginFormSection> {
           'Sign In',
           style: TextStyle(
             fontSize: 24,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             color: AppColors.text,
             letterSpacing: -0.3,
           ),
@@ -131,7 +131,7 @@ class _LoginFormSectionState extends State<LoginFormSection> {
           style: const TextStyle(
             fontSize: 15,
             color: AppColors.text,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
             prefixIconConstraints: const BoxConstraints(
@@ -156,7 +156,7 @@ class _LoginFormSectionState extends State<LoginFormSection> {
                             '+${_selectedCountry.phoneCode}',
                             style: const TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.primary,
                             ),
                           ),
@@ -262,7 +262,7 @@ class _LoginFormSectionState extends State<LoginFormSection> {
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           SizedBox(width: 8),
@@ -373,7 +373,7 @@ class _CountryPickerBottomSheetState
                     'Select Country',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w500,
                       color: AppColors.text,
                       letterSpacing: -0.2,
                     ),
@@ -399,7 +399,7 @@ class _CountryPickerBottomSheetState
                 controller: _searchController,
                 style: const TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.text,
                 ),
                 decoration: InputDecoration(
@@ -522,7 +522,7 @@ class _CountryPickerBottomSheetState
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       fontSize: 13,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       color: AppColors.primary,
                                     ),
                                   ),
@@ -536,8 +536,8 @@ class _CountryPickerBottomSheetState
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: isSelected
-                                          ? FontWeight.w700
-                                          : FontWeight.w600,
+                                          ? FontWeight.w500
+                                          : FontWeight.w400,
                                       color: isSelected
                                           ? AppColors.primary
                                           : AppColors.text,

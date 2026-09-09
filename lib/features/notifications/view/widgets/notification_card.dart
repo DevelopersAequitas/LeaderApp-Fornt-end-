@@ -133,8 +133,8 @@ class NotificationCard extends StatelessWidget {
                                 color: AppColors.text,
                                 fontSize: 13,
                                 fontWeight: isUnread
-                                    ? FontWeight.w800
-                                    : FontWeight.w700,
+                                    ? FontWeight.w500
+                                    : FontWeight.w400,
                               ),
                             ),
                           ),
@@ -154,7 +154,7 @@ class NotificationCard extends StatelessWidget {
                               style: TextStyle(
                                 color: badgeTextColor,
                                 fontSize: 8,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w500,
                                 letterSpacing: 0.3,
                               ),
                             ),

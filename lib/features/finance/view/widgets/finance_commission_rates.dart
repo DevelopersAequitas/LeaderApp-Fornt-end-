@@ -22,7 +22,7 @@ class FinanceCommissionRates extends StatelessWidget {
             style: TextStyle(
               color: AppColors.text,
               fontSize: 14,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 1),
@@ -65,7 +65,7 @@ class FinanceCommissionRates extends StatelessWidget {
                         style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -74,7 +74,7 @@ class FinanceCommissionRates extends StatelessWidget {
                         style: const TextStyle(
                           color: AppColors.text,
                           fontSize: 24,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -103,7 +103,7 @@ class FinanceCommissionRates extends StatelessWidget {
                           style: const TextStyle(
                             color: Color(0xFFD97706),
                             fontSize: 9,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),

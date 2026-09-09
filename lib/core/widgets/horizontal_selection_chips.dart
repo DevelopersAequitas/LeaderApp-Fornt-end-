@@ -73,7 +73,7 @@ class HorizontalSelectionChips extends StatelessWidget {
                       style: TextStyle(
                         color: isSelected ? textSelected : textUnselected,
                         fontSize: 13,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

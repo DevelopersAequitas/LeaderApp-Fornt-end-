@@ -94,10 +94,13 @@ class _DashboardContentState extends State<_DashboardContent> {
         DashboardHeroCard(
           metrics: metrics,
           selectedCircle: selectedCircle,
-          onImpactTap: () => bloc.add(const TabChanged(1)),
-          onDealsTap: () => bloc.add(const TabChanged(1)),
-          onP2PTap: () => bloc.add(const TabChanged(1)),
-          onRevenueTap: () => bloc.add(const TabChanged(2)),  
+          onImpactTap: () =>
+              Navigator.of(context).pushNamed(AppRoutes.impacts),
+          onDealsTap: () =>
+              Navigator.of(context).pushNamed(AppRoutes.businessDeals),
+          onP2PTap: () =>
+              Navigator.of(context).pushNamed(AppRoutes.p2pMeetings),
+          onRevenueTap: () => bloc.add(const TabChanged(2)),
         ),
         const SizedBox(height: 6),
         DashboardKeyMetricsGrid(

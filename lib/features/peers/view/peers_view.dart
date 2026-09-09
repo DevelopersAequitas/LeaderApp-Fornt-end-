@@ -137,7 +137,7 @@ class _PeersContent extends StatelessWidget {
                         'Load More Peers',
                         style: TextStyle(
                           color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           fontSize: 13,
                         ),
                       ),
@@ -301,7 +301,7 @@ class _PeersContent extends StatelessWidget {
           style: TextStyle(
             color: isSelected ? AppColors.text : AppColors.textSecondary,
             fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
           ),
         ),
       ),

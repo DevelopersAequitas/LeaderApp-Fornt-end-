@@ -149,7 +149,7 @@ class _EditPeerBottomSheetState extends State<EditPeerBottomSheet> {
                         'Edit Peer Profile',
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w500,
                           color: AppColors.text,
                           letterSpacing: -0.2,
                         ),
@@ -267,7 +267,7 @@ class _EditPeerBottomSheetState extends State<EditPeerBottomSheet> {
               label,
               style: const TextStyle(
                 fontSize: 12.5,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
                 color: AppColors.text,
                 letterSpacing: 0.1,
               ),
@@ -278,7 +278,7 @@ class _EditPeerBottomSheetState extends State<EditPeerBottomSheet> {
                 style: TextStyle(
                   color: AppColors.danger,
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
           ],
@@ -290,7 +290,7 @@ class _EditPeerBottomSheetState extends State<EditPeerBottomSheet> {
           style: const TextStyle(
             fontSize: 13.5,
             color: AppColors.text,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
             hintText: hint,

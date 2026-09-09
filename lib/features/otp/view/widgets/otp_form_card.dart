@@ -34,7 +34,7 @@ class OtpFormCard extends StatelessWidget {
           'Enter verification code',
           style: TextStyle(
             fontSize: 24,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             color: AppColors.text,
             letterSpacing: -0.3,
           ),
@@ -54,7 +54,7 @@ class OtpFormCard extends StatelessWidget {
               TextSpan(
                 text: emailOrPhone,
                 style: const TextStyle(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.text,
                 ),
               ),
@@ -123,7 +123,7 @@ class OtpFormCard extends StatelessWidget {
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           SizedBox(width: 8),

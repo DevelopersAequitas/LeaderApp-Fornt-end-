@@ -11,6 +11,7 @@
 // ==============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
@@ -86,9 +87,18 @@ class _LoginContentState extends State<_LoginContent> {
           );
         }
       },
-      child: Scaffold(
-        backgroundColor: AppColors.primary,
-        body: LayoutBuilder(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark,
+          systemNavigationBarDividerColor: AppColors.border,
+        ),
+        child: Scaffold(
+          backgroundColor: AppColors.primary,
+          body: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -198,6 +208,7 @@ class _LoginContentState extends State<_LoginContent> {
           },
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

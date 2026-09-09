@@ -99,7 +99,7 @@ class CircleLeadershipCard extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -347,7 +347,7 @@ class CircleLeadershipCard extends StatelessWidget {
                                 ? AppColors.text
                                 : Colors.grey.shade500,
                             fontSize: 13,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -369,7 +369,7 @@ class CircleLeadershipCard extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontSize: 11,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

@@ -114,7 +114,7 @@ class FinanceMetricsGrid extends StatelessWidget {
               style: TextStyle(
                 color: valueColor,
                 fontSize: 20,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -124,7 +124,7 @@ class FinanceMetricsGrid extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

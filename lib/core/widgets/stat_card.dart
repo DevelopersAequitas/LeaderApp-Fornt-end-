@@ -37,7 +37,7 @@ class StatCard extends StatelessWidget {
           style: TextStyle(
             color: valueColor ?? Colors.white,
             fontSize: valueFontSize,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             height: 1.2,
           ),
         ),
@@ -48,7 +48,7 @@ class StatCard extends StatelessWidget {
           style: TextStyle(
             color: labelColor ?? AppColors.textSecondary,
             fontSize: labelFontSize,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w500,
             letterSpacing: 0.5,
             height: 1.1,
           ),

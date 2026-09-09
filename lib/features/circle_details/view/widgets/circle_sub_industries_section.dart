@@ -39,7 +39,7 @@ class CircleSubIndustriesSection extends StatelessWidget {
             style: TextStyle(
               color: AppColors.text,
               fontSize: 14,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 10),
@@ -66,7 +66,7 @@ class CircleSubIndustriesSection extends StatelessWidget {
             style: TextStyle(
               color: AppColors.text,
               fontSize: 14,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 2),
@@ -124,7 +124,7 @@ class CircleSubIndustriesSection extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.text,
                 fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -140,7 +140,7 @@ class CircleSubIndustriesSection extends StatelessWidget {
                 style: const TextStyle(
                   color: Color(0xFF16A34A),
                   fontSize: 10,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -161,7 +161,7 @@ class CircleSubIndustriesSection extends StatelessWidget {
                     ? const Color(0xFF16A34A)
                     : AppColors.textSecondary,
                 fontSize: 10,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),

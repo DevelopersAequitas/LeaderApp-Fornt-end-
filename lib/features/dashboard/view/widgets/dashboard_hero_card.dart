@@ -75,7 +75,7 @@ class DashboardHeroCard extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w500,
             ),
           ),
           // Overall Revenue Bar (Clickable to Finance)
@@ -114,7 +114,7 @@ class DashboardHeroCard extends StatelessWidget {
                             style: TextStyle(
                               color: Color(0xFFB0C4DE),
                               fontSize: 9.5,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -127,7 +127,7 @@ class DashboardHeroCard extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 15,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -155,8 +155,7 @@ class DashboardHeroCard extends StatelessWidget {
                   child: InkWell(
                     onTap: onImpactTap ??
                         () => Navigator.of(context).pushNamed(
-                              AppRoutes.peers,
-                              arguments: {'sort': 'Impact'},
+                              AppRoutes.impacts,
                             ),
                     borderRadius: BorderRadius.circular(10),
                     child: Padding(
@@ -168,7 +167,7 @@ class DashboardHeroCard extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -206,8 +205,7 @@ class DashboardHeroCard extends StatelessWidget {
                   child: InkWell(
                     onTap: onDealsTap ??
                         () => Navigator.of(context).pushNamed(
-                              AppRoutes.peers,
-                              arguments: {'sort': 'Deals'},
+                              AppRoutes.businessDeals,
                             ),
                     borderRadius: BorderRadius.circular(10),
                     child: Padding(
@@ -219,7 +217,7 @@ class DashboardHeroCard extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -259,8 +257,7 @@ class DashboardHeroCard extends StatelessWidget {
                   child: InkWell(
                     onTap: onP2PTap ??
                         () => Navigator.of(context).pushNamed(
-                              AppRoutes.peers,
-                              arguments: {'sort': 'Attendance'},
+                              AppRoutes.p2pMeetings,
                             ),
                     borderRadius: BorderRadius.circular(10),
                     child: Padding(
@@ -272,7 +269,7 @@ class DashboardHeroCard extends StatelessWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(height: 2),

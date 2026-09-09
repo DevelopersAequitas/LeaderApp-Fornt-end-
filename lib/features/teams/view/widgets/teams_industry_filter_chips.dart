@@ -97,7 +97,7 @@ class TeamsIndustryFilterChips extends StatelessWidget {
                       style: TextStyle(
                         color: isSelected ? Colors.white : AppColors.textSecondary,
                         fontSize: 11,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
                       ),
                     ),
                   ],

@@ -54,7 +54,7 @@ class PeerProfileActivitySection extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 9,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w500,
                 letterSpacing: 0.5,
               ),
             ),
@@ -130,7 +130,7 @@ class PeerProfileActivitySection extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.text,
                         fontSize: 12,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     if (activity.subtitle.isNotEmpty) ...[

@@ -70,7 +70,7 @@ class StatusPill extends StatelessWidget {
         style: TextStyle(
           color: textColor,
           fontSize: fontSize,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
