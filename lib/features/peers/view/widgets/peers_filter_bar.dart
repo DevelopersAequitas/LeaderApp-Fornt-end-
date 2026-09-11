@@ -8,6 +8,7 @@ class PeersFilterBar extends StatelessWidget {
   final String selectedSort;
   final ValueChanged<String>? onStatusSelected;
   final ValueChanged<String> onSortSelected;
+  final ValueChanged<String>? onSearchChanged;
 
   const PeersFilterBar({
     super.key,
@@ -16,6 +17,7 @@ class PeersFilterBar extends StatelessWidget {
     required this.selectedSort,
     this.onStatusSelected,
     required this.onSortSelected,
+    this.onSearchChanged,
   });
 
   @override
@@ -45,6 +47,7 @@ class PeersFilterBar extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: searchController,
+                    onChanged: onSearchChanged,
                     style: const TextStyle(fontSize: 13, color: AppColors.text),
                     decoration: const InputDecoration(
                       hintText: 'Search by name, company, circle...',
@@ -63,7 +66,10 @@ class PeersFilterBar extends StatelessWidget {
                   builder: (context, value, _) {
                     if (value.text.isEmpty) return const SizedBox.shrink();
                     return GestureDetector(
-                      onTap: () => searchController.clear(),
+                      onTap: () {
+                        searchController.clear();
+                        onSearchChanged?.call('');
+                      },
                       child: const Icon(
                         Icons.close_rounded,
                         color: Color(0xFF8B9CB4),

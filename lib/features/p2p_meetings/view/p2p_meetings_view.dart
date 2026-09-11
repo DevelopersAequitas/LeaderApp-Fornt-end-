@@ -5,7 +5,6 @@ import '../../../core/widgets/widgets.dart';
 import '../bloc/p2p_meetings_bloc.dart';
 import '../bloc/p2p_meetings_event.dart';
 import '../bloc/p2p_meetings_state.dart';
-import 'widgets/create_p2p_meeting_bottom_sheet.dart';
 import 'widgets/p2p_meeting_card.dart';
 
 class P2PMeetingsView extends StatelessWidget {
@@ -27,31 +26,6 @@ class _P2PMeetingsContent extends StatelessWidget {
   final String? circleId;
 
   const _P2PMeetingsContent({this.circleId});
-
-  void _openCreateSheet(BuildContext context) {
-    final bloc = context.read<P2PMeetingsBloc>();
-    CreateP2PMeetingBottomSheet.show(
-      context,
-      onSubmit:
-          ({
-            required String peerUserId,
-            required String scheduledAt,
-            required String mode,
-            required String location,
-            String? notes,
-          }) {
-            bloc.add(
-              CreateP2PMeetingEvent(
-                peerUserId: peerUserId,
-                scheduledAt: scheduledAt,
-                mode: mode,
-                location: location,
-                notes: notes,
-              ),
-            );
-          },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {

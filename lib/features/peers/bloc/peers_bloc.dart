@@ -134,30 +134,90 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     }
   }
 
-  void _onSearchQueryChanged(
+  Future<void> _onSearchQueryChanged(
     SearchQueryChanged event,
     Emitter<PeersState> emit,
-  ) {
-    final filtered = _filterAndSort(
+  ) async {
+    // 1. Immediately filter in-memory list for instant responsiveness
+    final localFiltered = _filterAndSort(
       state.allPeers,
       event.query,
       state.selectedStatus,
       state.selectedSort,
     );
-    emit(state.copyWith(searchQuery: event.query, filteredPeers: filtered));
+    emit(state.copyWith(searchQuery: event.query, filteredPeers: localFiltered));
+
+    // 2. Query backend to search across the entire peer directory on all pages
+    try {
+      final peersResponse = await _peersRepository.getPeers(
+        circleId: state.selectedCircle,
+        status: state.selectedStatus,
+        search: event.query,
+        page: 1,
+        perPage: 20,
+      );
+
+      final peers = peersResponse.data ?? const [];
+      final filtered = _filterAndSort(
+        peers,
+        event.query,
+        state.selectedStatus,
+        state.selectedSort,
+      );
+      final meta = peersResponse.meta;
+
+      emit(
+        state.copyWith(
+          allPeers: peers,
+          filteredPeers: filtered,
+          currentPage: meta?.currentPage ?? 1,
+          lastPage: meta?.lastPage ?? 1,
+          totalPeersCount: meta?.total ?? peers.length,
+        ),
+      );
+    } catch (_) {}
   }
 
-  void _onStatusFilterChanged(
+  Future<void> _onStatusFilterChanged(
     StatusFilterChanged event,
     Emitter<PeersState> emit,
-  ) {
-    final filtered = _filterAndSort(
+  ) async {
+    final localFiltered = _filterAndSort(
       state.allPeers,
       state.searchQuery,
       event.status,
       state.selectedSort,
     );
-    emit(state.copyWith(selectedStatus: event.status, filteredPeers: filtered));
+    emit(state.copyWith(selectedStatus: event.status, filteredPeers: localFiltered));
+
+    try {
+      final peersResponse = await _peersRepository.getPeers(
+        circleId: state.selectedCircle,
+        status: event.status,
+        search: state.searchQuery,
+        page: 1,
+        perPage: 20,
+      );
+
+      final peers = peersResponse.data ?? const [];
+      final filtered = _filterAndSort(
+        peers,
+        state.searchQuery,
+        event.status,
+        state.selectedSort,
+      );
+      final meta = peersResponse.meta;
+
+      emit(
+        state.copyWith(
+          allPeers: peers,
+          filteredPeers: filtered,
+          currentPage: meta?.currentPage ?? 1,
+          lastPage: meta?.lastPage ?? 1,
+          totalPeersCount: meta?.total ?? peers.length,
+        ),
+      );
+    } catch (_) {}
   }
 
   void _onMetricSortChanged(MetricSortChanged event, Emitter<PeersState> emit) {
@@ -250,11 +310,9 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     final sortLower = sort.toLowerCase().trim();
 
     if (sortLower == 'impact') {
-      // Top to bottom by highest Impact Count
+      // Top to bottom by highest Impact Count; preserve natural arrival order for equals
       result.sort((a, b) {
-        final cmp = b.impactCount.compareTo(a.impactCount);
-        if (cmp != 0) return cmp;
-        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        return b.impactCount.compareTo(a.impactCount);
       });
     } else if (sortLower == 'deals') {
       // Top to bottom by highest Closed Deals value
@@ -287,7 +345,7 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
         (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
     } else {
-      // Default: Top to bottom by Impact
+      // Default: Top to bottom by Impact without alphabetical reshuffle
       result.sort((a, b) => b.impactCount.compareTo(a.impactCount));
     }
 

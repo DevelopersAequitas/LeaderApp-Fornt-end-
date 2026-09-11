@@ -54,22 +54,27 @@ class PeersRepositoryImpl implements PeersRepository {
         page: page,
         perPage: perPage,
       );
-      if (response.success && response.data != null) {
+      if (response.success &&
+          response.data != null &&
+          (search == null || search.isEmpty) &&
+          (page == null || page == 1)) {
         final listJson = response.data!.map((x) => x.toJson()).toList();
         await _cacheService.put(cacheKey, listJson);
       }
       return response;
     } catch (e) {
-      final cachedList = _cacheService.get(cacheKey);
-      if (cachedList is List) {
-        final cachedData = cachedList
-            .map((item) => PeerModel.fromJson(Map<String, dynamic>.from(item as Map)))
-            .toList();
-        return ApiResponse<List<PeerModel>>(
-          success: true,
-          data: cachedData,
-          message: 'Loaded from offline cache',
-        );
+      if (search == null || search.isEmpty) {
+        final cachedList = _cacheService.get(cacheKey);
+        if (cachedList is List) {
+          final cachedData = cachedList
+              .map((item) => PeerModel.fromJson(Map<String, dynamic>.from(item as Map)))
+              .toList();
+          return ApiResponse<List<PeerModel>>(
+            success: true,
+            data: cachedData,
+            message: 'Loaded from offline cache',
+          );
+        }
       }
       rethrow;
     }

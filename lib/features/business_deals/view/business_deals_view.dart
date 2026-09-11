@@ -6,7 +6,6 @@ import '../bloc/business_deals_bloc.dart';
 import '../bloc/business_deals_event.dart';
 import '../bloc/business_deals_state.dart';
 import 'widgets/business_deal_card.dart';
-import 'widgets/create_business_deal_bottom_sheet.dart';
 
 class BusinessDealsView extends StatelessWidget {
   final String? circleId;
@@ -27,31 +26,6 @@ class _BusinessDealsContent extends StatelessWidget {
   final String? circleId;
 
   const _BusinessDealsContent({this.circleId});
-
-  void _openCreateSheet(BuildContext context) {
-    final bloc = context.read<BusinessDealsBloc>();
-    CreateBusinessDealBottomSheet.show(
-      context,
-      onSubmit:
-          ({
-            required String withPeerId,
-            required dynamic amount,
-            required String currency,
-            required String dealType,
-            String? notes,
-          }) {
-            bloc.add(
-              CreateBusinessDealEvent(
-                withPeerId: withPeerId,
-                amount: amount,
-                currency: currency,
-                dealType: dealType,
-                notes: notes,
-              ),
-            );
-          },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -14,10 +14,10 @@ class PaginationMeta {
 
   factory PaginationMeta.fromJson(Map<String, dynamic> json) {
     return PaginationMeta(
-      currentPage: json['current_page'] as int? ?? json['page'] as int? ?? 1,
-      lastPage: json['last_page'] as int? ?? json['total_pages'] as int? ?? 1,
-      perPage: json['per_page'] as int? ?? 20,
-      total: json['total'] as int? ?? json['total_count'] as int? ?? 0,
+      currentPage: int.tryParse(json['current_page']?.toString() ?? json['page']?.toString() ?? '') ?? 1,
+      lastPage: int.tryParse(json['last_page']?.toString() ?? json['total_pages']?.toString() ?? '') ?? 1,
+      perPage: int.tryParse(json['per_page']?.toString() ?? '') ?? 20,
+      total: int.tryParse(json['total']?.toString() ?? json['total_count']?.toString() ?? '') ?? 0,
     );
   }
 

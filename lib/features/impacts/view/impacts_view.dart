@@ -5,7 +5,6 @@ import '../../../core/widgets/widgets.dart';
 import '../bloc/impacts_bloc.dart';
 import '../bloc/impacts_event.dart';
 import '../bloc/impacts_state.dart';
-import 'widgets/create_impact_bottom_sheet.dart';
 import 'widgets/impact_card.dart';
 
 class ImpactsView extends StatelessWidget {
@@ -27,26 +26,6 @@ class _ImpactsContent extends StatelessWidget {
   final String? circleId;
 
   const _ImpactsContent({this.circleId});
-
-  void _openCreateSheet(BuildContext context) {
-    final bloc = context.read<ImpactsBloc>();
-    CreateImpactBottomSheet.show(
-      context,
-      onSubmit: ({
-        required String beneficiaryUserId,
-        required String impactType,
-        required String title,
-        required String description,
-      }) {
-        bloc.add(CreateImpactEvent(
-          beneficiaryUserId: beneficiaryUserId,
-          impactType: impactType,
-          title: title,
-          description: description,
-        ));
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {

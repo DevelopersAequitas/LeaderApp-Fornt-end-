@@ -16,10 +16,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> _onLoadProfileData(LoadProfileData event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: ''));
 
-    // 1. Fetch fresh profile and dynamic permissions from GET /api/v1/auth/profile
+    // 1. Fetch fresh profile and dynamic permissions from GET /api/v1/leader/profile
     try {
       final response = await ApiClient().get<Map<String, dynamic>>(
-        ApiEndpoints.updateProfile,
+        ApiEndpoints.profile,
         fromJsonT: (json) => json is Map<String, dynamic> ? json : <String, dynamic>{},
       );
       if (response.data != null && response.data!.isNotEmpty) {

@@ -51,11 +51,29 @@ class PeersView extends StatelessWidget {
   }
 }
 
-class _PeersContent extends StatelessWidget {
+class _PeersContent extends StatefulWidget {
   final String? selectedCircle;
-  final _searchController = TextEditingController();
 
-  _PeersContent({this.selectedCircle});
+  const _PeersContent({this.selectedCircle});
+
+  @override
+  State<_PeersContent> createState() => _PeersContentState();
+}
+
+class _PeersContentState extends State<_PeersContent> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   Widget _buildCelebrationsSubTab(
     BuildContext context,
@@ -236,6 +254,7 @@ class _PeersContent extends StatelessWidget {
                   searchController: _searchController,
                   selectedStatus: state.selectedStatus,
                   selectedSort: state.selectedSort,
+                  onSearchChanged: (q) => bloc.add(SearchQueryChanged(q)),
                   onStatusSelected: (s) => bloc.add(StatusFilterChanged(s)),
                   onSortSelected: (m) => bloc.add(MetricSortChanged(m)),
                 ),
@@ -244,7 +263,7 @@ class _PeersContent extends StatelessWidget {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
-                    bloc.add(LoadPeersData(selectedCircle: selectedCircle));
+                    bloc.add(LoadPeersData(selectedCircle: widget.selectedCircle));
                   },
                   child: state.activeSubTab == 1
                       ? _buildCelebrationsSubTab(

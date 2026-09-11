@@ -32,7 +32,8 @@ abstract class ApiEndpoints {
   // --- 1. Authentication & Profile ---
   static String get sendOtp => '$baseUrl/auth/send-otp';
   static String get verifyOtp => '$baseUrl/auth/verify-otp';
-  static String get updateProfile => '$baseUrl/auth/profile';
+  static String get profile => '$baseUrl/leader/profile';
+  static String get updateProfile => '$baseUrl/leader/profile';
   static String get uploadAvatar => '$baseUrl/auth/profile/avatar';
 
   // --- 2. Dashboard ---
@@ -46,7 +47,7 @@ abstract class ApiEndpoints {
   static String peerSendWish(String id) => '$baseUrl/peers/$id/send-wish';
   static String peerMeetings(String id) => '$baseUrl/peers/$id/meetings';
   static String peerActivities(String id) => '$baseUrl/peers/$id/activities';
-  static String get impacts => '$baseUrl/impacts';
+  static String get impacts => '$baseUrl/leader/impacts';
   static String get p2pMeetings => '$baseUrl/p2p-meetings';
   static String get logP2pMeeting => '$baseUrl/p2p-meetings';
   static String get businessDeals => '$baseUrl/business-deals';
@@ -79,7 +80,7 @@ abstract class ApiEndpoints {
 
   // --- 7. Referrals, Testimonials & Coins ---
   static String get referrals => '$baseUrl/referrals';
-  static String get testimonials => '$baseUrl/testimonials';
+  static String get testimonials => '$baseUrl/leader/testimonials';
   static String get peersByCoins => '$baseUrl/peers-by-coins';
 
   // --- 8. Notifications ---
