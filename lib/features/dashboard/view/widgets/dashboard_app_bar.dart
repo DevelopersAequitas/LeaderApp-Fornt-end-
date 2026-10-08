@@ -130,13 +130,12 @@ class DashboardAppBar extends StatelessWidget {
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.notifications_none_rounded,
-                        color: AppColors.text,
-                        size: 22,
-                      ),
-                      onPressed: onNotificationTap,
+                    SquareRoundedGradientIcon(
+                      icon: Icons.notifications_none_rounded,
+                      iconSize: 20,
+                      boxSize: 36,
+                      borderRadius: 10,
+                      onTap: onNotificationTap,
                     ),
                     if (unreadNotificationCount > 0)
                       Positioned(

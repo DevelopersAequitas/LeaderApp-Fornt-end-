@@ -258,3 +258,72 @@ class GradientBoxBorder extends BoxBorder {
   @override
   int get hashCode => Object.hash(gradient, width);
 }
+
+/// Renders an icon inside a square container with rounded border and gradient icon or styling.
+class SquareRoundedGradientIcon extends StatelessWidget {
+  final IconData icon;
+  final double iconSize;
+  final double boxSize;
+  final double borderRadius;
+  final Gradient gradient;
+  final Color? backgroundColor;
+  final Color? iconColor;
+  final bool showBorder;
+  final double borderWidth;
+  final VoidCallback? onTap;
+
+  const SquareRoundedGradientIcon({
+    super.key,
+    required this.icon,
+    this.iconSize = 18.0,
+    this.boxSize = 34.0,
+    this.borderRadius = 10.0,
+    this.gradient = AppColor.brandGradient,
+    this.backgroundColor,
+    this.iconColor,
+    this.showBorder = true,
+    this.borderWidth = 1.2,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget iconWidget = iconColor != null
+        ? Icon(icon, size: iconSize, color: iconColor)
+        : GradientIcon(
+            icon: icon,
+            size: iconSize,
+            gradient: gradient,
+          );
+
+    final Widget boxContent = Container(
+      width: boxSize,
+      height: boxSize,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? Colors.white,
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: showBorder
+            ? GradientBoxBorder(gradient: gradient, width: borderWidth)
+            : Border.all(color: AppColor.lightBorder, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.primaryBlue.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(child: iconWidget),
+    );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: boxContent,
+      );
+    }
+    return boxContent;
+  }
+}
+

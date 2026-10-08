@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/primary_button.dart';
 
 /// Renders a dynamic pending peers approval banner.
 class DashboardPendingPeersCard extends StatelessWidget {
@@ -77,21 +78,13 @@ class DashboardPendingPeersCard extends StatelessWidget {
                 ],
               ),
             ),
-            ElevatedButton(
-              onPressed: onReviewTap,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Review',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+            SizedBox(
+              width: 84,
+              child: PrimaryButton(
+                label: 'Review',
+                height: 34,
+                borderRadius: 8,
+                onPressed: onReviewTap,
               ),
             ),
           ],

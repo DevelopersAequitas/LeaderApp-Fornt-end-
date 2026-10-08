@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
+import 'gradient_widgets.dart';
+
 class SearchTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -21,10 +23,12 @@ class SearchTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-        prefixIcon: Icon(
-          Icons.search_rounded,
-          color: Colors.grey.shade400,
-          size: 22,
+        prefixIcon: const Padding(
+          padding: EdgeInsets.all(10.0),
+          child: GradientIcon(
+            icon: Icons.search_rounded,
+            size: 20,
+          ),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
         filled: true,

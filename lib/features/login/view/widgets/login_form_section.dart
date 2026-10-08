@@ -2,6 +2,7 @@ import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/primary_button.dart';
 import '../../bloc/login_bloc.dart';
 import '../../bloc/login_event.dart';
 import '../../bloc/login_state.dart';
@@ -232,48 +233,11 @@ class _LoginFormSectionState extends State<LoginFormSection> {
           builder: (context, state) {
             final isEnabled = state.isFormValid && !state.isLoading;
 
-            return SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: isEnabled ? widget.onSubmit : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  disabledBackgroundColor: const Color(0xFFCBD5E1),
-                  elevation: isEnabled ? 2 : 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: state.isLoading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.2,
-                        ),
-                      )
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Send OTP',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-              ),
+            return PrimaryButton(
+              label: 'Send OTP',
+              trailingIcon: Icons.arrow_forward_rounded,
+              isLoading: state.isLoading,
+              onPressed: isEnabled ? widget.onSubmit : null,
             );
           },
         ),

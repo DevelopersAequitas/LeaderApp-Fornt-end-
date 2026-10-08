@@ -2,11 +2,32 @@ import 'package:flutter/material.dart';
 
 /// Defines the color palette used across the Leader App.
 abstract class AppColors {
-  // Brand Colors
-  static const Color primary = Color(0xFF102640);       // Dark navy
+  // Brand Colors & Gradients
+  static const Color primary = Color(0xFF1D4ED8);       // Royal Brand Blue
+  static const Color primaryBlue = Color(0xFF1D4ED8);   // Royal Brand Blue
+  static const Color primaryPink = Color(0xFFE11D48);   // Vivid Pink / Rose
   static const Color text = Color(0xFF1A2535);          // Dark primary text
   static const Color textSecondary = Color(0xFF8B9CB4);   // Slate gray subtitle/text
   static const Color darkMidnight = Color(0xFF07111D);   // Midnight blue (Splash gradient)
+  static const Color badgeBlueBg = Color(0xFFEFF6FF);
+
+  static const LinearGradient brandGradient = LinearGradient(
+    colors: [Color(0xFF1D4ED8), Color(0xFFE11D48)],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+
+  static const LinearGradient cardBorderGradient = LinearGradient(
+    colors: [Color(0xFF1D4ED8), Color(0xFFE11D48)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient subtleCardBorderGradient = LinearGradient(
+    colors: [Color(0x801D4ED8), Color(0x80E11D48)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
   // Backgrounds & Borders
   static const Color background = Color(0xFFF9FAFC);     // Main body background

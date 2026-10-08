@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
+import '../../../../core/widgets/gradient_widgets.dart';
+
 /// Renders the executive 5-tab Material 3 bottom navigation bar with clear semantic icons and max w500 typography.
 class DashboardBottomNavBar extends StatelessWidget {
   final int activeTab;
@@ -25,31 +27,38 @@ class DashboardBottomNavBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.selectionBg : Colors.transparent,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                isSelected ? activeIcon : inactiveIcon,
-                color: isSelected
-                    ? AppColors.primary
-                    : AppColors.textSecondary,
-                size: 22,
-              ),
+            SquareRoundedGradientIcon(
+              icon: isSelected ? activeIcon : inactiveIcon,
+              iconSize: 20,
+              boxSize: 34,
+              borderRadius: 10,
+              showBorder: true,
+              borderWidth: isSelected ? 1.5 : 0.8,
+              gradient: isSelected
+                  ? AppColors.brandGradient
+                  : const LinearGradient(
+                      colors: [Color(0xFF94A3B8), Color(0xFF64748B)],
+                    ),
+              backgroundColor: isSelected ? AppColors.badgeBlueBg : Colors.white,
             ),
             const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                color: isSelected
-                    ? AppColors.primary
-                    : AppColors.textSecondary,
-              ),
-            ),
+            isSelected
+                ? GradientText(
+                    label,
+                    gradient: AppColors.brandGradient,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                : Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
           ],
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/enums/user_role.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/primary_button.dart';
 
 /// Form component for leaders to draft and submit weekly/monthly circle reports.
 class ReportSubmitSection extends StatelessWidget {
@@ -519,35 +520,11 @@ class ReportSubmitSection extends StatelessWidget {
   }
 
   Widget _buildSubmitButton() {
-    return SizedBox(
-      height: 46,
-      child: ElevatedButton(
-        onPressed: isSubmitting ? null : onSubmit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: isSubmitting
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : const Text(
-                'Submit Report →',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-      ),
+    return PrimaryButton(
+      label: 'Submit Report →',
+      isLoading: isSubmitting,
+      height: 48,
+      onPressed: onSubmit,
     );
   }
 }

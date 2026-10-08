@@ -7,6 +7,8 @@ import '../../bloc/otp_state.dart';
 import 'otp_input_fields.dart';
 import 'otp_resend_section.dart';
 
+import '../../../../core/widgets/primary_button.dart';
+
 /// Form section wrapping OTP inputs, recipient display, resend timer and verify button with auto-submit.
 class OtpFormCard extends StatelessWidget {
   final String emailOrPhone;
@@ -93,48 +95,11 @@ class OtpFormCard extends StatelessWidget {
           builder: (context, state) {
             final isEnabled = state.isFormValid && !state.isLoading;
 
-            return SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: isEnabled ? onSubmit : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  disabledBackgroundColor: const Color(0xFFCBD5E1),
-                  elevation: isEnabled ? 2 : 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: state.isLoading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.2,
-                        ),
-                      )
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Verify & Proceed',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-              ),
+            return PrimaryButton(
+              label: 'Verify & Proceed',
+              trailingIcon: Icons.arrow_forward_rounded,
+              isLoading: state.isLoading,
+              onPressed: isEnabled ? onSubmit : null,
             );
           },
         ),

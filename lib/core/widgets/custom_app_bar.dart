@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 
+import 'gradient_widgets.dart';
+
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;
@@ -25,22 +27,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     Widget? leadingWidget = leading;
     if (leadingWidget == null && showBackButton) {
       leadingWidget = Center(
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.secondaryBg,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: InkWell(
-            onTap: () => Navigator.of(context).pop(),
-            borderRadius: BorderRadius.circular(16),
-            child: const Icon(
-              Icons.chevron_left_rounded,
-              color: AppColors.text,
-              size: 24,
-            ),
-          ),
+        child: SquareRoundedGradientIcon(
+          icon: Icons.chevron_left_rounded,
+          iconSize: 22,
+          boxSize: 36,
+          borderRadius: 10,
+          onTap: () => Navigator.of(context).pop(),
         ),
       );
     }

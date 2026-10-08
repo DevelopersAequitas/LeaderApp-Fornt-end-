@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
+import '../../../../core/widgets/primary_button.dart';
+
 /// Renders the bottom action bar with Log P2P and Send Referral buttons.
 class PeerProfileBottomActions extends StatelessWidget {
   final VoidCallback onLogP2PTap;
@@ -31,51 +33,20 @@ class PeerProfileBottomActions extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primary, width: 1.2),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                ),
-                icon: const Icon(
-                  Icons.handshake_outlined,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-                label: const Text(
-                  'Log P2P',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primary,
-                    fontSize: 12,
-                  ),
-                ),
+              child: PrimaryButton(
+                label: 'Log P2P',
+                leadingIcon: Icons.handshake_outlined,
+                isOutlined: true,
+                height: 44,
                 onPressed: onLogP2PTap,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  elevation: 0,
-                ),
-                icon: const Icon(
-                  Icons.send_rounded,
-                  size: 16,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  'Send Referral',
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-                ),
+              child: PrimaryButton(
+                label: 'Send Referral',
+                leadingIcon: Icons.send_rounded,
+                height: 44,
                 onPressed: onSendReferralTap,
               ),
             ),

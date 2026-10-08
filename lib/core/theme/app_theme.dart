@@ -20,6 +20,29 @@ class AppTheme {
         onSurface: AppColor.lightTextPrimary,
         outline: AppColor.lightBorder,
       ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColor.primaryBlue,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColor.primaryBlue,
+          side: const BorderSide(color: AppColor.primaryBlue, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      iconTheme: const IconThemeData(
+        color: AppColor.primaryBlue,
+        size: 22,
+      ),
       textTheme:
           const TextTheme(
             displayLarge: AppTypography.displayLarge,
