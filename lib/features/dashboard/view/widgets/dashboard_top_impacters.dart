@@ -160,23 +160,23 @@ class DashboardTopImpacters extends StatelessWidget {
         : (metrics?.circleName ?? selectedCircle ?? '');
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           onTap: () {
             final session = SessionManager().currentSession;
             final String rawCircleName = metrics?.circleName ?? '';
@@ -220,7 +220,7 @@ class DashboardTopImpacters extends StatelessWidget {
             );
           },
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -231,11 +231,11 @@ class DashboardTopImpacters extends StatelessWidget {
                     InitialsAvatar(
                       name: impacter.name.toUpperCase(),
                       imageUrl: impacter.avatarUrl,
-                      radius: 22,
+                      radius: 18,
                       backgroundColor: const Color(0xFF162D4A),
-                      fontSize: 13,
+                      fontSize: 11.5,
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,31 +247,31 @@ class DashboardTopImpacters extends StatelessWidget {
                                   impacter.name.toUpperCase(),
                                   style: const TextStyle(
                                     color: AppColors.text,
-                                    fontSize: 13.5,
+                                    fontSize: 12.5,
                                     fontWeight: FontWeight.w500,
-                                    letterSpacing: 0.2,
+                                    letterSpacing: 0.1,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               if (impacter.isVerified) ...[
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 3),
                                 const Icon(
                                   Icons.verified_rounded,
                                   color: Color(0xFF2563EB),
-                                  size: 14,
+                                  size: 13,
                                 ),
                               ],
                             ],
                           ),
                           if (subtitle.isNotEmpty) ...[
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 1),
                             Text(
                               subtitle,
                               style: const TextStyle(
                                 color: AppColors.textSecondary,
-                                fontSize: 11,
+                                fontSize: 10.5,
                                 fontWeight: FontWeight.w400,
                               ),
                               maxLines: 1,
@@ -285,12 +285,12 @@ class DashboardTopImpacters extends StatelessWidget {
                     // Rank Pill
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
+                        horizontal: 7,
+                        vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: rankBg,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: rankBorder, width: 0.8),
                       ),
                       child: Row(
@@ -302,223 +302,219 @@ class DashboardTopImpacters extends StatelessWidget {
                                 : (impacter.rank <= 3
                                     ? Icons.military_tech_rounded
                                     : Icons.star_rounded),
-                            size: 12,
+                            size: 11,
                             color: rankText,
                           ),
-                          const SizedBox(width: 3),
+                          const SizedBox(width: 2),
                           Text(
                             '#${impacter.rank} Rank',
                             style: TextStyle(
                               color: rankText,
-                              fontSize: 10,
+                              fontSize: 9.5,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 2),
                     const Icon(
                       Icons.chevron_right_rounded,
                       color: AppColors.textSecondary,
-                      size: 18,
+                      size: 16,
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                const Divider(height: 1, color: AppColors.border),
-                const SizedBox(height: 8),
-                // Badges & Chips Wrap
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 5,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    // 1. Lives Impacted Count
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFFFDE68A),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.favorite_rounded,
-                            size: 11,
-                            color: Color(0xFFD97706),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${impacter.lives} Lives Impacted',
-                            style: const TextStyle(
-                              color: Color(0xFFB45309),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // 2. Coins Count
-                    if (impacter.coins > 0)
+                const SizedBox(height: 6),
+                // Compact Single Horizontal Scroll Badges Row
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      // 1. Lives Impacted Count
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
+                          horizontal: 7,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFFBEB),
-                          borderRadius: BorderRadius.circular(8),
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                             color: const Color(0xFFFDE68A),
-                            width: 0.8,
+                            width: 0.7,
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.monetization_on_outlined,
-                              size: 11,
+                              Icons.favorite_rounded,
+                              size: 10,
                               color: Color(0xFFD97706),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 3),
                             Text(
-                              '${_formatCompactNumber(impacter.coins)} Coins',
+                              '${impacter.lives} Lives',
                               style: const TextStyle(
                                 color: Color(0xFFB45309),
-                                fontSize: 10,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    // 3. Category / Level 4
-                    if (categoryStr.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.border,
-                            width: 0.8,
+                      const SizedBox(width: 5),
+                      // 2. Coins Count
+                      if (impacter.coins > 0) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFFBEB),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: const Color(0xFFFDE68A),
+                              width: 0.7,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.monetization_on_outlined,
+                                size: 10,
+                                color: Color(0xFFD97706),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${_formatCompactNumber(impacter.coins)} Coins',
+                                style: const TextStyle(
+                                  color: Color(0xFFB45309),
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.category_outlined,
-                              size: 11,
-                              color: AppColors.textSecondary,
+                        const SizedBox(width: 5),
+                      ],
+                      // 3. Category / Level 4
+                      if (categoryStr.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: AppColors.border,
+                              width: 0.7,
                             ),
-                            const SizedBox(width: 4),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 140),
-                              child: Text(
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.category_outlined,
+                                size: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
                                 categoryStr,
                                 style: const TextStyle(
                                   color: AppColors.text,
-                                  fontSize: 10,
+                                  fontSize: 9.5,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    // 4. Circle Name
-                    if (displayCircle.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: const Color(0xFFBFDBFE),
-                            width: 0.8,
+                            ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.group_work_outlined,
-                              size: 11,
-                              color: Color(0xFF2563EB),
+                        const SizedBox(width: 5),
+                      ],
+                      // 4. Circle Name
+                      if (displayCircle.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: const Color(0xFFBFDBFE),
+                              width: 0.7,
                             ),
-                            const SizedBox(width: 4),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 130),
-                              child: Text(
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.group_work_outlined,
+                                size: 10,
+                                color: Color(0xFF2563EB),
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
                                 displayCircle,
                                 style: const TextStyle(
                                   color: Color(0xFF1D4ED8),
-                                  fontSize: 10,
+                                  fontSize: 9.5,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    // 5. City / Location
-                    if (impacter.location.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.border,
-                            width: 0.8,
+                            ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.location_on_outlined,
-                              size: 11,
-                              color: AppColors.textSecondary,
+                        const SizedBox(width: 5),
+                      ],
+                      // 5. City / Location
+                      if (impacter.location.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: AppColors.border,
+                              width: 0.7,
                             ),
-                            const SizedBox(width: 3),
-                            Text(
-                              impacter.location,
-                              style: const TextStyle(
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 10,
                                 color: AppColors.textSecondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w400,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 2),
+                              Text(
+                                impacter.location,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                  ],
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ),

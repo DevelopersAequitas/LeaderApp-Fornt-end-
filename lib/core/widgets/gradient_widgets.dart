@@ -304,7 +304,7 @@ class SquareRoundedGradientIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         border: showBorder
             ? GradientBoxBorder(gradient: gradient, width: borderWidth)
-            : Border.all(color: AppColor.lightBorder, width: 1),
+            : null,
         boxShadow: [
           BoxShadow(
             color: AppColor.primaryBlue.withValues(alpha: 0.05),

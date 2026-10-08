@@ -302,12 +302,13 @@ class _PeersContentState extends State<_PeersContent> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
+          gradient: isSelected ? AppColors.brandGradient : null,
+          color: isSelected ? null : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: AppColors.primary.withValues(alpha: 0.15),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -318,7 +319,7 @@ class _PeersContentState extends State<_PeersContent> {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? AppColors.text : AppColors.textSecondary,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
           ),

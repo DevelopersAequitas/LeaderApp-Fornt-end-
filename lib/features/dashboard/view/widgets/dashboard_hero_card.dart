@@ -48,19 +48,12 @@ class DashboardHeroCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.primary, // #102640 Brand Primary Navy
-            Color(0xFF1A3860), // Harmonized Executive Blue
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppColors.brandGradient,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.18),
-            blurRadius: 10,
+            color: AppColors.primaryBlue.withValues(alpha: 0.25),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],

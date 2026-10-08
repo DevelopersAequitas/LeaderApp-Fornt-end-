@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_video_player.dart';
-import '../../../../core/widgets/expandable_text.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
 import '../../model/peer_profile_model.dart';
+import 'peer_business_deals_sheet.dart';
+import 'peer_business_referrals_sheet.dart';
 
 /// Renders the rich Overview tab for Peer Profile:
 /// - Intro video player
@@ -106,16 +108,10 @@ class PeerProfileOverviewSection extends StatelessWidget {
           ),
 
         // 5. 8-Metric Performance Grid
-        _buildPerformanceMetricsCard(),
+        _buildPerformanceMetricsCard(context),
 
-        // 6. Industry & Specialization Tags
+        // 7. Industry & Specialization Tags
         if (tags.isNotEmpty) _buildTagsCard(tags),
-
-        // 7. P2P Meetings (with 2-lines expandable Read More)
-        if (details.meetings.isNotEmpty) _buildMeetingsCard(),
-
-        // 8. Recent Activities
-        if (details.activities.isNotEmpty) _buildActivitiesCard(),
 
         const SizedBox(height: 20),
       ],
@@ -396,12 +392,14 @@ class PeerProfileOverviewSection extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(
-                  Icons.connect_without_contact_outlined,
-                  size: 15,
-                  color: AppColors.primary,
+                SquareRoundedGradientIcon(
+                  icon: Icons.connect_without_contact_outlined,
+                  boxSize: 22,
+                  iconSize: 13,
+                  borderRadius: 6,
+                  showBorder: false,
                 ),
-                SizedBox(width: 6),
+                SizedBox(width: 8),
                 Text(
                   'CONTACT & CONNECTIVITY',
                   style: TextStyle(
@@ -420,7 +418,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
               label: 'PHONE',
               value: peer.hidePhone ? 'Hidden by Peer 🔒' : phone,
               onTap: peer.hidePhone ? null : () => _launchUri('tel:$phone'),
-              trailingIcon: peer.hidePhone ? null : Icons.call_outlined,
             ),
             const Divider(height: 1, color: AppColors.border),
           ],
@@ -430,7 +427,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
               label: 'EMAIL',
               value: peer.hideEmail ? 'Hidden by Peer 🔒' : email,
               onTap: peer.hideEmail ? null : () => _launchUri('mailto:$email'),
-              trailingIcon: peer.hideEmail ? null : Icons.mail_outline_rounded,
             ),
             if (hasWhatsApp || hasLinkedIn)
               const Divider(height: 1, color: AppColors.border),
@@ -444,7 +440,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 final cleanWa = whatsapp.replaceAll('+', '').replaceAll(' ', '');
                 _launchUri('https://wa.me/$cleanWa');
               },
-              trailingIcon: Icons.open_in_new_rounded,
             ),
             if (hasLinkedIn) const Divider(height: 1, color: AppColors.border),
           ],
@@ -458,13 +453,11 @@ class PeerProfileOverviewSection extends StatelessWidget {
                     ? linkedin
                     : 'https://$linkedin',
               ),
-              trailingIcon: Icons.open_in_new_rounded,
             ),
           ],
         ],
       ),
     );
-    
   }
 
   Widget _buildContactRow({
@@ -472,7 +465,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
     required String label,
     required String value,
     VoidCallback? onTap,
-    IconData? trailingIcon,
   }) {
     return InkWell(
       onTap: onTap,
@@ -480,7 +472,13 @@ class PeerProfileOverviewSection extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.primary, size: 16),
+            SquareRoundedGradientIcon(
+              icon: icon,
+              boxSize: 32,
+              iconSize: 16,
+              borderRadius: 8,
+              showBorder: false,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -511,8 +509,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailingIcon != null)
-              Icon(trailingIcon, color: const Color(0xFF1E6091), size: 16),
           ],
         ),
       ),
@@ -545,12 +541,14 @@ class PeerProfileOverviewSection extends StatelessWidget {
         children: [
           const Row(
             children: [
-              Icon(
-                Icons.celebration_outlined,
-                size: 15,
-                color: Color(0xFFD97706),
+              SquareRoundedGradientIcon(
+                icon: Icons.celebration_outlined,
+                boxSize: 22,
+                iconSize: 13,
+                borderRadius: 6,
+                showBorder: false,
               ),
-              SizedBox(width: 6),
+              SizedBox(width: 8),
               Text(
                 'MILESTONES & CELEBRATIONS',
                 style: TextStyle(
@@ -569,8 +567,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 Expanded(
                   child: _buildMilestoneTile(
                     icon: Icons.cake_outlined,
-                    iconColor: const Color(0xFFE11D48),
-                    bg: const Color(0xFFFFF1F2),
                     title: 'Birthday',
                     value: birthday,
                   ),
@@ -582,8 +578,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 Expanded(
                   child: _buildMilestoneTile(
                     icon: Icons.favorite_outline_rounded,
-                    iconColor: const Color(0xFF9333EA),
-                    bg: const Color(0xFFFAF5FF),
                     title: 'Anniversary',
                     value: anniversary,
                   ),
@@ -594,8 +588,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 Expanded(
                   child: _buildMilestoneTile(
                     icon: Icons.verified_user_outlined,
-                    iconColor: const Color(0xFF0284C7),
-                    bg: const Color(0xFFF0F9FF),
                     title: 'Joined Date',
                     value: joinedDate,
                   ),
@@ -609,29 +601,34 @@ class PeerProfileOverviewSection extends StatelessWidget {
 
   Widget _buildMilestoneTile({
     required IconData icon,
-    required Color iconColor,
-    required Color bg,
     required String title,
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: bg,
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: iconColor, size: 14),
-              const SizedBox(width: 4),
+              SquareRoundedGradientIcon(
+                icon: icon,
+                boxSize: 22,
+                iconSize: 12,
+                borderRadius: 6,
+                showBorder: false,
+              ),
+              const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   title,
-                  style: TextStyle(
-                    color: iconColor,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
                     fontSize: 9.5,
                     fontWeight: FontWeight.w500,
                   ),
@@ -641,7 +638,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           Text(
             value,
             style: const TextStyle(
@@ -657,8 +654,10 @@ class PeerProfileOverviewSection extends StatelessWidget {
     );
   }
 
-  // --- 5. 8-Metric Performance Grid ---
-  Widget _buildPerformanceMetricsCard() {
+  // --- 5. Performance Grid (2 Rows of 4 Items) ---
+  Widget _buildPerformanceMetricsCard(BuildContext context) {
+    final totalRef = details.referralsGiven + details.referralsReceived;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
@@ -687,12 +686,14 @@ class PeerProfileOverviewSection extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(
-                  Icons.insights_rounded,
-                  size: 15,
-                  color: AppColors.primary,
+                SquareRoundedGradientIcon(
+                  icon: Icons.insights_rounded,
+                  boxSize: 22,
+                  iconSize: 13,
+                  borderRadius: 6,
+                  showBorder: false,
                 ),
-                SizedBox(width: 6),
+                SizedBox(width: 8),
                 Text(
                   'PEER PERFORMANCE & CONTRIBUTION',
                   style: TextStyle(
@@ -709,78 +710,46 @@ class PeerProfileOverviewSection extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Column(
               children: [
-                // Row 1: Deals Closed & Deals Given
+                // Row 1: Business Deals, Business Referrals, Coins, Attendance
                 Row(
                   children: [
                     Expanded(
                       child: _buildMetricTile(
-                        label: 'Deals Closed',
+                        label: 'Business Deals',
                         value: details.dealsClosed,
                         valueColor: const Color(0xFF16A34A),
                         icon: Icons.monetization_on_outlined,
+                        onTap: () => PeerBusinessDealsSheet.show(
+                          context,
+                          peer: peer,
+                          details: details,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: _buildMetricTile(
-                        label: 'Deals Given',
-                        value: details.dealsGiven,
-                        valueColor: AppColors.primary,
-                        icon: Icons.outbox_outlined,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Row 2: Referrals Given & Referrals Received
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Referrals Given',
-                        value: '${details.referralsGiven}',
+                        label: 'Business Referrals',
+                        value: '$totalRef',
                         valueColor: const Color(0xFF2563EB),
                         icon: Icons.campaign_outlined,
+                        onTap: () => PeerBusinessReferralsSheet.show(
+                          context,
+                          peer: peer,
+                          details: details,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: _buildMetricTile(
-                        label: 'Ref. Received',
-                        value: '${details.referralsReceived}',
-                        valueColor: const Color(0xFF0284C7),
-                        icon: Icons.inbox_outlined,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Row 3: P2P Sessions & Coins Earned
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'P2P Meetings',
-                        value: '${details.p2pSessions}',
-                        valueColor: const Color(0xFFD97706),
-                        icon: Icons.swap_horiz_rounded,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Coins Earned',
+                        label: 'Coins',
                         value: _formatCompactNumber(details.coinsEarned),
                         valueColor: const Color(0xFFCA8A04),
                         icon: Icons.stars_rounded,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Row 4: Attendance & Deals Received
-                Row(
-                  children: [
+                    const SizedBox(width: 6),
                     Expanded(
                       child: _buildMetricTile(
                         label: 'Attendance',
@@ -789,13 +758,45 @@ class PeerProfileOverviewSection extends StatelessWidget {
                         icon: Icons.calendar_today_outlined,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Row 2: Testimonials, Peers Intro, Membership, Impact
+                Row(
+                  children: [
                     Expanded(
                       child: _buildMetricTile(
-                        label: 'Deals Received',
-                        value: details.dealsReceived,
-                        valueColor: const Color(0xFF0D9488),
-                        icon: Icons.handshake_outlined,
+                        label: 'Testimonials',
+                        value: '${details.testimonials.length}',
+                        valueColor: const Color(0xFF9333EA),
+                        icon: Icons.rate_review_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _buildMetricTile(
+                        label: 'Peers Intro',
+                        value: '5',
+                        valueColor: const Color(0xFFE11D48),
+                        icon: Icons.person_add_alt_1_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _buildMetricTile(
+                        label: 'Membership',
+                        value: peer.status.isNotEmpty ? peer.status : 'Active',
+                        valueColor: const Color(0xFF2563EB),
+                        icon: Icons.card_membership_rounded,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _buildMetricTile(
+                        label: 'Impact',
+                        value: '${peer.impactCount}',
+                        valueColor: const Color(0xFFD97706),
+                        icon: Icons.favorite_outline_rounded,
                       ),
                     ),
                   ],
@@ -813,47 +814,55 @@ class PeerProfileOverviewSection extends StatelessWidget {
     required String value,
     required Color valueColor,
     required IconData icon,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 13, color: AppColors.textSecondary),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              color: valueColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SquareRoundedGradientIcon(
+              icon: icon,
+              boxSize: 26,
+              iconSize: 13,
+              borderRadius: 6,
+              showBorder: false,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: TextStyle(
+                color: valueColor,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -921,336 +930,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
               );
             }).toList(),
           ),
-        ],
-      ),
-    );
-  }
-
-  // --- 7. P2P Meetings (with 2-lines Read More) ---
-  Widget _buildMeetingsCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: AppColors.secondaryBg,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Row(
-                  children: [
-                    Icon(
-                      Icons.groups_outlined,
-                      size: 15,
-                      color: AppColors.primary,
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      'P2P MEETINGS & DISCUSSIONS',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  '${details.meetings.length} Recorded',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ...details.meetings.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final meeting = entry.value;
-            final isLast = idx == details.meetings.length - 1;
-
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Date Box
-                      Container(
-                        width: 40,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              meeting.day,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                height: 1.0,
-                              ),
-                            ),
-                            Text(
-                              meeting.month.toUpperCase(),
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 9,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      // Details with Expandable Description
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ExpandableText(
-                              text: meeting.title,
-                              maxLines: 2,
-                              style: const TextStyle(
-                                color: AppColors.text,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                height: 1.35,
-                              ),
-                            ),
-                            if (meeting.timeLocation.isNotEmpty) ...[
-                              const SizedBox(height: 3),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on_outlined,
-                                    size: 11,
-                                    color: Colors.grey.shade500,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Expanded(
-                                    child: Text(
-                                      meeting.timeLocation,
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Status Pill
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDCFCE7),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          meeting.status,
-                          style: const TextStyle(
-                            color: Color(0xFF16A34A),
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (!isLast)
-                  const Divider(height: 1, color: AppColors.border),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // --- 8. Recent Activities ---
-  Widget _buildActivitiesCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: AppColors.secondaryBg,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Row(
-                  children: [
-                    Icon(
-                      Icons.history_rounded,
-                      size: 15,
-                      color: AppColors.primary,
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      'RECENT ACTIVITIES',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  '${details.activities.length} Events',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ...details.activities.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final activity = entry.value;
-            final isLast = idx == details.activities.length - 1;
-
-            IconData icon = Icons.star_rounded;
-            Color iconColor = const Color(0xFFEAB308);
-            Color bg = const Color(0xFFFEFCE8);
-
-            if (activity.iconType == 'speaker' ||
-                activity.title.toLowerCase().contains('referral')) {
-              icon = Icons.campaign_rounded;
-              iconColor = const Color(0xFF2563EB);
-              bg = const Color(0xFFEFF6FF);
-            } else if (activity.iconType == 'arrows' ||
-                activity.title.toLowerCase().contains('p2p')) {
-              icon = Icons.swap_horiz_rounded;
-              iconColor = const Color(0xFFD97706);
-              bg = const Color(0xFFFFFBEB);
-            }
-
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: bg,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(icon, color: iconColor, size: 16),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              activity.title,
-                              style: const TextStyle(
-                                color: AppColors.text,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            if (activity.subtitle.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-                              ExpandableText(
-                                text: activity.subtitle,
-                                maxLines: 2,
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.35,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        activity.time,
-                        style: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (!isLast)
-                  const Divider(height: 1, color: AppColors.border),
-              ],
-            );
-          }),
         ],
       ),
     );

@@ -75,15 +75,7 @@ class PeerProfileHeroCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0A192B), // Brand Deep Midnight #0A192B
-            AppColors.primary, // Brand Primary Navy #102640
-            Color(0xFF1B3C66), // Executive Blue #1B3C66
-          ],
-        ),
+        gradient: AppColors.brandGradient,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(

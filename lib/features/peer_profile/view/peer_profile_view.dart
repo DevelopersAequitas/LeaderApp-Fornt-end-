@@ -26,7 +26,6 @@ import 'widgets/peer_profile_activity_section.dart';
 import 'widgets/peer_profile_hero_card.dart';
 import 'widgets/peer_profile_overview_section.dart';
 import 'widgets/peer_profile_tab_selector.dart';
-import 'widgets/peer_profile_testimonials_section.dart';
 // import 'widgets/send_referral_bottom_sheet.dart';
 
 /// Screen component rendering a comprehensive Peer Profile view.
@@ -166,10 +165,6 @@ class _PeerProfileContent extends StatelessWidget {
                             else if (state.activeSubTab == 1 && details != null)
                               PeerProfileActivitySection(
                                 activities: details.activities,
-                              )
-                            else if (state.activeSubTab == 2 && details != null)
-                              PeerProfileTestimonialsSection(
-                                testimonials: details.testimonials,
                               ),
                             const SizedBox(height: 24),
                           ],

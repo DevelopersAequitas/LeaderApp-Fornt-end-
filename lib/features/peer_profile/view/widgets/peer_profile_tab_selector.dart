@@ -34,11 +34,6 @@ class PeerProfileTabSelector extends StatelessWidget {
             'Activity',
             activityCount > 0 ? '$activityCount' : null,
           ),
-          _buildSegmentTab(
-            2,
-            'Testimonials',
-            testimonialCount > 0 ? '$testimonialCount' : null,
-          ),
         ],
       ),
     );
@@ -54,7 +49,8 @@ class PeerProfileTabSelector extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
+            gradient: isSelected ? AppColors.brandGradient : null,
+            color: isSelected ? null : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
             boxShadow: isSelected
                 ? [

@@ -51,7 +51,12 @@ class HorizontalSelectionChips extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? bgSelected : bgUnselected,
+                  gradient: isSelected && selectedBgColor == null
+                      ? AppColors.brandGradient
+                      : null,
+                  color: isSelected
+                      ? bgSelected
+                      : bgUnselected,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(

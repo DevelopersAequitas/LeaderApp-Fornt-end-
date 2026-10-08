@@ -126,21 +126,22 @@ class PeersFilterBar extends StatelessWidget {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
+                        gradient: isSelected ? AppColors.brandGradient : null,
                         color: isSelected
-                            ? const Color(0xFFE2E8F0)
+                            ? null
                             : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFFCBD5E1)
-                              : Colors.transparent,
+                              ? Colors.transparent
+                              : AppColors.border,
                         ),
                       ),
                       child: Text(
                         metric,
                         style: TextStyle(
                           color: isSelected
-                              ? const Color(0xFF0F172A)
+                              ? Colors.white
                               : const Color(0xFF64748B),
                           fontSize: 11,
                           fontWeight: isSelected

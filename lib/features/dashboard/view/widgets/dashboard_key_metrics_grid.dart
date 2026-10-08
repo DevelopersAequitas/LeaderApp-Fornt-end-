@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../core/enums/user_role.dart';
-import '../../../../core/helpers/session_manager.dart';
-import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/dashboard_metrics_model.dart';
 
-/// Renders a 2x2 Material 3 metrics grid with navigation triggers.
+/// Renders key metrics in a single horizontal row with square covered gradient icons.
 class DashboardKeyMetricsGrid extends StatelessWidget {
   final DashboardMetricsModel metrics;
   final VoidCallback onPeersTap;
@@ -37,99 +35,51 @@ class DashboardKeyMetricsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final session = SessionManager().currentSession;
-    // final now = DateTime.now();
-    // final months = const [
-    //   'Jan',
-    //   'Feb',
-    //   'Mar',
-    //   'Apr',
-    //   'May',
-    //   'Jun',
-    //   'Jul',
-    //   'Aug',
-    //   'Sep',
-    //   'Oct',
-    //   'Nov',
-    //   'Dec',
-    // ];
-    // final currentMonthYear = '${months[now.month - 1]} ${now.year}';
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Key Metrics',
-                style: TextStyle(
-                  color: AppColors.text,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              // Text(
-              //   currentMonthYear,
-              //   style: const TextStyle(
-              //     color: AppColors.textSecondary,
-              //     fontSize: 11,
-              //     fontWeight: FontWeight.w500,
-              //   ),
-              // ),
-            ],
+          const Text(
+            'Key Metrics',
+            style: TextStyle(
+              color: AppColors.text,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
                 child: _buildMetricCard(
+                  icon: Icons.people_alt_rounded,
                   value: '${metrics.totalPeers}',
-                  label: 'Total Peers',
-                  subtitle: session.role == UserRole.superAdmin
-                      ? 'Worldwide network'
-                      : '+${metrics.totalPeersGrowth} this month',
-                  valueColor: AppColors.primary,
-                  onTap: onPeersTap,
+                  label: 'Peers',
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildMetricCard(
+                  icon: Icons.swap_horiz_rounded,
                   value: '${metrics.referrals}',
                   label: 'Referrals',
-                  subtitle: 'this month',
-                  valueColor: const Color(0xFF16A34A),
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(AppRoutes.referrals),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildMetricCard(
+                  icon: Icons.star_rounded,
                   value: '${metrics.testimonials}',
-                  label: 'Testimonials',
-                  subtitle: 'peer endorsements',
-                  valueColor: const Color(0xFFD97706),
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(AppRoutes.testimonials),
+                  label: 'Endorsement',
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildMetricCard(
+                  icon: Icons.monetization_on_rounded,
                   value: _formatCompactNumber(metrics.coins),
                   label: 'Coins',
-                  subtitle: 'all peers',
-                  valueColor: const Color(0xFFB58E3D),
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(AppRoutes.peersByCoins),
                 ),
               ),
             ],
@@ -140,85 +90,61 @@ class DashboardKeyMetricsGrid extends StatelessWidget {
   }
 
   Widget _buildMetricCard({
+    required IconData icon,
     required String value,
     required String label,
-    required String subtitle,
-    required Color valueColor,
-    VoidCallback? onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.015),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      value,
-                      style: TextStyle(
-                        color: valueColor,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: Colors.grey.shade300,
-                  size: 16,
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SquareRoundedGradientIcon(
+            icon: icon,
+            iconSize: 16,
+            boxSize: 30,
+            borderRadius: 8,
+          ),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.center,
+            child: Text(
+              value,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.text,
-                fontSize: 12,
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-            if (subtitle.isNotEmpty) ...[
-              const SizedBox(height: 1),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: subtitle.startsWith('+')
-                      ? AppColors.textSecondary
-                      : Colors.grey.shade500,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
