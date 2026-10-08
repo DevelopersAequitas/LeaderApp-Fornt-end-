@@ -1,5 +1,6 @@
 import '../../core/network/api_response.dart';
 import '../../core/storage/hive_cache_service.dart';
+import '../../features/member_activities/model/member_activity_model.dart';
 import '../../features/peer_profile/model/peer_profile_model.dart';
 import '../../features/peers/model/celebration_model.dart';
 import '../../features/peers/model/peer_model.dart';
@@ -19,6 +20,13 @@ abstract class PeersRepository {
   Future<ApiResponse<Map<String, dynamic>>> sendWish(String peerId, {required String type, String? message});
   Future<ApiResponse<List<PeerMeetingModel>>> getPeerMeetings(String peerId);
   Future<ApiResponse<List<PeerActivityModel>>> getPeerActivities(String peerId, {int page = 1, int limit = 20});
+  Future<ApiResponse<List<MemberActivityModel>>> getMemberActivities(
+    String memberId, {
+    String? type,
+    String? endpointPath,
+    int page = 1,
+    int limit = 20,
+  });
   Future<ApiResponse<Map<String, dynamic>>> logP2PMeeting({
     required String peerId,
     required String meetingDate,
@@ -222,6 +230,23 @@ class PeersRepositoryImpl implements PeersRepository {
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<ApiResponse<List<MemberActivityModel>>> getMemberActivities(
+    String memberId, {
+    String? type,
+    String? endpointPath,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _remoteDataSource.getMemberActivities(
+      memberId,
+      type: type,
+      endpointPath: endpointPath,
+      page: page,
+      limit: limit,
+    );
   }
 
   @override

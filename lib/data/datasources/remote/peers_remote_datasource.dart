@@ -1,6 +1,7 @@
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
+import '../../../features/member_activities/model/member_activity_model.dart';
 import '../../../features/peer_profile/model/peer_profile_model.dart';
 import '../../../features/peers/model/celebration_model.dart';
 import '../../../features/peers/model/peer_model.dart';
@@ -214,6 +215,40 @@ class PeersRemoteDataSource {
       ApiEndpoints.logP2pMeeting,
       body: body,
       fromJsonT: (json) => json as Map<String, dynamic>,
+    );
+  }
+
+  /// Fetches member activities filtered by type.
+  Future<ApiResponse<List<MemberActivityModel>>> getMemberActivities(
+    String memberId, {
+    String? type,
+    String? endpointPath,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final endpoint = endpointPath != null && endpointPath.isNotEmpty
+        ? ApiEndpoints.memberSpecificActivity(memberId.trim(), endpointPath)
+        : ApiEndpoints.memberActivities(memberId.trim());
+
+    final queryParams = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    if (type != null && type.isNotEmpty) {
+      queryParams['type'] = type;
+    }
+
+    return _apiClient.get<List<MemberActivityModel>>(
+      endpoint,
+      queryParameters: queryParams,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json
+              .map((item) => MemberActivityModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        return <MemberActivityModel>[];
+      },
     );
   }
 }

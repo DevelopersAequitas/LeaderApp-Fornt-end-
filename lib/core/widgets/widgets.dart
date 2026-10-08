@@ -11,3 +11,5 @@ export 'star_rating_display.dart';
 export 'centered_loading_indicator.dart';
 export 'restricted_access_card.dart';
 export 'expandable_text.dart';
+export 'app_shimmer.dart';
+export 'gradient_widgets.dart';

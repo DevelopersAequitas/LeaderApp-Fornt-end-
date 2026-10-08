@@ -47,6 +47,10 @@ abstract class ApiEndpoints {
   static String peerSendWish(String id) => '$baseUrl/peers/$id/send-wish';
   static String peerMeetings(String id) => '$baseUrl/peers/$id/meetings';
   static String peerActivities(String id) => '$baseUrl/peers/$id/activities';
+  static String memberActivities(String memberId) =>
+      '$baseUrl/members/$memberId/activities';
+  static String memberSpecificActivity(String memberId, String path) =>
+      '$baseUrl/members/$memberId/$path';
   static String get impacts => '$baseUrl/leader/impacts';
   static String get p2pMeetings => '$baseUrl/p2p-meetings';
   static String get logP2pMeeting => '$baseUrl/p2p-meetings';

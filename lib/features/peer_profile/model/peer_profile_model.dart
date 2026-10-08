@@ -175,6 +175,8 @@ class PeerProfileDetailModel {
   final List<PeerMeetingModel> meetings;
   final List<PeerActivityModel> activities;
   final List<PeerTestimonialModel> testimonials;
+  final PeerSubscriptionModel? appSubscription;
+  final PeerCircleSubscriptionModel? circleSubscription;
 
   const PeerProfileDetailModel({
     this.bio = '',
@@ -198,6 +200,8 @@ class PeerProfileDetailModel {
     this.meetings = const [],
     this.activities = const [],
     this.testimonials = const [],
+    this.appSubscription,
+    this.circleSubscription,
   });
 
   factory PeerProfileDetailModel.fromJson(Map<String, dynamic> json) {
@@ -294,4 +298,104 @@ class PeerProfileDetailModel {
         'activities': activities.map((a) => a.toJson()).toList(),
         'testimonials': testimonials.map((t) => t.toJson()).toList(),
       };
+}
+
+/// Model representing a member badge.
+class PeerBadgeModel {
+  final String id;
+  final String badgeId;
+  final String badgeName;
+  final String badgeDescription;
+  final String badgeImage;
+  final String badgeType;
+  final String milestoneType;
+  final int requiredCount;
+  final int achievedCount;
+  final String? earnedAt;
+
+  const PeerBadgeModel({
+    this.id = '',
+    this.badgeId = '',
+    this.badgeName = '',
+    this.badgeDescription = '',
+    this.badgeImage = '',
+    this.badgeType = '',
+    this.milestoneType = '',
+    this.requiredCount = 0,
+    this.achievedCount = 0,
+    this.earnedAt,
+  });
+
+  factory PeerBadgeModel.fromJson(Map<String, dynamic> json) {
+    return PeerBadgeModel(
+      id: json['id']?.toString() ?? '',
+      badgeId: json['badge_id']?.toString() ?? json['id']?.toString() ?? '',
+      badgeName: json['badge_name']?.toString() ?? json['name']?.toString() ?? '',
+      badgeDescription: json['badge_description']?.toString() ?? json['description']?.toString() ?? '',
+      badgeImage: json['badge_image']?.toString() ?? json['image']?.toString() ?? '',
+      badgeType: json['badge_type']?.toString() ?? json['type']?.toString() ?? '',
+      milestoneType: json['milestone_type']?.toString() ?? '',
+      requiredCount: json['required_count'] as int? ?? (int.tryParse(json['required_count']?.toString() ?? '0') ?? 0),
+      achievedCount: json['achieved_count'] as int? ?? (int.tryParse(json['achieved_count']?.toString() ?? '0') ?? 0),
+      earnedAt: json['earned_at']?.toString(),
+    );
+  }
+}
+
+class PeerSubscriptionModel {
+  final String planName;
+  final String price;
+  final String status;
+  final String startDate;
+  final String endDate;
+  final int daysLeft;
+
+  const PeerSubscriptionModel({
+    this.planName = 'App Pro Plan',
+    this.price = '₹0',
+    this.status = 'active',
+    this.startDate = '',
+    this.endDate = '',
+    this.daysLeft = 0,
+  });
+
+  factory PeerSubscriptionModel.fromJson(Map<String, dynamic> json) {
+    return PeerSubscriptionModel(
+      planName: json['plan_name']?.toString() ?? json['plan']?.toString() ?? 'App Pro Plan',
+      price: json['price']?.toString() ?? json['amount']?.toString() ?? '₹0',
+      status: json['status']?.toString() ?? 'active',
+      startDate: json['start_date']?.toString() ?? '',
+      endDate: json['end_date']?.toString() ?? '',
+      daysLeft: json['days_left'] as int? ?? (int.tryParse(json['days_left']?.toString() ?? '0') ?? 0),
+    );
+  }
+}
+
+class PeerCircleSubscriptionModel {
+  final String circleName;
+  final String amount;
+  final String status;
+  final String startDate;
+  final String endDate;
+  final int daysLeft;
+
+  const PeerCircleSubscriptionModel({
+    this.circleName = 'Primary Circle',
+    this.amount = '₹0',
+    this.status = 'active',
+    this.startDate = '',
+    this.endDate = '',
+    this.daysLeft = 0,
+  });
+
+  factory PeerCircleSubscriptionModel.fromJson(Map<String, dynamic> json) {
+    return PeerCircleSubscriptionModel(
+      circleName: json['circle_name']?.toString() ?? json['circle']?.toString() ?? 'Primary Circle',
+      amount: json['amount']?.toString() ?? json['price']?.toString() ?? '₹0',
+      status: json['status']?.toString() ?? 'active',
+      startDate: json['start_date']?.toString() ?? '',
+      endDate: json['end_date']?.toString() ?? '',
+      daysLeft: json['days_left'] as int? ?? (int.tryParse(json['days_left']?.toString() ?? '0') ?? 0),
+    );
+  }
 }
