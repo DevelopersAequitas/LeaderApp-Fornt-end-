@@ -197,7 +197,7 @@ class _DashboardContentState extends State<_DashboardContent> {
                           bloc.add(TabChanged(idx));
                         }
                       },
-                      physics: const PageScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       children: [
                         _KeepAlivePage(
                           child: RefreshIndicator(

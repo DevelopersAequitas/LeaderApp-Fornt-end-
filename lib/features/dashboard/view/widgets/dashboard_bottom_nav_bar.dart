@@ -27,21 +27,18 @@ class DashboardBottomNavBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SquareRoundedGradientIcon(
-              icon: isSelected ? activeIcon : inactiveIcon,
-              iconSize: 20,
-              boxSize: 34,
-              borderRadius: 10,
-              showBorder: true,
-              borderWidth: isSelected ? 1.5 : 0.8,
-              gradient: isSelected
-                  ? AppColors.brandGradient
-                  : const LinearGradient(
-                      colors: [Color(0xFF94A3B8), Color(0xFF64748B)],
-                    ),
-              backgroundColor: isSelected ? AppColors.badgeBlueBg : Colors.white,
-            ),
-            const SizedBox(height: 3),
+            isSelected
+                ? GradientIcon(
+                    icon: activeIcon,
+                    size: 22,
+                    gradient: AppColors.brandGradient,
+                  )
+                : Icon(
+                    inactiveIcon,
+                    size: 22,
+                    color: const Color(0xFF64748B),
+                  ),
+            const SizedBox(height: 4),
             isSelected
                 ? GradientText(
                     label,
