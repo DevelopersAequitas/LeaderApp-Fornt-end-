@@ -167,6 +167,7 @@ class PeerProfileDetailModel {
   final int coinsEarned;
   final String attendanceRate;
   final int impactCount;
+  final int introducedPeersCount;
   final List<String> tags;
   final String? phone;
   final String? email;
@@ -192,6 +193,7 @@ class PeerProfileDetailModel {
     this.coinsEarned = 0,
     this.attendanceRate = '0%',
     this.impactCount = 0,
+    this.introducedPeersCount = 0,
     this.tags = const [],
     this.phone,
     this.email,
@@ -247,31 +249,133 @@ class PeerProfileDetailModel {
       }
     }
 
-    final contact = json['contact'] is Map ? (json['contact'] as Map) : null;
-    final metrics = json['metrics'] is Map ? (json['metrics'] as Map) : json;
+    final contact = json['contact'] is Map
+        ? (json['contact'] as Map)
+        : ((json['data'] is Map && (json['data'] as Map)['contact'] is Map)
+            ? ((json['data'] as Map)['contact'] as Map)
+            : null);
+
+    final dataMap = json['data'] is Map ? (json['data'] as Map) : null;
+    final metrics = json['metrics'] is Map
+        ? (json['metrics'] as Map)
+        : (dataMap?['metrics'] is Map
+            ? (dataMap!['metrics'] as Map)
+            : null);
+
+    int parseInt(List<String> keys) {
+      for (final key in keys) {
+        final val = (metrics != null ? metrics[key] : null) ??
+            (dataMap != null ? dataMap[key] : null) ??
+            json[key];
+        if (val == null) continue;
+        if (val is int) return val;
+        if (val is num) return val.toInt();
+        if (val is String) {
+          final parsed = int.tryParse(val.replaceAll(',', '').trim());
+          if (parsed != null) return parsed;
+        }
+        if (val is List) return val.length;
+      }
+      return 0;
+    }
+
+    String parseString(List<String> keys, {String fallback = ''}) {
+      for (final key in keys) {
+        final val = (metrics != null ? metrics[key] : null) ??
+            (dataMap != null ? dataMap[key] : null) ??
+            json[key];
+        if (val == null) continue;
+        final str = val.toString().trim();
+        if (str.isNotEmpty && str != 'null') return str;
+      }
+      return fallback;
+    }
 
     return PeerProfileDetailModel(
-      bio: json['bio'] as String? ?? '',
-      birthday: json['birthday'] as String? ?? '',
-      anniversary: json['anniversary'] as String? ?? '',
-      joinedDate: json['joined_date'] as String? ?? '',
-      dealsClosed: metrics['deals_closed']?.toString() ?? json['deals_closed']?.toString() ?? '₹0.0',
-      dealsGiven: metrics['deals_given']?.toString() ?? '₹0.0',
-      dealsReceived: metrics['deals_received']?.toString() ?? '₹0.0',
-      referralsGiven: metrics['referrals_given'] as int? ?? json['referrals_given'] as int? ?? 0,
-      referralsReceived: metrics['referrals_received'] as int? ?? json['referrals_received'] as int? ?? 0,
-      p2pSessions: metrics['p2p_sessions'] as int? ?? metrics['p2p_meetings'] as int? ?? json['p2p_sessions'] as int? ?? 0,
-      coinsEarned: metrics['coins_earned'] as int? ?? metrics['coins'] as int? ?? json['coins_earned'] as int? ?? 0,
-      attendanceRate: metrics['attendance_percentage']?.toString() ?? metrics['attendance_rate']?.toString() ?? json['attendance_rate']?.toString() ?? '0%',
-      impactCount: metrics['impact_count'] as int? ?? metrics['impact'] as int? ?? json['impact_count'] as int? ?? 0,
+      bio: parseString(['bio', 'about']),
+      birthday: parseString(['birthday', 'birth_date', 'date_of_birth']),
+      anniversary: parseString(['anniversary', 'anniversary_date']),
+      joinedDate: parseString(['joined_date', 'created_at', 'joined_at']),
+      dealsClosed: parseString(['deals_closed', 'closed_deals', 'total_deals_value'], fallback: '₹0.0'),
+      dealsGiven: parseString(['deals_given', 'given_deals'], fallback: '₹0.0'),
+      dealsReceived: parseString(['deals_received', 'received_deals'], fallback: '₹0.0'),
+      referralsGiven: parseInt(['referrals_given', 'given_referrals', 'referral_given_count']),
+      referralsReceived: parseInt(['referrals_received', 'received_referrals', 'referral_received_count']),
+      p2pSessions: parseInt(['p2p_sessions', 'p2p_meetings', 'p2p_count', 'p2p_meeting_count', 'p2p']),
+      coinsEarned: parseInt(['coins_earned', 'coins', 'total_coins', 'coins_count']),
+      attendanceRate: parseString(['attendance_percentage', 'attendance_rate', 'attendance'], fallback: '0%'),
+      impactCount: parseInt(['impact_count', 'impact', 'impacts']),
+      introducedPeersCount: parseInt([
+        'introduced_peers_count',
+        'members_introduced_count',
+        'peers_introduced_count',
+        'introduced_peers',
+        'members_introduced',
+        'peers_introduced',
+        'introduced_peers_list',
+      ]),
       tags: tagsList,
-      phone: contact?['phone']?.toString() ?? json['phone']?.toString(),
-      email: contact?['email']?.toString() ?? json['email']?.toString(),
-      whatsapp: contact?['whatsapp']?.toString(),
-      linkedin: contact?['linkedin']?.toString(),
+      phone: contact?['phone']?.toString() ?? parseString(['phone', 'mobile']),
+      email: contact?['email']?.toString() ?? parseString(['email']),
+      whatsapp: contact?['whatsapp']?.toString() ?? parseString(['whatsapp']),
+      linkedin: contact?['linkedin']?.toString() ?? parseString(['linkedin']),
       meetings: meetingsList,
       activities: activitiesList,
       testimonials: testimonialsList,
+    );
+  }
+
+  PeerProfileDetailModel copyWith({
+    String? bio,
+    String? birthday,
+    String? anniversary,
+    String? joinedDate,
+    String? dealsClosed,
+    String? dealsGiven,
+    String? dealsReceived,
+    int? referralsGiven,
+    int? referralsReceived,
+    int? p2pSessions,
+    int? coinsEarned,
+    String? attendanceRate,
+    int? impactCount,
+    int? introducedPeersCount,
+    List<String>? tags,
+    String? phone,
+    String? email,
+    String? whatsapp,
+    String? linkedin,
+    List<PeerMeetingModel>? meetings,
+    List<PeerActivityModel>? activities,
+    List<PeerTestimonialModel>? testimonials,
+    PeerSubscriptionModel? appSubscription,
+    PeerCircleSubscriptionModel? circleSubscription,
+  }) {
+    return PeerProfileDetailModel(
+      bio: bio ?? this.bio,
+      birthday: birthday ?? this.birthday,
+      anniversary: anniversary ?? this.anniversary,
+      joinedDate: joinedDate ?? this.joinedDate,
+      dealsClosed: dealsClosed ?? this.dealsClosed,
+      dealsGiven: dealsGiven ?? this.dealsGiven,
+      dealsReceived: dealsReceived ?? this.dealsReceived,
+      referralsGiven: referralsGiven ?? this.referralsGiven,
+      referralsReceived: referralsReceived ?? this.referralsReceived,
+      p2pSessions: p2pSessions ?? this.p2pSessions,
+      coinsEarned: coinsEarned ?? this.coinsEarned,
+      attendanceRate: attendanceRate ?? this.attendanceRate,
+      impactCount: impactCount ?? this.impactCount,
+      introducedPeersCount: introducedPeersCount ?? this.introducedPeersCount,
+      tags: tags ?? this.tags,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      whatsapp: whatsapp ?? this.whatsapp,
+      linkedin: linkedin ?? this.linkedin,
+      meetings: meetings ?? this.meetings,
+      activities: activities ?? this.activities,
+      testimonials: testimonials ?? this.testimonials,
+      appSubscription: appSubscription ?? this.appSubscription,
+      circleSubscription: circleSubscription ?? this.circleSubscription,
     );
   }
 
@@ -289,6 +393,7 @@ class PeerProfileDetailModel {
         'coins_earned': coinsEarned,
         'attendance_rate': attendanceRate,
         'impact_count': impactCount,
+        'introduced_peers_count': introducedPeersCount,
         'tags': tags,
         'phone': phone,
         'email': email,

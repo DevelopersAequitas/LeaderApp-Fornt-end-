@@ -48,9 +48,9 @@ abstract class ApiEndpoints {
   static String peerMeetings(String id) => '$baseUrl/peers/$id/meetings';
   static String peerActivities(String id) => '$baseUrl/peers/$id/activities';
   static String memberActivities(String memberId) =>
-      '$baseUrl/members/$memberId/activities';
+      '$baseUrl/leader/members/$memberId/activities';
   static String memberSpecificActivity(String memberId, String path) =>
-      '$baseUrl/members/$memberId/$path';
+      '$baseUrl/leader/members/$memberId/$path';
   static String get impacts => '$baseUrl/leader/impacts';
   static String get p2pMeetings => '$baseUrl/p2p-meetings';
   static String get logP2pMeeting => '$baseUrl/p2p-meetings';
@@ -85,7 +85,21 @@ abstract class ApiEndpoints {
   // --- 7. Referrals, Testimonials & Coins ---
   static String get referrals => '$baseUrl/referrals';
   static String get testimonials => '$baseUrl/leader/testimonials';
+  static String get leaderTestimonials => '$baseUrl/leader/testimonials';
+  static String memberTestimonials(String memberId) =>
+      '$baseUrl/leader/members/$memberId/testimonials';
   static String get peersByCoins => '$baseUrl/peers-by-coins';
+  static String get leaderPeersByCoins => '$baseUrl/leader/peers-by-coins';
+  static String memberCoins(String memberId) =>
+      '$baseUrl/leader/members/$memberId/coins';
+
+  // --- 7b. Leader Business Deals & Referrals ---
+  static String get leaderBusinessDeals => '$baseUrl/leader/business-deals';
+  static String memberBusinessDeals(String memberId) =>
+      '$baseUrl/leader/members/$memberId/business-deals';
+  static String get leaderReferrals => '$baseUrl/leader/referrals';
+  static String memberReferrals(String memberId) =>
+      '$baseUrl/leader/members/$memberId/referrals';
 
   // --- 8. Notifications ---
   static String get notifications => '$baseUrl/notifications';

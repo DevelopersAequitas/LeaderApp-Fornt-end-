@@ -90,6 +90,60 @@ class PeersRemoteDataSource {
     );
   }
 
+  /// Fetches peers introduced by a specific member.
+  Future<ApiResponse<List<PeerModel>>> getIntroducedPeers(String memberId) async {
+    final endpoint = ApiEndpoints.memberSpecificActivity(memberId.trim(), 'introduced-peers');
+    return _apiClient.get<List<PeerModel>>(
+      endpoint,
+      fromJsonT: (json) {
+        List<PeerModel> parseItems(dynamic list) {
+          if (list is List) {
+            return list
+                .map((item) {
+                  if (item is Map<String, dynamic>) {
+                    return PeerModel.fromJson(item);
+                  } else if (item is Map) {
+                    return PeerModel.fromJson(Map<String, dynamic>.from(item));
+                  }
+                  return null;
+                })
+                .whereType<PeerModel>()
+                .toList();
+          }
+          return <PeerModel>[];
+        }
+
+        if (json is List) {
+          return parseItems(json);
+        }
+        if (json is Map) {
+          if (json['introduced_peers'] is List) {
+            return parseItems(json['introduced_peers']);
+          }
+          if (json['data'] is List) {
+            return parseItems(json['data']);
+          }
+          if (json['peers'] is List) {
+            return parseItems(json['peers']);
+          }
+          if (json['data'] is Map) {
+            final dataMap = json['data'] as Map;
+            if (dataMap['introduced_peers'] is List) {
+              return parseItems(dataMap['introduced_peers']);
+            }
+            if (dataMap['peers'] is List) {
+              return parseItems(dataMap['peers']);
+            }
+            if (dataMap['data'] is List) {
+              return parseItems(dataMap['data']);
+            }
+          }
+        }
+        return <PeerModel>[];
+      },
+    );
+  }
+
   /// Fetches full peer profile details model including metrics, milestones, bio, contact and meetings.
   Future<ApiResponse<PeerProfileDetailModel>> getPeerProfileDetail(String id) async {
     if (!_isValidId(id)) {
@@ -236,18 +290,204 @@ class PeersRemoteDataSource {
     };
     if (type != null && type.isNotEmpty) {
       queryParams['type'] = type;
+      queryParams['activity_type'] = type;
     }
 
     return _apiClient.get<List<MemberActivityModel>>(
       endpoint,
       queryParameters: queryParams,
+      fromJsonT: (json) => MemberActivityModel.parseList(json),
+    );
+  }
+
+  /// 1.2 Record New Business Deal (POST /leader/business-deals)
+  Future<ApiResponse<Map<String, dynamic>>> recordBusinessDeal({
+    required String toPeerId,
+    required double amount,
+    String? businessType,
+    String? comment,
+    String? dealDate,
+    String? referralId,
+  }) async {
+    final body = <String, dynamic>{
+      'to_peer_id': toPeerId,
+      'amount': amount,
+    };
+    if (businessType != null) body['business_type'] = businessType;
+    if (comment != null) body['comment'] = comment;
+    if (dealDate != null) body['deal_date'] = dealDate;
+    if (referralId != null) body['referral_id'] = referralId;
+
+    return _apiClient.post<Map<String, dynamic>>(
+      ApiEndpoints.leaderBusinessDeals,
+      body: body,
+      fromJsonT: (json) => json is Map<String, dynamic> ? json : {'success': true},
+    );
+  }
+
+  /// 1.3 Get Member Business Deals (GET /leader/members/{member_id}/business-deals)
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberBusinessDeals(
+    String memberId, {
+    String? activityType,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    if (activityType != null) params['activity_type'] = activityType;
+
+    return _apiClient.get<List<Map<String, dynamic>>>(
+      ApiEndpoints.memberBusinessDeals(memberId),
+      queryParameters: params,
       fromJsonT: (json) {
         if (json is List) {
-          return json
-              .map((item) => MemberActivityModel.fromJson(item as Map<String, dynamic>))
-              .toList();
+          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
         }
-        return <MemberActivityModel>[];
+        if (json is Map) {
+          final list = json['data'] ?? json['items'] ?? json['deals'];
+          if (list is List) {
+            return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          }
+        }
+        return [];
+      },
+    );
+  }
+
+  /// 2.2 Submit New Referral (POST /leader/referrals)
+  Future<ApiResponse<Map<String, dynamic>>> submitReferral({
+    required String toPeerId,
+    required String prospectName,
+    String? prospectPhone,
+    String? prospectEmail,
+    String? prospectCompany,
+    String? estimatedDealValue,
+    String? notes,
+  }) async {
+    final body = <String, dynamic>{
+      'to_peer_id': toPeerId,
+      'prospect_name': prospectName,
+    };
+    if (prospectPhone != null) body['prospect_phone'] = prospectPhone;
+    if (prospectEmail != null) body['prospect_email'] = prospectEmail;
+    if (prospectCompany != null) body['prospect_company'] = prospectCompany;
+    if (estimatedDealValue != null) body['estimated_deal_value'] = estimatedDealValue;
+    if (notes != null) body['notes'] = notes;
+
+    return _apiClient.post<Map<String, dynamic>>(
+      ApiEndpoints.leaderReferrals,
+      body: body,
+      fromJsonT: (json) => json is Map<String, dynamic> ? json : {'success': true},
+    );
+  }
+
+  /// 2.3 Get Member Referrals (GET /leader/members/{member_id}/referrals)
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberReferrals(
+    String memberId, {
+    String? activityType,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    if (activityType != null) params['activity_type'] = activityType;
+
+    return _apiClient.get<List<Map<String, dynamic>>>(
+      ApiEndpoints.memberReferrals(memberId),
+      queryParameters: params,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        }
+        return [];
+      },
+    );
+  }
+
+  /// 3.1 Get Platform Leaderboard by Coins (GET /leader/peers-by-coins)
+  Future<ApiResponse<Map<String, dynamic>>> getPeersByCoins({int limit = 20}) async {
+    return _apiClient.get<Map<String, dynamic>>(
+      ApiEndpoints.leaderPeersByCoins,
+      queryParameters: {'limit': limit.toString()},
+      fromJsonT: (json) => json is Map<String, dynamic> ? json : {},
+    );
+  }
+
+  /// 3.2 Get Member Coins Activity History (GET /leader/members/{member_id}/activities?type=coins)
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberCoins(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _apiClient.get<List<Map<String, dynamic>>>(
+      ApiEndpoints.memberCoins(memberId),
+      queryParameters: {
+        'page': page.toString(),
+        'limit': limit.toString(),
+        'type': 'coins',
+        'activity_type': 'coins',
+      },
+      fromJsonT: (json) {
+        if (json is List) {
+          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        }
+        if (json is Map) {
+          final list = json['data'] ?? json['activities'] ?? json['items'];
+          if (list is List) {
+            return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          }
+        }
+        return [];
+      },
+    );
+  }
+
+  /// 5.2 Submit New Testimonial (POST /leader/testimonials)
+  Future<ApiResponse<Map<String, dynamic>>> submitTestimonial({
+    required String toPeerId,
+    required String content,
+    int rating = 5,
+    String? referralId,
+  }) async {
+    final body = <String, dynamic>{
+      'to_peer_id': toPeerId,
+      'content': content,
+      'rating': rating,
+    };
+    if (referralId != null) body['referral_id'] = referralId;
+
+    return _apiClient.post<Map<String, dynamic>>(
+      ApiEndpoints.leaderTestimonials,
+      body: body,
+      fromJsonT: (json) => json is Map<String, dynamic> ? json : {'success': true},
+    );
+  }
+
+  /// 5.3 Get Member Testimonials (GET /leader/members/{member_id}/testimonials)
+  Future<ApiResponse<List<PeerTestimonialModel>>> getMemberTestimonials(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    if (search != null) params['search'] = search;
+
+    return _apiClient.get<List<PeerTestimonialModel>>(
+      ApiEndpoints.memberTestimonials(memberId),
+      queryParameters: params,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json.map((item) => PeerTestimonialModel.fromJson(item as Map<String, dynamic>)).toList();
+        }
+        return <PeerTestimonialModel>[];
       },
     );
   }

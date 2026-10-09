@@ -33,6 +33,54 @@ abstract class PeersRepository {
     required String meetingPlace,
     String? remarks,
   });
+  Future<ApiResponse<Map<String, dynamic>>> recordBusinessDeal({
+    required String toPeerId,
+    required double amount,
+    String? businessType,
+    String? comment,
+    String? dealDate,
+    String? referralId,
+  });
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberBusinessDeals(
+    String memberId, {
+    String? activityType,
+    int page = 1,
+    int limit = 20,
+  });
+  Future<ApiResponse<Map<String, dynamic>>> submitReferral({
+    required String toPeerId,
+    required String prospectName,
+    String? prospectPhone,
+    String? prospectEmail,
+    String? prospectCompany,
+    String? estimatedDealValue,
+    String? notes,
+  });
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberReferrals(
+    String memberId, {
+    String? activityType,
+    int page = 1,
+    int limit = 20,
+  });
+  Future<ApiResponse<Map<String, dynamic>>> getPeersByCoins({int limit = 20});
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberCoins(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+  });
+  Future<ApiResponse<Map<String, dynamic>>> submitTestimonial({
+    required String toPeerId,
+    required String content,
+    int rating = 5,
+    String? referralId,
+  });
+  Future<ApiResponse<List<PeerTestimonialModel>>> getMemberTestimonials(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+  });
+  Future<ApiResponse<List<PeerModel>>> getIntroducedPeers(String memberId);
 }
 
 class PeersRepositoryImpl implements PeersRepository {
@@ -262,5 +310,128 @@ class PeersRepositoryImpl implements PeersRepository {
       meetingPlace: meetingPlace,
       remarks: remarks,
     );
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> recordBusinessDeal({
+    required String toPeerId,
+    required double amount,
+    String? businessType,
+    String? comment,
+    String? dealDate,
+    String? referralId,
+  }) async {
+    return _remoteDataSource.recordBusinessDeal(
+      toPeerId: toPeerId,
+      amount: amount,
+      businessType: businessType,
+      comment: comment,
+      dealDate: dealDate,
+      referralId: referralId,
+    );
+  }
+
+  @override
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberBusinessDeals(
+    String memberId, {
+    String? activityType,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _remoteDataSource.getMemberBusinessDeals(
+      memberId,
+      activityType: activityType,
+      page: page,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> submitReferral({
+    required String toPeerId,
+    required String prospectName,
+    String? prospectPhone,
+    String? prospectEmail,
+    String? prospectCompany,
+    String? estimatedDealValue,
+    String? notes,
+  }) async {
+    return _remoteDataSource.submitReferral(
+      toPeerId: toPeerId,
+      prospectName: prospectName,
+      prospectPhone: prospectPhone,
+      prospectEmail: prospectEmail,
+      prospectCompany: prospectCompany,
+      estimatedDealValue: estimatedDealValue,
+      notes: notes,
+    );
+  }
+
+  @override
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberReferrals(
+    String memberId, {
+    String? activityType,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _remoteDataSource.getMemberReferrals(
+      memberId,
+      activityType: activityType,
+      page: page,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> getPeersByCoins({int limit = 20}) async {
+    return _remoteDataSource.getPeersByCoins(limit: limit);
+  }
+
+  @override
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberCoins(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _remoteDataSource.getMemberCoins(
+      memberId,
+      page: page,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> submitTestimonial({
+    required String toPeerId,
+    required String content,
+    int rating = 5,
+    String? referralId,
+  }) async {
+    return _remoteDataSource.submitTestimonial(
+      toPeerId: toPeerId,
+      content: content,
+      rating: rating,
+      referralId: referralId,
+    );
+  }
+
+  @override
+  Future<ApiResponse<List<PeerTestimonialModel>>> getMemberTestimonials(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+  }) async {
+    return _remoteDataSource.getMemberTestimonials(
+      memberId,
+      page: page,
+      limit: limit,
+      search: search,
+    );
+  }
+
+  @override
+  Future<ApiResponse<List<PeerModel>>> getIntroducedPeers(String memberId) async {
+    return _remoteDataSource.getIntroducedPeers(memberId);
   }
 }

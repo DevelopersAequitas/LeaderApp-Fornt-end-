@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 /// Activity categories returned by `GET /leader/members/{member_id}/activities`.
@@ -52,6 +53,27 @@ enum MemberActivityType {
     icon: Icons.monetization_on_outlined,
     emptyMessage: 'No business deals yet',
   ),
+  testimonial(
+    apiValue: 'testimonial',
+    endpointPath: 'testimonials',
+    title: 'Testimonials',
+    icon: Icons.format_quote_rounded,
+    emptyMessage: 'No testimonials recorded yet',
+  ),
+  requirement(
+    apiValue: 'requirement',
+    endpointPath: 'requirements',
+    title: 'Requirements',
+    icon: Icons.assignment_outlined,
+    emptyMessage: 'No requirements recorded yet',
+  ),
+  impact(
+    apiValue: 'impact',
+    endpointPath: 'impacts',
+    title: 'Impacts',
+    icon: Icons.trending_up_rounded,
+    emptyMessage: 'No impact activities recorded yet',
+  ),
   attendance(
     apiValue: 'attendance',
     endpointPath: 'attendance',
@@ -89,7 +111,7 @@ enum MemberActivityType {
   });
 
   /// Resolves a loosely-formatted backend type (e.g. `P2P Meeting`,
-  /// `referrals_given`, `business_deal` + direction) into a known category.
+  /// `referral_given`, `deal_received`, `testimonial`, `requirement`) into a known category.
   static MemberActivityType fromRaw(String? rawType, {String? direction}) {
     final type = (rawType ?? '').toLowerCase().replaceAll(
       RegExp(r'[\s\-]'),
@@ -99,10 +121,10 @@ enum MemberActivityType {
 
     if (type.contains('p2p') || type.contains('meeting')) return p2pMeeting;
     if (type.contains('referral')) {
-      if (type.contains('given') || dir.contains('given') || dir == 'out') {
+      if (type.contains('given') || dir.contains('given') || dir == 'giver' || dir == 'out') {
         return referralGiven;
       }
-      if (type.contains('receiv') || dir.contains('receiv') || dir == 'in') {
+      if (type.contains('receiv') || dir.contains('receiv') || dir == 'receiver' || dir == 'in') {
         return referralReceived;
       }
       return businessReferral;
@@ -110,14 +132,17 @@ enum MemberActivityType {
     if (type.contains('deal') ||
         type.contains('business') ||
         type.contains('tyfcb')) {
-      if (type.contains('given') || dir.contains('given') || dir == 'out') {
+      if (type.contains('given') || dir.contains('given') || dir == 'giver' || dir == 'out') {
         return dealGiven;
       }
-      if (type.contains('receiv') || dir.contains('receiv') || dir == 'in') {
+      if (type.contains('receiv') || dir.contains('receiv') || dir == 'receiver' || dir == 'in') {
         return dealReceived;
       }
       return businessDeal;
     }
+    if (type.contains('testimonial')) return testimonial;
+    if (type.contains('require')) return requirement;
+    if (type.contains('impact')) return impact;
     if (type.contains('attend')) return attendance;
     if (type.contains('coin')) return coins;
     return other;
@@ -154,80 +179,142 @@ class MemberActivityModel {
     Map<String, dynamic> json, {
     String? fallbackType,
   }) {
+    final sourceJson = (json['data'] is Map<String, dynamic>)
+        ? json['data'] as Map<String, dynamic>
+        : json;
+
     final rawType =
-        json['type'] ??
+        sourceJson['activity_type'] ??
+        sourceJson['type'] ??
+        sourceJson['category'] ??
+        sourceJson['icon_type'] ??
         json['activity_type'] ??
-        json['category'] ??
-        json['icon_type'] ??
+        json['type'] ??
         fallbackType;
-    final direction = json['direction'] ?? json['flow'];
+
+    final direction =
+        sourceJson['member_role'] ??
+        sourceJson['direction'] ??
+        sourceJson['flow'] ??
+        json['member_role'] ??
+        json['direction'] ??
+        json['flow'];
+
     final type = MemberActivityType.fromRaw(
       rawType?.toString(),
       direction: direction?.toString(),
     );
 
+    final title = _readString(sourceJson, const [
+          'title',
+          'business_type',
+          'name',
+          'subject',
+        ]) ??
+        _readString(json, const [
+          'title',
+          'business_type',
+          'name',
+          'subject',
+        ]) ??
+        type.title;
+
+    final description = _readCleanDescription(sourceJson, json);
+
+    final counterpartName = _readName(sourceJson, const [
+          'counterpart_name',
+          'counterpart',
+          'peer',
+          'peer_name',
+          'member',
+          'with',
+          'to_user',
+          'from_user',
+          'to',
+          'from',
+        ]) ??
+        _readName(json, const [
+          'counterpart_name',
+          'counterpart',
+          'peer',
+          'peer_name',
+          'member',
+          'with',
+          'to_user',
+          'from_user',
+          'to',
+          'from',
+        ]) ??
+        '';
+
+    final rawAmount = sourceJson['amount'] ??
+        sourceJson['deal_amount_formatted'] ??
+        (sourceJson['deal_amount'] != null
+            ? '₹ ${sourceJson['deal_amount']}'
+            : null) ??
+        json['amount'] ??
+        json['deal_amount_formatted'] ??
+        (json['deal_amount'] != null ? '₹ ${json['deal_amount']}' : null) ??
+        _readString(sourceJson, const ['value', 'coins', 'points']) ??
+        _readString(json, const ['value', 'coins', 'points']) ??
+        '';
+
+    final status = _readString(sourceJson, const ['status']) ??
+        _readString(json, const ['status']) ??
+        '';
+
+    final date = _readString(sourceJson, const [
+          'deal_date',
+          'date',
+          'scheduled_at',
+          'meeting_date',
+          'created_at',
+          'time',
+        ]) ??
+        _readString(json, const [
+          'deal_date',
+          'date',
+          'scheduled_at',
+          'meeting_date',
+          'created_at',
+          'time',
+        ]) ??
+        '';
+
     return MemberActivityModel(
-      id: json['id']?.toString() ?? '',
+      id: (sourceJson['id'] ?? sourceJson['deal_id'] ?? sourceJson['referral_id'] ?? json['id'])?.toString() ?? '',
       type: type,
-      title:
-          _readString(json, const ['title', 'name', 'subject']) ?? type.title,
-      description:
-          _readString(json, const [
-            'description',
-            'subtitle',
-            'notes',
-            'remarks',
-            'message',
-          ]) ??
-          '',
-      counterpartName:
-          _readName(json, const [
-            'counterpart_name',
-            'peer',
-            'peer_name',
-            'member',
-            'with',
-            'to',
-            'from',
-            'counterpart',
-          ]) ??
-          '',
-      amount:
-          _readString(json, const ['amount', 'value', 'coins', 'points']) ?? '',
-      status: _readString(json, const ['status']) ?? '',
-      date:
-          _readString(json, const [
-            'date',
-            'scheduled_at',
-            'meeting_date',
-            'created_at',
-            'time',
-          ]) ??
-          '',
-      metadata: _extractMetadata(json),
+      title: title,
+      description: description,
+      counterpartName: counterpartName,
+      amount: rawAmount.toString(),
+      status: status,
+      date: date,
+      metadata: _extractMetadata(sourceJson.isNotEmpty ? sourceJson : json),
     );
   }
 
   static Map<String, dynamic> _extractMetadata(Map<String, dynamic> json) {
     final meta = <String, dynamic>{};
 
-    // Extract direct fields
-    if (json['phone'] != null && json['phone'].toString().isNotEmpty) {
-      meta['phone'] = json['phone'];
-    }
-    if (json['email'] != null && json['email'].toString().isNotEmpty) {
-      meta['email'] = json['email'];
-    }
-    if (json['hot_value'] != null) {
-      meta['hot_value'] = json['hot_value'];
-    }
-    if (json['referral_type'] != null &&
-        json['referral_type'].toString().isNotEmpty) {
-      meta['referral_type'] = json['referral_type'];
+    for (final key in [
+      'phone',
+      'email',
+      'hot_value',
+      'referral_type',
+      'business_type',
+      'member_role',
+      'referral_id',
+      'comment',
+      'city',
+      'profile_photo_url',
+    ]) {
+      if (json[key] != null && json[key].toString().isNotEmpty) {
+        meta[key] = json[key];
+      }
     }
 
-    // Extract counterpart nested fields
-    final counterpart = json['counterpart'] ?? json['to_user'];
+    final counterpart = json['counterpart'] ?? json['to_user'] ?? json['from_user'];
     if (counterpart is Map) {
       if (counterpart['company_name'] != null &&
           counterpart['company_name'].toString().isNotEmpty) {
@@ -241,9 +328,95 @@ class MemberActivityModel {
           counterpart['city'].toString().isNotEmpty) {
         meta['city'] = counterpart['city'];
       }
+      if (counterpart['phone'] != null &&
+          counterpart['phone'].toString().isNotEmpty) {
+        meta['phone'] = counterpart['phone'];
+      }
+      if (counterpart['email'] != null &&
+          counterpart['email'].toString().isNotEmpty) {
+        meta['email'] = counterpart['email'];
+      }
+      if (counterpart['profile_photo_url'] != null) {
+        meta['profile_photo_url'] = counterpart['profile_photo_url'];
+      }
     }
 
     return meta;
+  }
+
+  static String _readCleanDescription(
+    Map<String, dynamic> sourceJson,
+    Map<String, dynamic> json,
+  ) {
+    String? extractText(dynamic value) {
+      if (value == null) return null;
+      if (value is Map) {
+        final action = value['action'] ??
+            value['description'] ??
+            value['title'] ??
+            value['name'] ??
+            value['message'] ??
+            value['remark'] ??
+            value['reason'] ??
+            value['note'];
+        if (action != null && action.toString().trim().isNotEmpty) {
+          return action.toString().trim();
+        }
+      }
+      var text = value.toString().trim();
+      if (text.isEmpty) return null;
+
+      // Decodes JSON string payload (e.g. `{"impact_id":..., "action":"..."}`)
+      if ((text.startsWith('{') && text.endsWith('}')) ||
+          (text.startsWith('[') && text.endsWith(']'))) {
+        try {
+          final decoded = jsonDecode(text);
+          if (decoded is Map) {
+            final action = decoded['action'] ??
+                decoded['description'] ??
+                decoded['title'] ??
+                decoded['name'] ??
+                decoded['message'] ??
+                decoded['remark'] ??
+                decoded['reason'] ??
+                decoded['note'];
+            if (action != null && action.toString().trim().isNotEmpty) {
+              return action.toString().trim();
+            }
+          } else if (decoded is List && decoded.isNotEmpty) {
+            return decoded.map((e) => e.toString()).join(', ');
+          }
+        } catch (_) {}
+      }
+
+      if (text.startsWith('{') || text.startsWith('{"')) {
+        return null;
+      }
+      return text;
+    }
+
+    final candidateKeys = const [
+      'description',
+      'remark',
+      'reference',
+      'subtitle',
+      'comment',
+      'notes',
+      'message',
+      'reason',
+      'details',
+      'note',
+      'action',
+    ];
+
+    for (final key in candidateKeys) {
+      final text = extractText(sourceJson[key]) ?? extractText(json[key]);
+      if (text != null && text.isNotEmpty) {
+        return text;
+      }
+    }
+
+    return '';
   }
 
   static String? _readString(Map<String, dynamic> json, List<String> keys) {
@@ -260,7 +433,12 @@ class MemberActivityModel {
     for (final key in keys) {
       final value = json[key];
       if (value is Map) {
-        final name = value['name'] ?? value['full_name'];
+        final name = value['display_name'] ??
+            value['name'] ??
+            value['full_name'] ??
+            (value['first_name'] != null
+                ? '${value['first_name']} ${value['last_name'] ?? ''}'.trim()
+                : null);
         if (name != null && name.toString().trim().isNotEmpty) {
           return name.toString().trim();
         }

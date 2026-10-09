@@ -30,12 +30,13 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
       dealsClosed: currentPeer.dealsFormatted,
       dealsGiven: currentPeer.dealsGiven ?? '₹0.0',
       dealsReceived: currentPeer.dealsReceived ?? '₹0.0',
-      referralsGiven: currentPeer.referralsGiven ?? currentPeer.impactCount,
+      referralsGiven: currentPeer.referralsGiven ?? 0,
       referralsReceived: currentPeer.referralsReceived ?? 0,
-      p2pSessions: currentPeer.p2pMeetings ?? (currentPeer.impactCount > 0 ? (currentPeer.impactCount * 0.4).round() : 0),
+      p2pSessions: currentPeer.p2pMeetings ?? 0,
       coinsEarned: currentPeer.coins,
       attendanceRate: currentPeer.attendance.isNotEmpty ? currentPeer.attendance : '0%',
       impactCount: currentPeer.impactCount,
+      introducedPeersCount: 0,
       tags: currentPeer.tags.isNotEmpty ? currentPeer.tags.split(' · ') : const [],
       phone: currentPeer.phone,
       email: currentPeer.email,
@@ -63,6 +64,19 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
           currentPeer = peerDetailsRes.data!;
         }
 
+        // Fetch introduced peers count if zero in primary detail response
+        if (details.introducedPeersCount == 0) {
+          final introducedRes =
+              await _peersRepository.getIntroducedPeers(currentPeer.id.trim());
+          if (introducedRes.success &&
+              introducedRes.data != null &&
+              introducedRes.data!.isNotEmpty) {
+            details = details.copyWith(
+              introducedPeersCount: introducedRes.data!.length,
+            );
+          }
+        }
+
         // Fallback for meetings if empty in primary response
         if (details.meetings.isEmpty) {
           final meetingsRes =
@@ -82,6 +96,7 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
               coinsEarned: details.coinsEarned,
               attendanceRate: details.attendanceRate,
               impactCount: details.impactCount,
+              introducedPeersCount: details.introducedPeersCount,
               tags: details.tags,
               phone: details.phone,
               email: details.email,

@@ -5,8 +5,12 @@ import '../../../../core/widgets/app_video_player.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
 import '../../model/peer_profile_model.dart';
-import 'peer_business_deals_sheet.dart';
-import 'peer_business_referrals_sheet.dart';
+import '../peer_business_deals_screen.dart';
+import '../peer_business_referrals_screen.dart';
+import '../peer_coins_screen.dart';
+import '../peer_introduced_by_screen.dart';
+import '../peer_membership_screen.dart';
+import '../peer_testimonials_screen.dart';
 
 /// Renders the rich Overview tab for Peer Profile:
 /// - Intro video player
@@ -642,7 +646,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
     );
   }
 
-  // --- 5. Performance Grid (2 Rows of 4 Items) ---
+  // --- 5. Performance Grid (1 Row of 4 Items: Business Deals, Business Referrals, Coins, Membership) ---
   Widget _buildPerformanceMetricsCard(BuildContext context) {
     final totalRef = details.referralsGiven + details.referralsReceived;
 
@@ -697,7 +701,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Column(
               children: [
-                // Row 1: Business Deals, Business Referrals, Coins, Attendance
+                // Row 1: Business Deals, Business Referrals, Coins
                 Row(
                   children: [
                     Expanded(
@@ -705,77 +709,112 @@ class PeerProfileOverviewSection extends StatelessWidget {
                         label: 'Business Deals',
                         value: details.dealsClosed,
                         icon: Icons.monetization_on_outlined,
-                        onTap: () => PeerBusinessDealsSheet.show(
-                          context,
-                          peer: peer,
-                          details: details,
-                        ),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerBusinessDealsScreen(
+                                peer: peer,
+                                details: details,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: _buildMetricTile(
                         label: 'Business Referrals',
                         value: '$totalRef',
                         icon: Icons.campaign_outlined,
-                        onTap: () => PeerBusinessReferralsSheet.show(
-                          context,
-                          peer: peer,
-                          details: details,
-                        ),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerBusinessReferralsScreen(
+                                peer: peer,
+                                details: details,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: _buildMetricTile(
                         label: 'Coins',
                         value: _formatCompactNumber(details.coinsEarned),
                         icon: Icons.stars_rounded,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Attendance',
-                        value: details.attendanceRate,
-                        icon: Icons.calendar_today_outlined,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerCoinsScreen(
+                                peer: peer,
+                                details: details,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                // Row 2: Testimonials, Peers Intro, Membership, Impact
+                const SizedBox(height: 10),
+
+                // Row 2: Membership, Testimonials, Peers Introduced
                 Row(
                   children: [
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Testimonials',
-                        value: '${details.testimonials.length}',
-                        icon: Icons.rate_review_outlined,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Peers Intro',
-                        value: '5',
-                        icon: Icons.person_add_alt_1_outlined,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
                     Expanded(
                       child: _buildMetricTile(
                         label: 'Membership',
                         value: peer.status.isNotEmpty ? peer.status : 'Active',
                         icon: Icons.card_membership_rounded,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerMembershipScreen(
+                                peer: peer,
+                                details: details,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: _buildMetricTile(
-                        label: 'Impact',
-                        value: '${peer.impactCount}',
-                        icon: Icons.favorite_outline_rounded,
+                        label: 'Testimonials',
+                        value: '${details.testimonials.length}',
+                        icon: Icons.format_quote_rounded,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerTestimonialsScreen(
+                                peer: peer,
+                                testimonials: details.testimonials,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildMetricTile(
+                        label: 'Peers Introduced',
+                        value: '${details.introducedPeersCount}',
+                        icon: Icons.person_add_alt_1_rounded,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerIntroducedByScreen(
+                                peer: peer,
+                                details: details,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],

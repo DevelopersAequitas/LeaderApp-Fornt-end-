@@ -63,7 +63,7 @@ class PeerTestimonialsScreen extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.text,
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 8),
@@ -111,7 +111,7 @@ class PeerTestimonialsScreen extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.text,
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),

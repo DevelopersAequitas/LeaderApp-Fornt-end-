@@ -82,7 +82,11 @@ class MemberActivityCard extends StatelessWidget {
                     if (activity.amount.isNotEmpty) ...[
                       const SizedBox(width: 6),
                       GradientText(
-                        activity.amount,
+                        (activity.type == MemberActivityType.coins &&
+                                !activity.amount.toLowerCase().contains('coin') &&
+                                !activity.amount.contains('₹'))
+                            ? '${activity.amount} Coins'
+                            : activity.amount,
                         style: const TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
@@ -108,29 +112,62 @@ class MemberActivityCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (activity.counterpartName.isNotEmpty &&
-                    activity.title.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    activity.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ] else if (activity.description.isNotEmpty) ...[
+                if (activity.description.isNotEmpty &&
+                    activity.description.trim() != name.trim() &&
+                    activity.description.trim() != activity.title.trim()) ...[
                   const SizedBox(height: 2),
                   Text(
                     activity.description,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppColors.textSecondary,
-                      fontSize: 10.5,
+                      fontSize: 11,
                     ),
+                  ),
+                ],
+                if (activity.date.isNotEmpty || (activity.title.isNotEmpty && activity.title != name)) ...[
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      if (activity.date.isNotEmpty) ...[
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDate(activity.date),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 10.5,
+                          ),
+                        ),
+                      ],
+                      if (activity.title.isNotEmpty && activity.title != name) ...[
+                        if (activity.date.isNotEmpty)
+                          const Text(
+                            ' • ',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 10.5,
+                            ),
+                          ),
+                        Expanded(
+                          child: Text(
+                            activity.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ],
@@ -139,6 +176,27 @@ class MemberActivityCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatDate(String rawDate) {
+    if (rawDate.isEmpty) return '';
+    final parsed = DateTime.tryParse(rawDate);
+    if (parsed == null) return rawDate;
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${months[parsed.month - 1]} ${parsed.day}, ${parsed.year}';
   }
 
   Widget _buildStatusPill(String status) {

@@ -118,7 +118,70 @@ class MemberActivitiesBloc
     MemberActivityType type,
   ) {
     if (type == MemberActivityType.other) return items;
-    return items.where((a) => a.type == type).toList();
+
+    if (type == MemberActivityType.dealGiven) {
+      return items
+          .where(
+            (a) =>
+                a.type == MemberActivityType.dealGiven ||
+                a.metadata['member_role'] == 'giver',
+          )
+          .toList();
+    }
+    if (type == MemberActivityType.dealReceived) {
+      return items
+          .where(
+            (a) =>
+                a.type == MemberActivityType.dealReceived ||
+                a.metadata['member_role'] == 'receiver',
+          )
+          .toList();
+    }
+    if (type == MemberActivityType.referralGiven) {
+      return items
+          .where(
+            (a) =>
+                a.type == MemberActivityType.referralGiven ||
+                a.metadata['member_role'] == 'giver',
+          )
+          .toList();
+    }
+    if (type == MemberActivityType.referralReceived) {
+      return items
+          .where(
+            (a) =>
+                a.type == MemberActivityType.referralReceived ||
+                a.metadata['member_role'] == 'receiver',
+          )
+          .toList();
+    }
+
+    if (type == MemberActivityType.businessDeal) {
+      return items
+          .where(
+            (a) =>
+                a.type == MemberActivityType.businessDeal ||
+                a.type == MemberActivityType.dealGiven ||
+                a.type == MemberActivityType.dealReceived,
+          )
+          .toList();
+    }
+    if (type == MemberActivityType.businessReferral) {
+      return items
+          .where(
+            (a) =>
+                a.type == MemberActivityType.businessReferral ||
+                a.type == MemberActivityType.referralGiven ||
+                a.type == MemberActivityType.referralReceived,
+          )
+          .toList();
+    }
+
+    return items.where((a) {
+      if (a.type == type) return true;
+      if (type.endpointPath == a.type.endpointPath) return true;
+      return false;
+    }).toList();
   }
 
   bool _hasMore(ApiResponse<List<MemberActivityModel>> response) {

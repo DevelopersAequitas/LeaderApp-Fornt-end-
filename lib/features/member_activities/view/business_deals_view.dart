@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/member_activities_bloc.dart';
+import '../bloc/member_activities_event.dart';
 import '../bloc/member_activities_state.dart';
 import '../model/member_activity_model.dart';
 import '../presenter/member_activities_presenter.dart';
@@ -127,13 +128,8 @@ class _BusinessDealsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<MemberActivitiesBloc>(
-      create: (_) {
-        final bloc = MemberActivitiesBloc();
-        MemberActivitiesPresenter(
-          bloc: bloc,
-        ).load(memberId: memberId, type: type);
-        return bloc;
-      },
+      create: (_) => MemberActivitiesBloc()
+        ..add(LoadMemberActivities(memberId: memberId, type: type)),
       child: _BusinessDealsList(type: type),
     );
   }
