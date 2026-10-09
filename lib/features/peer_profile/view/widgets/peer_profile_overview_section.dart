@@ -392,12 +392,9 @@ class PeerProfileOverviewSection extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                SquareRoundedGradientIcon(
+                GradientIcon(
                   icon: Icons.connect_without_contact_outlined,
-                  boxSize: 22,
-                  iconSize: 13,
-                  borderRadius: 6,
-                  showBorder: false,
+                  size: 16,
                 ),
                 SizedBox(width: 8),
                 Text(
@@ -472,12 +469,9 @@ class PeerProfileOverviewSection extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            SquareRoundedGradientIcon(
+            GradientIcon(
               icon: icon,
-              boxSize: 32,
-              iconSize: 16,
-              borderRadius: 8,
-              showBorder: false,
+              size: 20,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -541,12 +535,9 @@ class PeerProfileOverviewSection extends StatelessWidget {
         children: [
           const Row(
             children: [
-              SquareRoundedGradientIcon(
+              GradientIcon(
                 icon: Icons.celebration_outlined,
-                boxSize: 22,
-                iconSize: 13,
-                borderRadius: 6,
-                showBorder: false,
+                size: 16,
               ),
               SizedBox(width: 8),
               Text(
@@ -616,12 +607,9 @@ class PeerProfileOverviewSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              SquareRoundedGradientIcon(
+              GradientIcon(
                 icon: icon,
-                boxSize: 22,
-                iconSize: 12,
-                borderRadius: 6,
-                showBorder: false,
+                size: 14,
               ),
               const SizedBox(width: 6),
               Flexible(
@@ -688,10 +676,9 @@ class PeerProfileOverviewSection extends StatelessWidget {
               children: [
                 SquareRoundedGradientIcon(
                   icon: Icons.insights_rounded,
-                  boxSize: 22,
+                  boxSize: 24,
                   iconSize: 13,
                   borderRadius: 6,
-                  showBorder: false,
                 ),
                 SizedBox(width: 8),
                 Text(
@@ -717,7 +704,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       child: _buildMetricTile(
                         label: 'Business Deals',
                         value: details.dealsClosed,
-                        valueColor: const Color(0xFF16A34A),
                         icon: Icons.monetization_on_outlined,
                         onTap: () => PeerBusinessDealsSheet.show(
                           context,
@@ -731,7 +717,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       child: _buildMetricTile(
                         label: 'Business Referrals',
                         value: '$totalRef',
-                        valueColor: const Color(0xFF2563EB),
                         icon: Icons.campaign_outlined,
                         onTap: () => PeerBusinessReferralsSheet.show(
                           context,
@@ -745,7 +730,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       child: _buildMetricTile(
                         label: 'Coins',
                         value: _formatCompactNumber(details.coinsEarned),
-                        valueColor: const Color(0xFFCA8A04),
                         icon: Icons.stars_rounded,
                       ),
                     ),
@@ -754,7 +738,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       child: _buildMetricTile(
                         label: 'Attendance',
                         value: details.attendanceRate,
-                        valueColor: const Color(0xFF16A34A),
                         icon: Icons.calendar_today_outlined,
                       ),
                     ),
@@ -768,7 +751,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       child: _buildMetricTile(
                         label: 'Testimonials',
                         value: '${details.testimonials.length}',
-                        valueColor: const Color(0xFF9333EA),
                         icon: Icons.rate_review_outlined,
                       ),
                     ),
@@ -777,7 +759,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       child: _buildMetricTile(
                         label: 'Peers Intro',
                         value: '5',
-                        valueColor: const Color(0xFFE11D48),
                         icon: Icons.person_add_alt_1_outlined,
                       ),
                     ),
@@ -786,7 +767,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       child: _buildMetricTile(
                         label: 'Membership',
                         value: peer.status.isNotEmpty ? peer.status : 'Active',
-                        valueColor: const Color(0xFF2563EB),
                         icon: Icons.card_membership_rounded,
                       ),
                     ),
@@ -795,7 +775,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       child: _buildMetricTile(
                         label: 'Impact',
                         value: '${peer.impactCount}',
-                        valueColor: const Color(0xFFD97706),
                         icon: Icons.favorite_outline_rounded,
                       ),
                     ),
@@ -812,7 +791,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
   Widget _buildMetricTile({
     required String label,
     required String value,
-    required Color valueColor,
     required IconData icon,
     VoidCallback? onTap,
   }) {
@@ -832,10 +810,10 @@ class PeerProfileOverviewSection extends StatelessWidget {
           children: [
             SquareRoundedGradientIcon(
               icon: icon,
-              boxSize: 26,
-              iconSize: 13,
-              borderRadius: 6,
-              showBorder: false,
+              boxSize: 28,
+              iconSize: 14,
+              borderRadius: 8,
+              showBorder: true,
             ),
             const SizedBox(height: 4),
             Text(
@@ -852,8 +830,8 @@ class PeerProfileOverviewSection extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               value,
-              style: TextStyle(
-                color: valueColor,
+              style: const TextStyle(
+                color: AppColors.text,
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
               ),
