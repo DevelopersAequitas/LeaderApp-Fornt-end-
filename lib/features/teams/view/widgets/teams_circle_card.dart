@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../model/teams_model.dart';
 
-/// Renders an individual circle summary card adhering to Material 3 principles.
+/// Renders a LinkedIn-style executive circle card featuring a top half-cover banner,
+/// overlapping avatar badge, status pill, category & location details, and metrics.
 class TeamsCircleCard extends StatelessWidget {
   final CircleTeamModel circle;
 
@@ -12,8 +14,6 @@ class TeamsCircleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = circle.status.toLowerCase() == 'active';
-    final progressColor =
-        isActive ? const Color(0xFF16A34A) : const Color(0xFFD97706);
     final statusBgColor =
         isActive ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2);
     final statusTextColor =
@@ -24,203 +24,177 @@ class TeamsCircleCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(
-          context,
-        ).pushNamed(AppRoutes.circleDetails, arguments: circle);
+        Navigator.of(context).pushNamed(
+          AppRoutes.circleDetails,
+          arguments: circle,
+        );
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.015),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // LinkedIn-Style Top Half Cover Image Banner & Overlapping Avatar
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                Expanded(
-                  child: Text(
+                // Top Cover Banner
+                Container(
+                  height: 110,
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.brandGradient,
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: _CoverPatternPainter(),
+                        ),
+                      ),
+                      // Status Pill Top-Right
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusBgColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            circle.status,
+                            style: TextStyle(
+                              color: statusTextColor,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Overlapping Circle Avatar
+                Positioned(
+                  top: 82,
+                  left: 16,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: InitialsAvatar(
+                      name: circle.name.toUpperCase(),
+                      imageUrl: circle.chairs.isNotEmpty ? circle.chairs.first.avatarUrl : null,
+                      radius: 28,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32), // Space for overlapping avatar
+            // Card Content Body
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
                     circle.name,
                     style: const TextStyle(
                       color: AppColors.text,
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusBgColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    circle.status,
+                  const SizedBox(height: 2),
+                  Text(
+                    '${circle.category}$metaLocation',
                     style: TextStyle(
-                      color: statusTextColor,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade600,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w400,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '${circle.category}$metaLocation',
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                value: circle.healthPercentage / 100,
-                color: progressColor,
-                backgroundColor: const Color(0xFFF1F5F9),
-                minHeight: 4,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${circle.peersCount} peers · ${circle.healthPercentage}% health',
-                  style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  circle.revenue,
-                  style: TextStyle(
-                    color: progressColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            if (circle.tags.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: circle.tags.map((tag) {
-                    return Container(
-                      margin: const EdgeInsets.only(right: 4),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+
+                  if (circle.tags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: circle.tags.map((tag) {
+                          return Container(
+                            margin: const EdgeInsets.only(right: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              tag,
+                              style: const TextStyle(
+                                color: Color(0xFF475569),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        tag,
-                        style: const TextStyle(
-                          color: Color(0xFF475569),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                    ),
+                  ],
+                ],
               ),
-            ],
-            const SizedBox(height: 8),
-            const Divider(color: Color(0xFFF1F5F9), height: 1),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildRoleItem(
-                  name:
-                      circle.founderName.isNotEmpty ? circle.founderName : '—',
-                  role: 'Founder',
-                  isFounder: true,
-                ),
-                _buildRoleItem(
-                  name: circle.directorName.isNotEmpty
-                      ? circle.directorName
-                      : '—',
-                  role: 'Director',
-                ),
-                _buildRoleItem(
-                  name: circle.chairName.isNotEmpty ? circle.chairName : '—',
-                  role: 'Chair',
-                ),
-              ],
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildRoleItem({
-    required String name,
-    required String role,
-    bool isFounder = false,
-  }) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            name,
-            style: const TextStyle(
-              color: AppColors.text,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 1),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                role,
-                style: TextStyle(
-                  color: Colors.grey.shade400,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              if (isFounder) ...[
-                const SizedBox(width: 3),
-                Icon(
-                  Icons.lock_outline_rounded,
-                  color: Colors.grey.shade400,
-                  size: 9,
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
+class _CoverPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.06)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.3), 40, paint);
+    canvas.drawCircle(Offset(size.width * 0.9, size.height * 0.8), 25, paint);
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

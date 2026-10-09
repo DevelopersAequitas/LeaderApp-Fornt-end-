@@ -6,13 +6,12 @@ import '../../teams/model/teams_model.dart';
 import '../bloc/circle_details_bloc.dart';
 import '../bloc/circle_details_event.dart';
 import '../bloc/circle_details_state.dart';
+import 'circle_events_screen.dart';
+import 'circle_overview_screen.dart';
+import 'circle_peers_screen.dart';
+import 'circle_sub_industries_screen.dart';
 import 'widgets/circle_details_hero_card.dart';
-import 'widgets/circle_details_tab_selector.dart';
-import 'widgets/circle_events_section.dart';
 import 'widgets/circle_leadership_card.dart';
-import 'widgets/circle_overview_section.dart';
-import 'widgets/circle_peers_section.dart';
-import 'widgets/circle_sub_industries_section.dart';
 
 /// Screen displaying comprehensive details about a specific Circle.
 /// Pure StatelessWidget powered 100% by BLoC state machine.
@@ -77,42 +76,7 @@ class _CircleDetailsContent extends StatelessWidget {
                     children: [
                       CircleDetailsHeroCard(circle: activeCircle),
                       CircleLeadershipCard(circle: activeCircle),
-                      CircleDetailsTabSelector(
-                        activeTab: state.activeSubTab,
-                        peersCount: state.totalPeersCount > 0
-                            ? state.totalPeersCount
-                            : state.circlePeers.length,
-                        eventsCount: state.filteredEvents.length,
-                        onTabChanged: (idx) =>
-                            bloc.add(ChangeCircleSubTabEvent(idx)),
-                      ),
-                      if (state.activeSubTab == 0)
-                        CircleOverviewSection(circle: activeCircle),
-                      if (state.activeSubTab == 1)
-                        CirclePeersSection(
-                          peers: state.circlePeers,
-                          isLoading: state.isLoadingPeers,
-                          isLoadingMore: state.isLoadingMorePeers,
-                          hasMore: state.hasMorePeers,
-                          totalCount: state.totalPeersCount,
-                          onLoadMore: () => bloc.add(LoadMoreCirclePeersEvent(
-                            circleId: initialCircle.id,
-                          )),
-                        ),
-                      if (state.activeSubTab == 2)
-                        CircleSubIndustriesSection(
-                          subIndustries: state.subIndustries,
-                          isLoading: state.isLoadingSubIndustries,
-                          categoryName: activeCircle.category,
-                        ),
-                      if (state.activeSubTab == 3)
-                        CircleEventsSection(
-                          events: state.filteredEvents,
-                          isLoading: state.isLoadingEvents,
-                          selectedFilter: state.selectedEventFilter,
-                          onFilterChanged: (filter) =>
-                              bloc.add(FilterCircleEventsEvent(filter)),
-                        ),
+                      _CircleModulesSection(circle: activeCircle),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -121,6 +85,127 @@ class _CircleDetailsContent extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _CircleModulesSection extends StatelessWidget {
+  final CircleTeamModel circle;
+
+  const _CircleModulesSection({required this.circle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Circle Directory & Modules',
+            style: TextStyle(
+              color: AppColors.text,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionTile(
+                  context,
+                  icon: Icons.info_outline_rounded,
+                  label: 'Overview',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CircleOverviewScreen(circle: circle),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Expanded(
+                child: _buildActionTile(
+                  context,
+                  icon: Icons.people_outline_rounded,
+                  label: 'Peers',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CirclePeersScreen(circle: circle),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Expanded(
+                child: _buildActionTile(
+                  context,
+                  icon: Icons.domain_rounded,
+                  label: 'Sub-Industries',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CircleSubIndustriesScreen(circle: circle),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Expanded(
+                child: _buildActionTile(
+                  context,
+                  icon: Icons.event_outlined,
+                  label: 'Events',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CircleEventsScreen(circle: circle),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionTile(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Column(
+        children: [
+          SquareRoundedGradientIcon(
+            icon: icon,
+            iconSize: 22,
+            boxSize: 44,
+            showBorder: true,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.text,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

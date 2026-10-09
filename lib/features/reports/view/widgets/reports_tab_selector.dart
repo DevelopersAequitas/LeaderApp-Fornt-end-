@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Renders the segmented sub-tab selector for Reports screen.
+/// Renders the brand gradient segmented sub-tab selector for Reports screen.
 class ReportsTabSelector extends StatelessWidget {
   final int activeIndex;
   final ValueChanged<int> onTabSelected;
@@ -47,7 +47,8 @@ class ReportsTabSelector extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
+            gradient: isSelected ? AppColors.brandGradient : null,
+            color: isSelected ? null : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
             boxShadow: isSelected
                 ? [

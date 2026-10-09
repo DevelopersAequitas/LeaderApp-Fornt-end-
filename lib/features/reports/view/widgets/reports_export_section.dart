@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/enums/user_role.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../../data/repositories/reports_repository.dart';
 import '../../model/report_model.dart';
 import 'reports_spline_chart.dart';
@@ -98,8 +99,13 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: textColor, size: 15),
-            const SizedBox(width: 6),
+            SquareRoundedGradientIcon(
+              icon: icon,
+              iconSize: 15,
+              boxSize: 28,
+              showBorder: true,
+            ),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
@@ -205,19 +211,12 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEBF3FB),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.cloud_download_rounded,
-                color: AppColors.primary,
-                size: 22,
-              ),
+          const Center(
+            child: SquareRoundedGradientIcon(
+              icon: Icons.cloud_download_rounded,
+              iconSize: 22,
+              boxSize: 44,
+              showBorder: true,
             ),
           ),
           const SizedBox(height: 12),
@@ -267,33 +266,10 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
             ],
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _isExporting ? null : _handleExport,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              elevation: 0,
-            ),
-            child: _isExporting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Text(
-                    'Download ${_exportFormat.toUpperCase()} Export',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+          PrimaryButton(
+            label: 'Download ${_exportFormat.toUpperCase()} Export',
+            isLoading: _isExporting,
+            onPressed: _handleExport,
           ),
         ],
       ),
@@ -301,30 +277,39 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
   }
 
   Widget _buildExportFormatCard(String label, bool isSelected) {
+    final iconData = label.contains('PDF')
+        ? Icons.picture_as_pdf_rounded
+        : Icons.table_chart_rounded;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFEBF3FB) : Colors.white,
+        gradient: isSelected ? AppColors.brandGradient : null,
+        color: isSelected ? null : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isSelected ? AppColors.primary : AppColors.border,
-          width: isSelected ? 1.5 : 1.0,
-        ),
+        border: isSelected ? null : Border.all(color: AppColors.border),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ]
+            : null,
       ),
       child: Column(
         children: [
           Icon(
-            label.contains('PDF')
-                ? Icons.picture_as_pdf_rounded
-                : Icons.table_chart_rounded,
-            color: isSelected ? AppColors.primary : AppColors.textSecondary,
+            iconData,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
             size: 22,
           ),
           const SizedBox(height: 6),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? AppColors.primary : AppColors.text,
+              color: isSelected ? Colors.white : AppColors.text,
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),

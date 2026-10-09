@@ -18,14 +18,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.primary, // #102640 Brand Primary Navy
-            Color(0xFF1A3860), // Harmonized Executive Blue
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: AppColors.brandGradient,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(

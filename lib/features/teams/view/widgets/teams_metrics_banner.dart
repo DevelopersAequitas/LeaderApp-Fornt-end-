@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../model/teams_model.dart';
 
-/// Renders a sleek, compact 4-metric banner for the Teams/Circles tab.
+/// Renders a sleek, single-row 4-metric banner with gradient border icons for Teams tab.
 class TeamsMetricsBanner extends StatelessWidget {
   final List<CircleTeamModel> circles;
 
@@ -37,7 +38,7 @@ class TeamsMetricsBanner extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -54,33 +55,33 @@ class TeamsMetricsBanner extends StatelessWidget {
         children: [
           Expanded(
             child: _buildMetricItem(
+              icon: Icons.groups_outlined,
               value: '$totalCircles',
               label: 'Circles',
-              valueColor: AppColors.primary,
             ),
           ),
-          Container(width: 1, height: 32, color: AppColors.border),
+          Container(width: 1, height: 36, color: AppColors.border),
           Expanded(
             child: _buildMetricItem(
+              icon: Icons.health_and_safety_outlined,
               value: '$avgHealth%',
               label: 'Avg Health',
-              valueColor: const Color(0xFFD97706),
             ),
           ),
-          Container(width: 1, height: 32, color: AppColors.border),
+          Container(width: 1, height: 36, color: AppColors.border),
           Expanded(
             child: _buildMetricItem(
+              icon: Icons.people_outline,
               value: '$totalPeers',
               label: 'Total Peers',
-              valueColor: const Color(0xFF16A34A),
             ),
           ),
-          Container(width: 1, height: 32, color: AppColors.border),
+          Container(width: 1, height: 36, color: AppColors.border),
           Expanded(
             child: _buildMetricItem(
+              icon: Icons.monetization_on_outlined,
               value: totalRevenue,
               label: 'Revenue',
-              valueColor: AppColors.primary,
             ),
           ),
         ],
@@ -89,20 +90,29 @@ class TeamsMetricsBanner extends StatelessWidget {
   }
 
   Widget _buildMetricItem({
+    required IconData icon,
     required String value,
     required String label,
-    required Color valueColor,
   }) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        SquareRoundedGradientIcon(
+          icon: icon,
+          boxSize: 32,
+          iconSize: 16,
+          borderRadius: 8,
+          showBorder: true,
+        ),
+        const SizedBox(height: 6),
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
             value,
-            style: TextStyle(
-              color: valueColor,
-              fontSize: 18,
+            style: const TextStyle(
+              color: AppColors.text,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -112,7 +122,7 @@ class TeamsMetricsBanner extends StatelessWidget {
           label,
           style: const TextStyle(
             color: AppColors.textSecondary,
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.w500,
           ),
           maxLines: 1,

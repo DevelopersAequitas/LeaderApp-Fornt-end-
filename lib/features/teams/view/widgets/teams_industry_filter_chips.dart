@@ -53,11 +53,12 @@ class TeamsIndustryFilterChips extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.white,
+                  gradient: isSelected ? AppColors.brandGradient : null,
+                  color: isSelected ? null : Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
-                        ? AppColors.primary
+                        ? Colors.transparent
                         : AppColors.border,
                   ),
                   boxShadow: [

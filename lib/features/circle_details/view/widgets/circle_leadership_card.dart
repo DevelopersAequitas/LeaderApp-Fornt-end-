@@ -5,89 +5,147 @@ import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
 import '../../../teams/model/teams_model.dart';
 
-/// Renders the comprehensive Circle Leadership section supporting up to 3 Chairs, Founders, and Directors.
+class _LeaderItem {
+  final CircleLeaderModel leader;
+  final String roleBadge;
+  final Color badgeBg;
+  final Color badgeFg;
+
+  const _LeaderItem({
+    required this.leader,
+    required this.roleBadge,
+    required this.badgeBg,
+    required this.badgeFg,
+  });
+}
+
+/// Renders the Circle Leadership section placing all leaders in a single row
+/// without a background container box, showing designation, company, and city details.
 class CircleLeadershipCard extends StatelessWidget {
   final CircleTeamModel circle;
 
   const CircleLeadershipCard({super.key, required this.circle});
 
-  static const List<String> _chairCommittees = [
-    'Chair - Business Growth Committee',
-    'Chair - Membership Committee',
-    'Chair - Events & Programs Committee',
-  ];
-
-  static const List<String> _chairBadges = [
-    'Chair - Business Growth',
-    'Chair - Membership',
-    'Chair - Events & Programs',
-  ];
-
-  static const List<String> _chairResponsibilities = [
-    'Business Referrals, Synergies & Growth Deals',
-    'Membership Retention, Peer Alignment & Engagement',
-    'Circle Gatherings, Assemblies & Speaker Sessions',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    // Collect all Chairs (support up to 3 chairs)
-    final chairs = circle.chairs.isNotEmpty
-        ? circle.chairs
-        : (circle.chairName.trim().isNotEmpty &&
-                  circle.chairName != 'Unassigned'
-              ? [
-                  CircleLeaderModel(
-                    name: circle.chairName.trim(),
-                    role: 'Circle Chair',
-                  ),
-                ]
-              : <CircleLeaderModel>[]);
+    final items = <_LeaderItem>[];
+
+    // Collect Chairs
+    if (circle.chairs.isNotEmpty) {
+      for (final c in circle.chairs) {
+        items.add(_LeaderItem(
+          leader: c,
+          roleBadge: 'Chair',
+          badgeBg: const Color(0xFFDCFCE7),
+          badgeFg: const Color(0xFF16A34A),
+        ));
+      }
+    } else if (circle.chairName.trim().isNotEmpty && circle.chairName != 'Unassigned') {
+      items.add(_LeaderItem(
+        leader: CircleLeaderModel(
+          name: circle.chairName.trim(),
+          role: 'Circle Chair',
+          designation: 'Chairperson',
+        ),
+        roleBadge: 'Chair',
+        badgeBg: const Color(0xFFDCFCE7),
+        badgeFg: const Color(0xFF16A34A),
+      ));
+    }
 
     // Collect Founders
-    final founders = circle.founders.isNotEmpty
-        ? circle.founders
-        : (circle.founderName.trim().isNotEmpty &&
-                  circle.founderName != 'Unassigned'
-              ? [
-                  CircleLeaderModel(
-                    name: circle.founderName.trim(),
-                    role: 'Circle Founder',
-                  ),
-                ]
-              : <CircleLeaderModel>[]);
+    if (circle.founders.isNotEmpty) {
+      for (final f in circle.founders) {
+        items.add(_LeaderItem(
+          leader: f,
+          roleBadge: 'Founder',
+          badgeBg: const Color(0xFFFEF3C7),
+          badgeFg: const Color(0xFFD97706),
+        ));
+      }
+    } else if (circle.founderName.trim().isNotEmpty && circle.founderName != 'Unassigned') {
+      items.add(_LeaderItem(
+        leader: CircleLeaderModel(
+          name: circle.founderName.trim(),
+          role: 'Circle Founder',
+          designation: 'Founder & CEO',
+        ),
+        roleBadge: 'Founder',
+        badgeBg: const Color(0xFFFEF3C7),
+        badgeFg: const Color(0xFFD97706),
+      ));
+    }
 
     // Collect Directors
-    final directors = circle.directors.isNotEmpty
-        ? circle.directors
-        : (circle.directorName.trim().isNotEmpty &&
-                  circle.directorName != 'Unassigned'
-              ? [
-                  CircleLeaderModel(
-                    name: circle.directorName.trim(),
-                    role: 'Circle Director',
-                  ),
-                ]
-              : <CircleLeaderModel>[]);
+    if (circle.directors.isNotEmpty) {
+      for (final d in circle.directors) {
+        items.add(_LeaderItem(
+          leader: d,
+          roleBadge: 'Director',
+          badgeBg: const Color(0xFFEBF3FB),
+          badgeFg: AppColors.primary,
+        ));
+      }
+    } else if (circle.directorName.trim().isNotEmpty && circle.directorName != 'Unassigned') {
+      items.add(_LeaderItem(
+        leader: CircleLeaderModel(
+          name: circle.directorName.trim(),
+          role: 'Circle Director',
+          designation: 'Managing Director',
+        ),
+        roleBadge: 'Director',
+        badgeBg: const Color(0xFFEBF3FB),
+        badgeFg: AppColors.primary,
+      ));
+    }
 
-    // final totalLeadersCount =
-    //     chairs.length + founders.length + directors.length;
+    // Ensure leadership team section is always populated and visible in a single row
+    if (items.isEmpty) {
+      final chairName =
+          circle.chairName.trim().isNotEmpty ? circle.chairName.trim() : 'Circle Chair';
+      final founderName = circle.founderName.trim().isNotEmpty
+          ? circle.founderName.trim()
+          : 'Circle Founder';
+      final directorName = circle.directorName.trim().isNotEmpty
+          ? circle.directorName.trim()
+          : 'Circle Director';
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+      items.addAll([
+        _LeaderItem(
+          leader: CircleLeaderModel(
+            name: chairName,
+            role: 'Circle Chair',
+            designation: 'Chairperson',
           ),
-        ],
-      ),
+          roleBadge: 'Chair',
+          badgeBg: const Color(0xFFDCFCE7),
+          badgeFg: const Color(0xFF16A34A),
+        ),
+        _LeaderItem(
+          leader: CircleLeaderModel(
+            name: founderName,
+            role: 'Circle Founder',
+            designation: 'Founder & CEO',
+          ),
+          roleBadge: 'Founder',
+          badgeBg: const Color(0xFFFEF3C7),
+          badgeFg: const Color(0xFFD97706),
+        ),
+        _LeaderItem(
+          leader: CircleLeaderModel(
+            name: directorName,
+            role: 'Circle Director',
+            designation: 'Managing Director',
+          ),
+          roleBadge: 'Director',
+          badgeBg: const Color(0xFFEBF3FB),
+          badgeFg: AppColors.primary,
+        ),
+      ]);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -102,293 +160,212 @@ class CircleLeadershipCard extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${items.length} Leaders',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-
-          // 1. Circle Chairs (Up to 3 Chairs formatted as Committees)
-          if (chairs.isEmpty)
-            _buildLeaderRow(
-              context,
-              roleTitle: _chairCommittees[0],
-              leader: CircleLeaderModel(name: '', role: _chairCommittees[0]),
-              roleBadge: _chairBadges[0],
-              badgeBg: const Color(0xFFDCFCE7),
-              badgeFg: const Color(0xFF16A34A),
-              avatarBg: const Color(0xFF16A34A),
-              responsibility: _chairResponsibilities[0],
-            )
-          else
-            ...chairs.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final chair = entry.value;
-              final committeeTitle = idx < _chairCommittees.length
-                  ? _chairCommittees[idx]
-                  : 'Chair - Committee ${idx + 1}';
-              final committeeBadge = idx < _chairBadges.length
-                  ? _chairBadges[idx]
-                  : 'Chair ${idx + 1}';
-              final defaultResp = idx < _chairResponsibilities.length
-                  ? _chairResponsibilities[idx]
-                  : 'Circle Leadership & Committee Strategy';
-
-              return Column(
-                children: [
-                  if (idx > 0)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 6),
-                      child: Divider(height: 1, color: AppColors.border),
-                    ),
-                  _buildLeaderRow(
-                    context,
-                    roleTitle: committeeTitle,
-                    leader: chair,
-                    roleBadge: committeeBadge,
-                    badgeBg: const Color(0xFFDCFCE7),
-                    badgeFg: const Color(0xFF16A34A),
-                    avatarBg: const Color(0xFF16A34A),
-                    responsibility: defaultResp,
-                  ),
-                ],
-              );
-            }),
-
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Divider(height: 1, color: AppColors.border),
+          // Single row layout for leadership team
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: items.map((item) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: _buildLeaderTile(context, item),
+                );
+              }).toList(),
+            ),
           ),
-
-          // 2. Circle Founders
-          if (founders.isEmpty)
-            _buildLeaderRow(
-              context,
-              roleTitle: 'Circle Founder',
-              leader: const CircleLeaderModel(name: '', role: 'Circle Founder'),
-              roleBadge: 'Founder 🔒',
-              badgeBg: const Color(0xFFFEF3C7),
-              badgeFg: const Color(0xFFD97706),
-              avatarBg: AppColors.primary,
-              responsibility: 'Vision, Founding Network & Core Strategy',
-            )
-          else
-            ...founders.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final founder = entry.value;
-              return Column(
-                children: [
-                  if (idx > 0)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 6),
-                      child: Divider(height: 1, color: AppColors.border),
-                    ),
-                  _buildLeaderRow(
-                    context,
-                    roleTitle: 'Circle Founder',
-                    leader: founder,
-                    roleBadge: 'Founder 🔒',
-                    badgeBg: const Color(0xFFFEF3C7),
-                    badgeFg: const Color(0xFFD97706),
-                    avatarBg: AppColors.primary,
-                    responsibility: 'Vision, Founding Network & Core Strategy',
-                  ),
-                ],
-              );
-            }),
-
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: Divider(height: 1, color: AppColors.border),
-          ),
-
-          // 3. Circle Directors
-          if (directors.isEmpty)
-            _buildLeaderRow(
-              context,
-              roleTitle: 'Circle Director',
-              leader: const CircleLeaderModel(
-                name: '',
-                role: 'Circle Director',
-              ),
-              roleBadge: 'Director',
-              badgeBg: const Color(0xFFEBF3FB),
-              badgeFg: AppColors.primary,
-              avatarBg: const Color(0xFF2563EB),
-              responsibility: 'Regional Growth, Alignment & Guidance',
-            )
-          else
-            ...directors.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final director = entry.value;
-              return Column(
-                children: [
-                  if (idx > 0)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 6),
-                      child: Divider(height: 1, color: AppColors.border),
-                    ),
-                  _buildLeaderRow(
-                    context,
-                    roleTitle: 'Circle Director',
-                    leader: director,
-                    roleBadge: 'Director',
-                    badgeBg: const Color(0xFFEBF3FB),
-                    badgeFg: AppColors.primary,
-                    avatarBg: const Color(0xFF2563EB),
-                    responsibility: 'Regional Growth, Alignment & Guidance',
-                  ),
-                ],
-              );
-            }),
         ],
       ),
     );
   }
 
-  Widget _buildLeaderRow(
-    BuildContext context, {
-    required String roleTitle,
-    required CircleLeaderModel leader,
-    required String roleBadge,
-    required Color badgeBg,
-    required Color badgeFg,
-    required Color avatarBg,
-    required String responsibility,
-  }) {
-    final bool isAssigned =
-        leader.name.trim().isNotEmpty && leader.name != 'Unassigned';
-    final displayName = isAssigned ? leader.name : 'Unassigned';
+  Widget _buildLeaderTile(BuildContext context, _LeaderItem item) {
+    final leader = item.leader;
+    final initials = leader.name.trim().isNotEmpty
+        ? leader.name
+            .trim()
+            .split(' ')
+            .where((n) => n.isNotEmpty)
+            .map((n) => n[0])
+            .take(2)
+            .join()
+            .toUpperCase()
+        : '?';
 
-    final String companyDetails;
-    if (isAssigned &&
-        ((leader.designation != null && leader.designation!.isNotEmpty) ||
-            (leader.company != null && leader.company!.isNotEmpty))) {
-      final parts = <String>[];
-      if (leader.designation != null && leader.designation!.isNotEmpty) {
-        parts.add(leader.designation!);
-      }
-      if (leader.company != null && leader.company!.isNotEmpty) {
-        parts.add(leader.company!);
-      }
-      companyDetails = parts.join(' · ');
-    } else {
-      companyDetails = responsibility;
-    }
+    final String designationText =
+        (leader.designation != null && leader.designation!.isNotEmpty)
+            ? leader.designation!
+            : leader.role;
 
-    final String displayRole = leader.role.trim().isNotEmpty
-        ? leader.role.trim()
-        : roleTitle;
+    final String companyText =
+        (leader.company != null && leader.company!.isNotEmpty)
+            ? leader.company!
+            : circle.name;
+
+    final String cityText =
+        circle.location.isNotEmpty ? circle.location : 'Mumbai';
 
     return InkWell(
-      onTap: isAssigned
-          ? () {
-              final initials = leader.name.trim().isNotEmpty
-                  ? leader.name
-                        .trim()
-                        .split(' ')
-                        .where((n) => n.isNotEmpty)
-                        .map((n) => n[0])
-                        .take(2)
-                        .join()
-                        .toUpperCase()
-                  : '?';
-              final peer = PeerModel(
-                id: leader.id.trim(),
-                initials: initials,
-                name: leader.name,
-                avatarUrl: leader.avatarUrl,
-                company: leader.company ?? circle.name,
-                circle: circle.name,
-                circleId: circle.id,
-                location: circle.location,
-                designation: displayRole,
-                industry: circle.category,
-                level4Category: circle.category,
-                tags: '$displayRole · ${circle.name}',
-                status: 'Active',
-                impactCount: 0,
-                dealsFormatted: '₹0.0',
-                coins: 0,
-                attendance: '100%',
-                phone: leader.phone ?? '',
-                email: leader.email ?? '',
-                isVerified: true,
-              );
-              Navigator.of(
-                context,
-              ).pushNamed(AppRoutes.peerProfile, arguments: peer);
-            }
-          : null,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            InitialsAvatar(
-              name: displayName,
-              imageUrl: isAssigned ? leader.avatarUrl : null,
-              radius: 20,
-              backgroundColor: isAssigned ? avatarBg : Colors.grey.shade400,
-              textColor: Colors.white,
-              fontSize: 11,
+      onTap: () {
+        final peer = PeerModel(
+          id: leader.id.trim(),
+          initials: initials,
+          name: leader.name,
+          avatarUrl: leader.avatarUrl,
+          company: companyText,
+          circle: circle.name,
+          location: circle.location,
+          tags: circle.category,
+          impactCount: 0,
+          dealsFormatted: '₹0',
+          coins: 0,
+          attendance: '90%',
+          status: 'Active',
+          phone: leader.phone ?? '',
+          email: leader.email ?? '',
+          designation: designationText,
+        );
+        Navigator.of(context).pushNamed(
+          AppRoutes.peerProfile,
+          arguments: peer,
+        );
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 148,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          displayName,
-                          style: TextStyle(
-                            color: isAssigned
-                                ? AppColors.text
-                                : Colors.grey.shade500,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (isAssigned) ...[
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          size: 16,
-                          color: AppColors.textSecondary,
-                        ),
-                      ],
-                    ],
+          ],
+        ),
+        child: Column(
+          children: [
+            // Top Role Pill
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+              decoration: BoxDecoration(
+                color: item.badgeBg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                item.roleBadge,
+                style: TextStyle(
+                  color: item.badgeFg,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Avatar with subtle shadow
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    displayRole,
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                ],
+              ),
+              child: InitialsAvatar(
+                name: leader.name,
+                imageUrl: leader.avatarUrl,
+                radius: 22,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Name
+            Text(
+              leader.name,
+              style: const TextStyle(
+                color: AppColors.text,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            // Designation
+            Text(
+              designationText,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 10,
+                fontWeight: FontWeight.w400,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 3),
+            // Company Name
+            Text(
+              companyText,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            // City / Location
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 10,
+                  color: Colors.grey.shade500,
+                ),
+                const SizedBox(width: 2),
+                Flexible(
+                  child: Text(
+                    cityText,
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w400,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (companyDetails.isNotEmpty) ...[
-                    const SizedBox(height: 1),
-                    Text(
-                      companyDetails,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

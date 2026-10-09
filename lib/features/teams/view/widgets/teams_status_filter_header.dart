@@ -52,12 +52,13 @@ class TeamsStatusFilterHeader extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.white : Colors.transparent,
+                      gradient: isSelected ? AppColors.brandGradient : null,
+                      color: isSelected ? null : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
+                                color: AppColors.primary.withValues(alpha: 0.15),
                                 blurRadius: 4,
                                 offset: const Offset(0, 1),
                               ),
@@ -68,7 +69,7 @@ class TeamsStatusFilterHeader extends StatelessWidget {
                       status,
                       style: TextStyle(
                         color: isSelected
-                            ? AppColors.primary
+                            ? Colors.white
                             : const Color(0xFF64748B),
                         fontSize: 11,
                         fontWeight:

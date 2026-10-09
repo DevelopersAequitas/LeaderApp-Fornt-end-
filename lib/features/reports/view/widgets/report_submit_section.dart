@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/enums/user_role.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/widgets.dart';
 
 /// Form component for leaders to draft and submit weekly/monthly circle reports.
 class ReportSubmitSection extends StatelessWidget {
@@ -181,23 +181,11 @@ class ReportSubmitSection extends StatelessWidget {
                                     Navigator.pop(ctx);
                                     onCircleChanged?.call(item);
                                   },
-                                  leading: Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : const Color(0xFFEBF3FB),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Icon(
-                                      Icons.group_work_rounded,
-                                      size: 18,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : AppColors.primary,
-                                    ),
+                                  leading: SquareRoundedGradientIcon(
+                                    icon: Icons.group_work_rounded,
+                                    iconSize: 18,
+                                    boxSize: 36,
+                                    showBorder: true,
                                   ),
                                   title: Text(
                                     item,
@@ -273,19 +261,11 @@ class ReportSubmitSection extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.description_outlined,
-              color: Color(0xFFD97706),
-              size: 20,
-            ),
+          const SquareRoundedGradientIcon(
+            icon: Icons.description_outlined,
+            iconSize: 20,
+            boxSize: 40,
+            showBorder: true,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -318,6 +298,9 @@ class ReportSubmitSection extends StatelessWidget {
   }
 
   Widget _buildTypeSelector() {
+    final isWeekly = selectedType == 'Weekly';
+    final isMonthly = selectedType == 'Monthly';
+
     return Row(
       children: [
         Expanded(
@@ -328,23 +311,25 @@ class ReportSubmitSection extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: selectedType == 'Weekly'
-                    ? AppColors.primary
-                    : Colors.white,
+                gradient: isWeekly ? AppColors.brandGradient : null,
+                color: isWeekly ? null : Colors.white,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: selectedType == 'Weekly'
-                      ? AppColors.primary
-                      : AppColors.border,
-                ),
+                border: isWeekly ? null : Border.all(color: AppColors.border),
+                boxShadow: isWeekly
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
+                    : null,
               ),
               alignment: Alignment.center,
               child: Text(
                 'Weekly Report',
                 style: TextStyle(
-                  color: selectedType == 'Weekly'
-                      ? Colors.white
-                      : AppColors.text,
+                  color: isWeekly ? Colors.white : AppColors.text,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -361,23 +346,25 @@ class ReportSubmitSection extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: selectedType == 'Monthly'
-                    ? AppColors.primary
-                    : Colors.white,
+                gradient: isMonthly ? AppColors.brandGradient : null,
+                color: isMonthly ? null : Colors.white,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: selectedType == 'Monthly'
-                      ? AppColors.primary
-                      : AppColors.border,
-                ),
+                border: isMonthly ? null : Border.all(color: AppColors.border),
+                boxShadow: isMonthly
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
+                    : null,
               ),
               alignment: Alignment.center,
               child: Text(
                 'Monthly Report',
                 style: TextStyle(
-                  color: selectedType == 'Monthly'
-                      ? Colors.white
-                      : AppColors.text,
+                  color: isMonthly ? Colors.white : AppColors.text,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/widgets.dart';
 
 /// Renders a compact, sleek search input field for filtering circles.
 class TeamsSearchBar extends StatelessWidget {
@@ -21,14 +22,16 @@ class TeamsSearchBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: const GradientBoxBorder(
+            gradient: AppColors.brandGradient,
+            width: 1.2,
+          ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
           children: [
-            const Icon(
-              Icons.search_rounded,
-              color: Color(0xFF8B9CB4),
+            const GradientIcon(
+              icon: Icons.search_rounded,
               size: 18,
             ),
             const SizedBox(width: 8),

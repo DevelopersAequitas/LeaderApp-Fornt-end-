@@ -12,6 +12,7 @@ class FinanceSplineChart extends StatefulWidget {
   final List<double>? yLabels;
   final Color lineColor;
   final bool showMarTooltip;
+  final double height;
 
   const FinanceSplineChart({
     super.key,
@@ -21,6 +22,7 @@ class FinanceSplineChart extends StatefulWidget {
     this.yLabels,
     required this.lineColor,
     this.showMarTooltip = false,
+    this.height = 140.0,
   });
 
   @override
@@ -81,7 +83,7 @@ class _FinanceSplineChartState extends State<FinanceSplineChart>
 
     return Container(
       width: double.infinity,
-      height: 200,
+      height: widget.height,
       padding: const EdgeInsets.fromLTRB(4, 8, 8, 4),
       child: AnimatedBuilder(
         animation: _curveAnimation,
