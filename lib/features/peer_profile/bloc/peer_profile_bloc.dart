@@ -108,6 +108,17 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
             );
           }
         }
+
+        // Fetch member posts
+        try {
+          final postsRes = await _peersRepository.getMemberPosts(currentPeer.id.trim());
+          if (postsRes.success && postsRes.data != null) {
+            final parsedPosts = postsRes.data!
+                .map((m) => PeerPostModel.fromJson(m))
+                .toList();
+            details = details.copyWith(posts: parsedPosts);
+          }
+        } catch (_) {}
       } catch (_) {}
     }
 

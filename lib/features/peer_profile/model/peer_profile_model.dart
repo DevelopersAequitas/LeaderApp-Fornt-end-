@@ -176,6 +176,7 @@ class PeerProfileDetailModel {
   final List<PeerMeetingModel> meetings;
   final List<PeerActivityModel> activities;
   final List<PeerTestimonialModel> testimonials;
+  final List<PeerPostModel> posts;
   final PeerSubscriptionModel? appSubscription;
   final PeerCircleSubscriptionModel? circleSubscription;
 
@@ -202,6 +203,7 @@ class PeerProfileDetailModel {
     this.meetings = const [],
     this.activities = const [],
     this.testimonials = const [],
+    this.posts = const [],
     this.appSubscription,
     this.circleSubscription,
   });
@@ -291,6 +293,17 @@ class PeerProfileDetailModel {
       return fallback;
     }
 
+    final postsList = <PeerPostModel>[];
+    if (json['posts'] is List) {
+      for (final p in json['posts']) {
+        if (p is Map<String, dynamic>) {
+          postsList.add(PeerPostModel.fromJson(p));
+        } else if (p is Map) {
+          postsList.add(PeerPostModel.fromJson(Map<String, dynamic>.from(p)));
+        }
+      }
+    }
+
     return PeerProfileDetailModel(
       bio: parseString(['bio', 'about']),
       birthday: parseString(['birthday', 'birth_date', 'date_of_birth']),
@@ -322,6 +335,7 @@ class PeerProfileDetailModel {
       meetings: meetingsList,
       activities: activitiesList,
       testimonials: testimonialsList,
+      posts: postsList,
     );
   }
 
@@ -348,6 +362,7 @@ class PeerProfileDetailModel {
     List<PeerMeetingModel>? meetings,
     List<PeerActivityModel>? activities,
     List<PeerTestimonialModel>? testimonials,
+    List<PeerPostModel>? posts,
     PeerSubscriptionModel? appSubscription,
     PeerCircleSubscriptionModel? circleSubscription,
   }) {
@@ -374,6 +389,7 @@ class PeerProfileDetailModel {
       meetings: meetings ?? this.meetings,
       activities: activities ?? this.activities,
       testimonials: testimonials ?? this.testimonials,
+      posts: posts ?? this.posts,
       appSubscription: appSubscription ?? this.appSubscription,
       circleSubscription: circleSubscription ?? this.circleSubscription,
     );
@@ -501,6 +517,121 @@ class PeerCircleSubscriptionModel {
       startDate: json['start_date']?.toString() ?? '',
       endDate: json['end_date']?.toString() ?? '',
       daysLeft: json['days_left'] as int? ?? (int.tryParse(json['days_left']?.toString() ?? '0') ?? 0),
+    );
+  }
+}
+
+/// Model representing a user post / creative card.
+class PeerPostModel {
+  final String id;
+  final String authorName;
+  final String authorInitials;
+  final String authorAvatarUrl;
+  final String designationCompany;
+  final String circleName;
+  final String level4Category;
+  final bool isVerified;
+  final String title;
+  final String content;
+  final String postType;
+  final String? imageUrl;
+  final String? dealType;
+  final String? dealAmount;
+  final String? targetPeerName;
+  final String? targetPeerCompany;
+  final String createdAt;
+  final int likesCount;
+  final int commentsCount;
+  final bool isLiked;
+  final bool canDelete;
+
+  const PeerPostModel({
+    this.id = '',
+    required this.authorName,
+    this.authorInitials = '',
+    this.authorAvatarUrl = '',
+    required this.designationCompany,
+    this.circleName = '',
+    this.level4Category = '',
+    this.isVerified = true,
+    this.title = '',
+    required this.content,
+    this.postType = 'standard',
+    this.imageUrl,
+    this.dealType,
+    this.dealAmount,
+    this.targetPeerName,
+    this.targetPeerCompany,
+    this.createdAt = '',
+    this.likesCount = 0,
+    this.commentsCount = 0,
+    this.isLiked = false,
+    this.canDelete = false,
+  });
+
+  factory PeerPostModel.fromJson(Map<String, dynamic> json) {
+    String id = json['id']?.toString() ?? '';
+    String content = json['content']?.toString() ?? '';
+    String title = json['title']?.toString() ?? '';
+    String postType = json['post_type']?.toString() ?? 'standard';
+    int likesCount = json['likes_count'] as int? ?? (int.tryParse(json['likes_count']?.toString() ?? '0') ?? 0);
+    int commentsCount = json['comments_count'] as int? ?? (int.tryParse(json['comments_count']?.toString() ?? '0') ?? 0);
+
+    String? imageUrl = json['image']?.toString();
+    if ((imageUrl == null || imageUrl.isEmpty) && json['media'] is List) {
+      final mediaList = json['media'] as List;
+      for (final item in mediaList) {
+        if (item is Map && (item['url'] != null || item['file_url'] != null)) {
+          imageUrl = item['url']?.toString() ?? item['file_url']?.toString();
+          if (imageUrl != null && imageUrl.isNotEmpty) break;
+        }
+      }
+    }
+
+    String rawDate = json['created_at']?.toString() ?? '';
+    String formattedDate = rawDate;
+    if (rawDate.isNotEmpty) {
+      try {
+        final dt = DateTime.parse(rawDate).toLocal();
+        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final day = dt.day.toString().padLeft(2, '0');
+        final monthStr = months[dt.month - 1];
+        final year = dt.year;
+        final hourNum = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+        final hour = hourNum.toString().padLeft(2, '0');
+        final min = dt.minute.toString().padLeft(2, '0');
+        final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+        formattedDate = '$day $monthStr $year · $hour:$min $ampm';
+      } catch (_) {
+        formattedDate = rawDate;
+      }
+    }
+
+    String authorName = json['author_name']?.toString() ?? json['user_name']?.toString() ?? '';
+    String authorAvatarUrl = json['author_avatar']?.toString() ?? json['avatar_url']?.toString() ?? json['profile_photo_url']?.toString() ?? '';
+    String designationCompany = json['designation']?.toString() ?? '';
+    if (json['company_name'] != null && json['company_name'].toString().isNotEmpty) {
+      designationCompany = designationCompany.isNotEmpty
+          ? '$designationCompany · ${json['company_name']}'
+          : json['company_name'].toString();
+    }
+    String circleName = json['circle_name']?.toString() ?? '';
+    String level4Category = json['level4_category']?.toString() ?? json['category_level4']?.toString() ?? '';
+
+    return PeerPostModel(
+      id: id,
+      authorName: authorName,
+      authorAvatarUrl: authorAvatarUrl,
+      designationCompany: designationCompany,
+      circleName: circleName,
+      level4Category: level4Category,
+      title: title,
+      content: content,
+      postType: postType,
+      imageUrl: (imageUrl != null && imageUrl.isNotEmpty) ? imageUrl : null,
+      createdAt: formattedDate,
+      likesCount: likesCount,
+      commentsCount: commentsCount,
     );
   }
 }

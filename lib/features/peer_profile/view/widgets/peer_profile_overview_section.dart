@@ -11,6 +11,7 @@ import '../peer_coins_screen.dart';
 import '../peer_introduced_by_screen.dart';
 import '../peer_membership_screen.dart';
 import '../peer_testimonials_screen.dart';
+import 'peer_post_card.dart';
 
 /// Renders the rich Overview tab for Peer Profile:
 /// - Intro video player
@@ -116,6 +117,9 @@ class PeerProfileOverviewSection extends StatelessWidget {
 
         // 7. Industry & Specialization Tags
         if (tags.isNotEmpty) _buildTagsCard(tags),
+
+        // 8. User Posts & Creatives Section (Below Industry & Specialization tags)
+        _buildUserPostsSection(context),
 
         const SizedBox(height: 20),
       ],
@@ -949,6 +953,50 @@ class PeerProfileOverviewSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // --- 8. User Posts & Creatives Section ---
+  Widget _buildUserPostsSection(BuildContext context) {
+    final posts = details.posts;
+    if (posts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          child: Row(
+            children: [
+              const Icon(Icons.feed_outlined, size: 20, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Posts & Creatives (${posts.length})',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+        ),
+        ...posts.map((post) {
+          final peerCat = (peer.level4Category != null && peer.level4Category!.isNotEmpty)
+              ? peer.level4Category!
+              : peer.circle;
+          return PeerPostCard(
+            post: post,
+            peerName: peer.name,
+            peerAvatarUrl: peer.avatarUrl,
+            peerDesignation: peer.designation,
+            peerCompany: peer.company,
+            peerCategory: peerCat,
+          );
+        }),
+      ],
     );
   }
 }

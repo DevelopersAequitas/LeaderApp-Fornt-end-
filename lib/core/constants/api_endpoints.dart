@@ -100,6 +100,8 @@ abstract class ApiEndpoints {
   static String get leaderReferrals => '$baseUrl/leader/referrals';
   static String memberReferrals(String memberId) =>
       '$baseUrl/leader/members/$memberId/referrals';
+  static String memberPosts(String memberId) =>
+      '$baseUrl/leader/members/$memberId/posts';
 
   // --- 8. Notifications ---
   static String get notifications => '$baseUrl/notifications';

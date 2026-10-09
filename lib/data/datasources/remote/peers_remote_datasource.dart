@@ -408,6 +408,33 @@ class PeersRemoteDataSource {
     );
   }
 
+  /// 2.4 Get Member Posts (GET /leader/members/{member_id}/posts)
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberPosts(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _apiClient.get<List<Map<String, dynamic>>>(
+      ApiEndpoints.memberPosts(memberId),
+      queryParameters: {
+        'page': page.toString(),
+        'limit': limit.toString(),
+      },
+      fromJsonT: (json) {
+        if (json is List) {
+          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        }
+        if (json is Map) {
+          final list = json['data'] ?? json['posts'] ?? json['items'];
+          if (list is List) {
+            return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          }
+        }
+        return [];
+      },
+    );
+  }
+
   /// 3.1 Get Platform Leaderboard by Coins (GET /leader/peers-by-coins)
   Future<ApiResponse<Map<String, dynamic>>> getPeersByCoins({int limit = 20}) async {
     return _apiClient.get<Map<String, dynamic>>(
