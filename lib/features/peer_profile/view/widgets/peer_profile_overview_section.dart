@@ -8,6 +8,7 @@ import '../../model/peer_profile_model.dart';
 import '../peer_business_deals_screen.dart';
 import '../peer_business_referrals_screen.dart';
 import '../peer_coins_screen.dart';
+import '../peer_filtered_posts_screen.dart';
 import '../peer_introduced_by_screen.dart';
 import '../peer_membership_screen.dart';
 import '../peer_testimonials_screen.dart';
@@ -650,9 +651,32 @@ class PeerProfileOverviewSection extends StatelessWidget {
     );
   }
 
-  // --- 5. Performance Grid (1 Row of 4 Items: Business Deals, Business Referrals, Coins, Membership) ---
+  // --- 5. Performance Grid (3 Rows of 3 Items: Deals, Referrals, Coins, Membership, Testimonials, Peers Introduced, Collaboration, Requirement, Get Help) ---
   Widget _buildPerformanceMetricsCard(BuildContext context) {
     final totalRef = details.referralsGiven + details.referralsReceived;
+
+    final collabCount = details.posts.where((p) {
+      final pt = p.postType.toLowerCase();
+      return pt == 'collaboration' ||
+          pt == 'story' ||
+          pt == 'standard' ||
+          p.content.toLowerCase().contains('collaborat');
+    }).length;
+
+    final reqCount = details.posts.where((p) {
+      final pt = p.postType.toLowerCase();
+      return pt == 'requirement' ||
+          p.title.toLowerCase().contains('requirement') ||
+          p.content.toLowerCase().contains('requirement');
+    }).length;
+
+    final getHelpCount = details.posts.where((p) {
+      final pt = p.postType.toLowerCase();
+      return pt == 'ask' ||
+          pt == 'get_help' ||
+          p.title.toLowerCase().contains('help') ||
+          p.content.toLowerCase().contains('help');
+    }).length;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -815,6 +839,72 @@ class PeerProfileOverviewSection extends StatelessWidget {
                               builder: (_) => PeerIntroducedByScreen(
                                 peer: peer,
                                 details: details,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Row 3: Collaboration, Requirement, Get Help
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMetricTile(
+                        label: 'Collaboration',
+                        value: '$collabCount',
+                        icon: Icons.connect_without_contact_rounded,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerFilteredPostsScreen(
+                                peer: peer,
+                                details: details,
+                                title: 'Collaboration',
+                                postTypeFilter: 'collaboration',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildMetricTile(
+                        label: 'Requirement',
+                        value: '$reqCount',
+                        icon: Icons.assignment_outlined,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerFilteredPostsScreen(
+                                peer: peer,
+                                details: details,
+                                title: 'Requirement',
+                                postTypeFilter: 'requirement',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildMetricTile(
+                        label: 'Get Help',
+                        value: '$getHelpCount',
+                        icon: Icons.volunteer_activism_rounded,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PeerFilteredPostsScreen(
+                                peer: peer,
+                                details: details,
+                                title: 'Get Help',
+                                postTypeFilter: 'get_help',
                               ),
                             ),
                           );

@@ -521,6 +521,159 @@ class PeerCircleSubscriptionModel {
   }
 }
 
+/// Model representing a peer who liked a post.
+class PeerPostLikeModel {
+  final String id;
+  final String name;
+  final String avatarUrl;
+  final String designation;
+  final String companyName;
+  final String likedAt;
+
+  const PeerPostLikeModel({
+    this.id = '',
+    required this.name,
+    this.avatarUrl = '',
+    this.designation = '',
+    this.companyName = '',
+    this.likedAt = '',
+  });
+
+  factory PeerPostLikeModel.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic>? userMap;
+    if (json['user'] is Map) {
+      userMap = Map<String, dynamic>.from(json['user']);
+    } else if (json['peer'] is Map) {
+      userMap = Map<String, dynamic>.from(json['peer']);
+    }
+
+    final name = json['name']?.toString() ??
+        json['peer_name']?.toString() ??
+        json['author_name']?.toString() ??
+        userMap?['name']?.toString() ??
+        userMap?['peer_name']?.toString() ??
+        userMap?['display_name']?.toString() ??
+        'Peer Member';
+
+    final avatarUrl = json['profile_photo_url']?.toString() ??
+        json['avatar_url']?.toString() ??
+        json['profile_image']?.toString() ??
+        json['avatar']?.toString() ??
+        userMap?['profile_photo_url']?.toString() ??
+        userMap?['avatar_url']?.toString() ??
+        userMap?['profile_image']?.toString() ??
+        '';
+
+    final designation = json['designation']?.toString() ?? userMap?['designation']?.toString() ?? '';
+    final companyName = json['company_name']?.toString() ??
+        json['company']?.toString() ??
+        json['business_name']?.toString() ??
+        userMap?['company_name']?.toString() ??
+        userMap?['company']?.toString() ??
+        '';
+
+    final likedAt = json['liked_at']?.toString() ?? json['created_at']?.toString() ?? '';
+
+    return PeerPostLikeModel(
+      id: json['id']?.toString() ?? json['like_id']?.toString() ?? '',
+      name: name,
+      avatarUrl: avatarUrl,
+      designation: designation,
+      companyName: companyName,
+      likedAt: likedAt,
+    );
+  }
+}
+
+/// Model representing a comment on a post.
+class PeerPostCommentModel {
+  final String id;
+  final String authorName;
+  final String authorAvatarUrl;
+  final String designation;
+  final String companyName;
+  final String content;
+  final String createdAt;
+
+  const PeerPostCommentModel({
+    this.id = '',
+    required this.authorName,
+    this.authorAvatarUrl = '',
+    this.designation = '',
+    this.companyName = '',
+    required this.content,
+    this.createdAt = '',
+  });
+
+  factory PeerPostCommentModel.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic>? userMap;
+    if (json['user'] is Map) {
+      userMap = Map<String, dynamic>.from(json['user']);
+    } else if (json['peer'] is Map) {
+      userMap = Map<String, dynamic>.from(json['peer']);
+    }
+
+    final authorName = json['author_name']?.toString() ??
+        json['name']?.toString() ??
+        json['peer_name']?.toString() ??
+        userMap?['name']?.toString() ??
+        userMap?['peer_name']?.toString() ??
+        userMap?['display_name']?.toString() ??
+        'Peer Member';
+
+    final authorAvatarUrl = json['author_avatar']?.toString() ??
+        json['profile_photo_url']?.toString() ??
+        json['avatar_url']?.toString() ??
+        json['profile_image']?.toString() ??
+        json['avatar']?.toString() ??
+        userMap?['profile_photo_url']?.toString() ??
+        userMap?['avatar_url']?.toString() ??
+        userMap?['profile_image']?.toString() ??
+        '';
+
+    final designation = json['designation']?.toString() ?? userMap?['designation']?.toString() ?? '';
+    final companyName = json['company_name']?.toString() ??
+        json['company']?.toString() ??
+        json['business_name']?.toString() ??
+        userMap?['company_name']?.toString() ??
+        userMap?['company']?.toString() ??
+        '';
+
+    final content = json['content']?.toString() ??
+        json['comment']?.toString() ??
+        json['body']?.toString() ??
+        '';
+
+    final rawDate = json['created_at']?.toString() ?? '';
+    String formattedDate = rawDate;
+    if (rawDate.isNotEmpty) {
+      try {
+        final dt = DateTime.parse(rawDate).toLocal();
+        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final day = dt.day.toString().padLeft(2, '0');
+        final monthStr = months[dt.month - 1];
+        final hourNum = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+        final hour = hourNum.toString().padLeft(2, '0');
+        final min = dt.minute.toString().padLeft(2, '0');
+        final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+        formattedDate = '$day $monthStr · $hour:$min $ampm';
+      } catch (_) {
+        formattedDate = rawDate;
+      }
+    }
+
+    return PeerPostCommentModel(
+      id: json['id']?.toString() ?? json['comment_id']?.toString() ?? '',
+      authorName: authorName,
+      authorAvatarUrl: authorAvatarUrl,
+      designation: designation,
+      companyName: companyName,
+      content: content,
+      createdAt: formattedDate,
+    );
+  }
+}
+
 /// Model representing a user post / creative card.
 class PeerPostModel {
   final String id;
@@ -544,6 +697,8 @@ class PeerPostModel {
   final int commentsCount;
   final bool isLiked;
   final bool canDelete;
+  final List<PeerPostLikeModel> likes;
+  final List<PeerPostCommentModel> comments;
 
   const PeerPostModel({
     this.id = '',
@@ -567,6 +722,8 @@ class PeerPostModel {
     this.commentsCount = 0,
     this.isLiked = false,
     this.canDelete = false,
+    this.likes = const [],
+    this.comments = const [],
   });
 
   factory PeerPostModel.fromJson(Map<String, dynamic> json) {
@@ -607,16 +764,82 @@ class PeerPostModel {
       }
     }
 
-    String authorName = json['author_name']?.toString() ?? json['user_name']?.toString() ?? '';
-    String authorAvatarUrl = json['author_avatar']?.toString() ?? json['avatar_url']?.toString() ?? json['profile_photo_url']?.toString() ?? '';
-    String designationCompany = json['designation']?.toString() ?? '';
-    if (json['company_name'] != null && json['company_name'].toString().isNotEmpty) {
-      designationCompany = designationCompany.isNotEmpty
-          ? '$designationCompany · ${json['company_name']}'
-          : json['company_name'].toString();
+    Map<String, dynamic>? userMap;
+    if (json['user'] is Map) {
+      userMap = Map<String, dynamic>.from(json['user']);
+    } else if (json['peer'] is Map) {
+      userMap = Map<String, dynamic>.from(json['peer']);
+    } else if (json['author'] is Map) {
+      userMap = Map<String, dynamic>.from(json['author']);
     }
-    String circleName = json['circle_name']?.toString() ?? '';
-    String level4Category = json['level4_category']?.toString() ?? json['category_level4']?.toString() ?? '';
+
+    String authorName = json['author_name']?.toString() ??
+        json['user_name']?.toString() ??
+        json['peer_name']?.toString() ??
+        json['name']?.toString() ??
+        userMap?['name']?.toString() ??
+        userMap?['peer_name']?.toString() ??
+        userMap?['display_name']?.toString() ??
+        '';
+
+    String authorAvatarUrl = json['author_avatar']?.toString() ??
+        json['avatar_url']?.toString() ??
+        json['profile_photo_url']?.toString() ??
+        json['profile_image']?.toString() ??
+        json['avatar']?.toString() ??
+        userMap?['profile_photo_url']?.toString() ??
+        userMap?['avatar_url']?.toString() ??
+        userMap?['profile_image']?.toString() ??
+        userMap?['avatar']?.toString() ??
+        '';
+
+    String designation = json['designation']?.toString() ?? userMap?['designation']?.toString() ?? '';
+    String companyName = json['company_name']?.toString() ??
+        json['company']?.toString() ??
+        json['business_name']?.toString() ??
+        userMap?['company_name']?.toString() ??
+        userMap?['company']?.toString() ??
+        userMap?['business_name']?.toString() ??
+        '';
+
+    String designationCompany = designation;
+    if (companyName.isNotEmpty) {
+      designationCompany = designationCompany.isNotEmpty
+          ? '$designationCompany · $companyName'
+          : companyName;
+    }
+
+    String circleName = json['circle_name']?.toString() ?? userMap?['circle_name']?.toString() ?? '';
+    String level4Category = json['level4_category']?.toString() ??
+        json['category_level4']?.toString() ??
+        json['level_4_category']?.toString() ??
+        userMap?['level4_category']?.toString() ??
+        userMap?['category_level4']?.toString() ??
+        userMap?['level_4_category']?.toString() ??
+        '';
+
+    bool isLiked = json['is_liked'] as bool? ??
+        (json['liked_by_me'] as bool? ?? false);
+
+    final likesList = <PeerPostLikeModel>[];
+    final rawLikes = json['likes'] ?? json['liked_peers'] ?? json['likes_list'];
+    if (rawLikes is List) {
+      for (final l in rawLikes) {
+        if (l is Map) {
+          likesList.add(PeerPostLikeModel.fromJson(Map<String, dynamic>.from(l)));
+        }
+      }
+    }
+
+    final commentsList = <PeerPostCommentModel>[];
+    final rawComments = json['comments'] ?? json['comments_list'] ?? json['comment_peers'];
+    if (rawComments is List) {
+      for (final c in rawComments) {
+        if (c is Map) {
+          commentsList.add(PeerPostCommentModel.fromJson(Map<String, dynamic>.from(c)));
+        }
+      }
+    }
 
     return PeerPostModel(
       id: id,
@@ -632,6 +855,9 @@ class PeerPostModel {
       createdAt: formattedDate,
       likesCount: likesCount,
       commentsCount: commentsCount,
+      isLiked: isLiked,
+      likes: likesList,
+      comments: commentsList,
     );
   }
 }
