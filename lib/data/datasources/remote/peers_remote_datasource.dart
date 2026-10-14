@@ -647,4 +647,99 @@ class PeersRemoteDataSource {
       },
     );
   }
+
+  /// Fetches collaboration asks for a specific user from /leader/asks/collaboration/user/{userId}.
+  Future<ApiResponse<List<PeerCollaborationItemModel>>> getUserCollaborations(
+    String userId, {
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? search,
+  }) async {
+    final cleanId = userId.trim();
+    if (!_isValidId(cleanId)) {
+      return getMyCollaborations(
+        page: page,
+        perPage: perPage,
+        status: status,
+        search: search,
+      );
+    }
+
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      if (status != null && status != 'All') 'status': status,
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+
+    return _apiClient.get<List<PeerCollaborationItemModel>>(
+      ApiEndpoints.leaderCollaborationUser(cleanId),
+      queryParameters: params,
+      fromJsonT: (json) {
+        final list = <PeerCollaborationItemModel>[];
+        dynamic rawList;
+        if (json is List) {
+          rawList = json;
+        } else if (json is Map) {
+          rawList = json['items'] ?? json['data'];
+          if (rawList is Map) {
+            rawList = rawList['items'] ?? rawList['data'];
+          }
+        }
+        if (rawList is List) {
+          for (final item in rawList) {
+            if (item is Map<String, dynamic>) {
+              list.add(PeerCollaborationItemModel.fromJson(item));
+            } else if (item is Map) {
+              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+            }
+          }
+        }
+        return list;
+      },
+    );
+  }
+
+  /// Fetches the authenticated leader's own collaboration asks from /leader/asks/collaboration/my.
+  Future<ApiResponse<List<PeerCollaborationItemModel>>> getMyCollaborations({
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? search,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      if (status != null && status != 'All') 'status': status,
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+
+    return _apiClient.get<List<PeerCollaborationItemModel>>(
+      ApiEndpoints.leaderCollaborationMy,
+      queryParameters: params,
+      fromJsonT: (json) {
+        final list = <PeerCollaborationItemModel>[];
+        dynamic rawList;
+        if (json is List) {
+          rawList = json;
+        } else if (json is Map) {
+          rawList = json['items'] ?? json['data'];
+          if (rawList is Map) {
+            rawList = rawList['items'] ?? rawList['data'];
+          }
+        }
+        if (rawList is List) {
+          for (final item in rawList) {
+            if (item is Map<String, dynamic>) {
+              list.add(PeerCollaborationItemModel.fromJson(item));
+            } else if (item is Map) {
+              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+            }
+          }
+        }
+        return list;
+      },
+    );
+  }
 }

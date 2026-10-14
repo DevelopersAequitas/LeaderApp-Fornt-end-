@@ -152,6 +152,311 @@ class PeerTestimonialModel {
       };
 }
 
+/// Model representing a responder or introduced peer in a collaboration response.
+class PeerCollaborationResponderModel {
+  final String id;
+  final String name;
+  final String displayName;
+  final String companyName;
+  final String designation;
+  final String avatarUrl;
+
+  const PeerCollaborationResponderModel({
+    this.id = '',
+    this.name = '',
+    this.displayName = '',
+    this.companyName = '',
+    this.designation = '',
+    this.avatarUrl = '',
+  });
+
+  String get effectiveName => displayName.isNotEmpty
+      ? displayName
+      : (name.isNotEmpty ? name : 'Peer');
+
+  factory PeerCollaborationResponderModel.fromJson(Map<String, dynamic> json) {
+    return PeerCollaborationResponderModel(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      displayName: json['display_name']?.toString() ?? json['name']?.toString() ?? '',
+      companyName: json['company_name']?.toString() ?? json['company']?.toString() ?? '',
+      designation: json['designation']?.toString() ?? json['role']?.toString() ?? '',
+      avatarUrl: json['avatar_url']?.toString() ?? json['avatar']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'display_name': displayName,
+        'company_name': companyName,
+        'designation': designation,
+        'avatar_url': avatarUrl,
+      };
+}
+
+/// Model representing a response submitted by a peer for a collaboration ask.
+class PeerCollaborationResponseModel {
+  final String id;
+  final String responseId;
+  final String status;
+  final String statusLabel;
+  final String responseType;
+  final String message;
+  final String respondedAt;
+  final String createdAt;
+  final PeerCollaborationResponderModel? responder;
+  final PeerCollaborationResponderModel? introducedPeer;
+
+  const PeerCollaborationResponseModel({
+    this.id = '',
+    this.responseId = '',
+    this.status = 'pending',
+    this.statusLabel = 'Pending',
+    this.responseType = 'can_help_directly',
+    this.message = '',
+    this.respondedAt = '',
+    this.createdAt = '',
+    this.responder,
+    this.introducedPeer,
+  });
+
+  String get displayResponseType {
+    if (responseType.isEmpty) return 'Response';
+    final formatted = responseType.replaceAll('_', ' ');
+    return formatted.split(' ').map((word) {
+      if (word.isEmpty) return '';
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
+  factory PeerCollaborationResponseModel.fromJson(Map<String, dynamic> json) {
+    final statusStr = json['status']?.toString() ?? 'pending';
+    final statusLabelStr = json['status_label']?.toString() ??
+        (statusStr.isNotEmpty ? statusStr[0].toUpperCase() + statusStr.substring(1) : 'Pending');
+
+    return PeerCollaborationResponseModel(
+      id: json['id']?.toString() ?? '',
+      responseId: json['response_id']?.toString() ?? json['id']?.toString() ?? '',
+      status: statusStr,
+      statusLabel: statusLabelStr,
+      responseType: json['response_type']?.toString() ?? 'can_help_directly',
+      message: json['message']?.toString() ?? '',
+      respondedAt: json['responded_at']?.toString() ?? '',
+      createdAt: json['created_at']?.toString() ?? '',
+      responder: (json['responder'] is Map)
+          ? PeerCollaborationResponderModel.fromJson(Map<String, dynamic>.from(json['responder'] as Map))
+          : null,
+      introducedPeer: (json['introduced_peer'] is Map)
+          ? PeerCollaborationResponderModel.fromJson(Map<String, dynamic>.from(json['introduced_peer'] as Map))
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'response_id': responseId,
+        'status': status,
+        'status_label': statusLabel,
+        'response_type': responseType,
+        'message': message,
+        'responded_at': respondedAt,
+        'created_at': createdAt,
+        'responder': responder?.toJson(),
+        'introduced_peer': introducedPeer?.toJson(),
+      };
+}
+
+/// Model representing a peer collaboration project/initiative.
+class PeerCollaborationItemModel {
+  final String id;
+  final String flowId;
+  final String flowCode;
+  final String flowName;
+  final String typeId;
+  final String categoryName;
+  final String title;
+  final String description;
+  final String status;
+  final String statusLabel;
+  final int responsesCount;
+  final int matchesCount;
+  final String authorId;
+  final String authorName;
+  final String authorDisplayName;
+  final String authorCompany;
+  final String authorAvatarUrl;
+  final String createdAt;
+  final String bring;
+  final String need;
+  final List<PeerCollaborationResponseModel>? responses;
+  final PeerCollaborationResponderModel? acceptedPeer;
+
+  List<PeerCollaborationResponseModel> get responsesList => responses ?? const [];
+
+  const PeerCollaborationItemModel({
+    String? id,
+    String? flowId,
+    String? flowCode,
+    String? flowName,
+    String? typeId,
+    String? categoryName,
+    String? title,
+    String? description,
+    String? status,
+    String? statusLabel,
+    int? responsesCount,
+    int? matchesCount,
+    String? authorId,
+    String? authorName,
+    String? authorDisplayName,
+    String? authorCompany,
+    String? authorAvatarUrl,
+    String? createdAt,
+    String? bring,
+    String? need,
+    List<PeerCollaborationResponseModel>? responses,
+    this.acceptedPeer,
+    // Legacy support parameters
+    String? type,
+    String? partnerName,
+    String? partnerRole,
+    String? partnerCircle,
+    String? partnerAvatarUrl,
+    String? date,
+    String? goal,
+  })  : id = id ?? '',
+        flowId = flowId ?? '',
+        flowCode = flowCode ?? 'collaboration',
+        flowName = flowName ?? 'Find a Collaborator',
+        typeId = typeId ?? '',
+        categoryName = categoryName ?? type ?? 'Joint Venture',
+        title = title ?? 'Collaboration Project',
+        description = description ?? goal ?? '',
+        status = status ?? 'open',
+        statusLabel = statusLabel ?? 'Open',
+        responsesCount = responsesCount ?? (responses?.length ?? 0),
+        matchesCount = matchesCount ?? 0,
+        authorId = authorId ?? '',
+        authorName = authorName ?? partnerName ?? '',
+        authorDisplayName = authorDisplayName ?? partnerName ?? authorName ?? '',
+        authorCompany = authorCompany ?? partnerRole ?? '',
+        authorAvatarUrl = authorAvatarUrl ?? partnerAvatarUrl ?? '',
+        createdAt = createdAt ?? date ?? '',
+        bring = bring ?? '',
+        need = need ?? '',
+        responses = responses ?? const [];
+
+  // Backward-compatible and convenience getters
+  String get type => categoryName.isNotEmpty ? categoryName : (flowName.isNotEmpty ? flowName : 'Collaboration');
+  String get goal => description;
+  String get partnerName => authorDisplayName.isNotEmpty
+      ? authorDisplayName
+      : (authorName.isNotEmpty ? authorName : 'Peer Collaborator');
+  String get partnerRole => authorCompany;
+  String get partnerCircle => '';
+  String get partnerAvatarUrl => authorAvatarUrl;
+  String get date => createdAt;
+
+  factory PeerCollaborationItemModel.fromJson(Map<String, dynamic> json) {
+    final authorMap = (json['author'] is Map)
+        ? (json['author'] as Map)
+        : ((json['user'] is Map) ? (json['user'] as Map) : null);
+
+    final statusStr = json['status']?.toString() ?? 'open';
+    final statusLabelStr = json['status_label']?.toString() ??
+        (statusStr.isNotEmpty ? statusStr[0].toUpperCase() + statusStr.substring(1) : 'Open');
+
+    int parseInt(dynamic val) {
+      if (val is int) return val;
+      if (val is num) return val.toInt();
+      if (val is String) return int.tryParse(val) ?? 0;
+      return 0;
+    }
+
+    final responsesList = <PeerCollaborationResponseModel>[];
+    if (json['responses'] is List) {
+      for (final r in json['responses'] as List) {
+        if (r is Map) {
+          responsesList.add(PeerCollaborationResponseModel.fromJson(Map<String, dynamic>.from(r)));
+        }
+      }
+    }
+
+    PeerCollaborationResponderModel? acceptedPeerObj;
+    if (json['accepted_peer'] is Map) {
+      acceptedPeerObj =
+          PeerCollaborationResponderModel.fromJson(Map<String, dynamic>.from(json['accepted_peer'] as Map));
+    }
+
+    return PeerCollaborationItemModel(
+      id: json['id']?.toString() ?? '',
+      flowId: json['flow_id']?.toString() ?? '',
+      flowCode: json['flow_code']?.toString() ?? 'collaboration',
+      flowName: json['flow_name']?.toString() ?? 'Find a Collaborator',
+      typeId: json['type_id']?.toString() ?? '',
+      categoryName: json['category_name']?.toString() ??
+          json['type']?.toString() ??
+          json['collaboration_type']?.toString() ??
+          'Joint Venture',
+      title: json['title']?.toString() ?? json['name']?.toString() ?? 'Collaboration Project',
+      description: json['description']?.toString() ?? json['goal']?.toString() ?? '',
+      status: statusStr,
+      statusLabel: statusLabelStr,
+      responsesCount: parseInt(json['responses_count'] ?? responsesList.length),
+      matchesCount: parseInt(json['matches_count']),
+      authorId: authorMap?['id']?.toString() ?? '',
+      authorName: authorMap?['name']?.toString() ??
+          json['partner_name']?.toString() ??
+          json['collaborator_name']?.toString() ??
+          '',
+      authorDisplayName: authorMap?['display_name']?.toString() ??
+          authorMap?['name']?.toString() ??
+          json['partner_name']?.toString() ??
+          '',
+      authorCompany: authorMap?['company_name']?.toString() ??
+          json['partner_role']?.toString() ??
+          json['partner_company']?.toString() ??
+          '',
+      authorAvatarUrl: authorMap?['avatar_url']?.toString() ??
+          json['partner_avatar_url']?.toString() ??
+          '',
+      createdAt: json['created_at']?.toString() ?? json['date']?.toString() ?? '',
+      bring: json['bring']?.toString() ?? json['collaboration_bring']?.toString() ?? '',
+      need: json['need']?.toString() ?? json['collaboration_need']?.toString() ?? '',
+      responses: responsesList,
+      acceptedPeer: acceptedPeerObj,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'flow_id': flowId,
+        'flow_code': flowCode,
+        'flow_name': flowName,
+        'type_id': typeId,
+        'category_name': categoryName,
+        'title': title,
+        'description': description,
+        'status': status,
+        'status_label': statusLabel,
+        'responses_count': responsesCount,
+        'matches_count': matchesCount,
+        'author': {
+          'id': authorId,
+          'name': authorName,
+          'display_name': authorDisplayName,
+          'company_name': authorCompany,
+          'avatar_url': authorAvatarUrl,
+        },
+        'created_at': createdAt,
+        'bring': bring,
+        'need': need,
+        'responses': (responses ?? const []).map((r) => r.toJson()).toList(),
+        'accepted_peer': acceptedPeer?.toJson(),
+      };
+}
+
 /// Comprehensive model encompassing all details, metrics, milestones, and lists for a peer profile.
 class PeerProfileDetailModel {
   final String bio;
@@ -168,6 +473,7 @@ class PeerProfileDetailModel {
   final String attendanceRate;
   final int impactCount;
   final int introducedPeersCount;
+  final int collaborationsCount;
   final List<String> tags;
   final String? phone;
   final String? email;
@@ -177,6 +483,7 @@ class PeerProfileDetailModel {
   final List<PeerActivityModel> activities;
   final List<PeerTestimonialModel> testimonials;
   final List<PeerPostModel> posts;
+  final List<PeerCollaborationItemModel> collaborations;
   final PeerSubscriptionModel? appSubscription;
   final PeerCircleSubscriptionModel? circleSubscription;
 
@@ -195,6 +502,7 @@ class PeerProfileDetailModel {
     this.attendanceRate = '0%',
     this.impactCount = 0,
     this.introducedPeersCount = 0,
+    this.collaborationsCount = 0,
     this.tags = const [],
     this.phone,
     this.email,
@@ -204,6 +512,7 @@ class PeerProfileDetailModel {
     this.activities = const [],
     this.testimonials = const [],
     this.posts = const [],
+    this.collaborations = const [],
     this.appSubscription,
     this.circleSubscription,
   });
@@ -363,6 +672,12 @@ class PeerProfileDetailModel {
         'peers_introduced',
         'introduced_peers_list',
       ]),
+      collaborationsCount: parseInt([
+        'collaborations_count',
+        'collaborations',
+        'total_collaborations',
+        'collaborations_closed',
+      ]),
       tags: tagsList,
       phone: contact?['phone']?.toString() ?? parseString(['phone', 'mobile']),
       email: contact?['email']?.toString() ?? parseString(['email']),
@@ -372,6 +687,7 @@ class PeerProfileDetailModel {
       activities: activitiesList,
       testimonials: testimonialsList,
       posts: postsList,
+      collaborations: const [],
       appSubscription: appSub,
       circleSubscription: circleSub,
     );
@@ -392,6 +708,7 @@ class PeerProfileDetailModel {
     String? attendanceRate,
     int? impactCount,
     int? introducedPeersCount,
+    int? collaborationsCount,
     List<String>? tags,
     String? phone,
     String? email,
@@ -401,6 +718,7 @@ class PeerProfileDetailModel {
     List<PeerActivityModel>? activities,
     List<PeerTestimonialModel>? testimonials,
     List<PeerPostModel>? posts,
+    List<PeerCollaborationItemModel>? collaborations,
     PeerSubscriptionModel? appSubscription,
     PeerCircleSubscriptionModel? circleSubscription,
   }) {
@@ -419,6 +737,7 @@ class PeerProfileDetailModel {
       attendanceRate: attendanceRate ?? this.attendanceRate,
       impactCount: impactCount ?? this.impactCount,
       introducedPeersCount: introducedPeersCount ?? this.introducedPeersCount,
+      collaborationsCount: collaborationsCount ?? this.collaborationsCount,
       tags: tags ?? this.tags,
       phone: phone ?? this.phone,
       email: email ?? this.email,
@@ -428,6 +747,7 @@ class PeerProfileDetailModel {
       activities: activities ?? this.activities,
       testimonials: testimonials ?? this.testimonials,
       posts: posts ?? this.posts,
+      collaborations: collaborations ?? this.collaborations,
       appSubscription: appSubscription ?? this.appSubscription,
       circleSubscription: circleSubscription ?? this.circleSubscription,
     );
@@ -448,6 +768,7 @@ class PeerProfileDetailModel {
         'attendance_rate': attendanceRate,
         'impact_count': impactCount,
         'introduced_peers_count': introducedPeersCount,
+        'collaborations_count': collaborationsCount,
         'tags': tags,
         'phone': phone,
         'email': email,
@@ -456,6 +777,7 @@ class PeerProfileDetailModel {
         'meetings': meetings.map((m) => m.toJson()).toList(),
         'activities': activities.map((a) => a.toJson()).toList(),
         'testimonials': testimonials.map((t) => t.toJson()).toList(),
+        'collaborations': collaborations.map((c) => c.toJson()).toList(),
       };
 }
 

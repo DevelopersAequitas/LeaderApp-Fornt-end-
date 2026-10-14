@@ -6,6 +6,8 @@ import '../../features/dashboard/view/dashboard_view.dart';
 import '../../features/profile/view/profile_view.dart';
 import '../../features/peers/model/peer_model.dart';
 import '../../features/peer_profile/view/peer_profile_view.dart';
+import '../../features/peer_profile/view/peer_collaboration_screen.dart';
+import '../../features/peer_profile/model/peer_profile_model.dart';
 import '../../features/notifications/view/notifications_view.dart';
 import '../../features/testimonials/model/testimonial_model.dart';
 import '../../features/testimonials/view/testimonials_view.dart';
@@ -50,6 +52,9 @@ abstract class AppRoutes {
 
   /// Peer Profile route
   static const String peerProfile = '/peer-profile';
+
+  /// Peer Collaboration route
+  static const String peerCollaboration = '/peer-collaboration';
 
   /// Notifications route
   static const String notifications = '/notifications';
@@ -267,6 +272,50 @@ abstract class AppRoutes {
       case maintenance:
         return MaterialPageRoute(
           builder: (_) => const MaintenanceView(),
+          settings: settings,
+        );
+      case peerCollaboration:
+        PeerModel peerModel;
+        PeerProfileDetailModel? detailModel;
+        if (settings.arguments is PeerModel) {
+          peerModel = settings.arguments as PeerModel;
+        } else if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          peerModel = map['peer'] as PeerModel? ??
+              const PeerModel(
+                initials: '',
+                name: 'Peer',
+                company: '',
+                circle: '',
+                location: '',
+                tags: '',
+                impactCount: 0,
+                dealsFormatted: '',
+                coins: 0,
+                attendance: '',
+                status: 'Active',
+              );
+          detailModel = map['details'] as PeerProfileDetailModel?;
+        } else {
+          peerModel = const PeerModel(
+            initials: '',
+            name: 'Peer',
+            company: '',
+            circle: '',
+            location: '',
+            tags: '',
+            impactCount: 0,
+            dealsFormatted: '',
+            coins: 0,
+            attendance: '',
+            status: 'Active',
+          );
+        }
+        return MaterialPageRoute(
+          builder: (_) => PeerCollaborationScreen(
+            peer: peerModel,
+            details: detailModel,
+          ),
           settings: settings,
         );
       default:

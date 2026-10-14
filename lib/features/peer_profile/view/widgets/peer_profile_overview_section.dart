@@ -12,6 +12,7 @@ import '../peer_events_attendance_screen.dart';
 import '../peer_introduced_by_screen.dart';
 import '../peer_membership_screen.dart';
 import '../peer_testimonials_screen.dart';
+import '../peer_collaboration_screen.dart';
 import 'peer_post_card.dart';
 
 /// Renders the rich Overview tab for Peer Profile:
@@ -675,22 +676,56 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 topRight: Radius.circular(15),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                SquareRoundedGradientIcon(
+                const SquareRoundedGradientIcon(
                   icon: Icons.insights_rounded,
                   boxSize: 24,
                   iconSize: 13,
                   borderRadius: 6,
                 ),
-                SizedBox(width: 8),
-                Text(
+                const SizedBox(width: 8),
+                const Text(
                   'PEER PERFORMANCE & CONTRIBUTION',
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
+                  ),
+                ),
+                const Spacer(),
+                Tooltip(
+                  message: 'Collaborations',
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => PeerCollaborationScreen(
+                            peer: peer,
+                            details: details,
+                          ),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 0.8,
+                        ),
+                      ),
+                      child: const SquareRoundedGradientIcon(
+                        icon: Icons.handshake_outlined,
+                        boxSize: 22,
+                        iconSize: 12,
+                        borderRadius: 5,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -820,6 +855,70 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
 
+                // Collaboration Tile (Opens Screen on Tap)
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => PeerCollaborationScreen(
+                          peer: peer,
+                          details: details,
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: const Row(
+                      children: [
+                        SquareRoundedGradientIcon(
+                          icon: Icons.handshake_outlined,
+                          boxSize: 32,
+                          iconSize: 16,
+                          borderRadius: 8,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Collaborations',
+                                style: TextStyle(
+                                  color: AppColors.text,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Explore & view collaboration asks',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
                 // Row 3: Events, Passes & Meeting Attendance
                 InkWell(
                   onTap: () {
@@ -855,7 +954,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                                 style: TextStyle(
                                   color: AppColors.text,
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                               const SizedBox(height: 2),
