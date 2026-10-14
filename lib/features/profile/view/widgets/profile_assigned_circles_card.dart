@@ -17,12 +17,11 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: AppColors.primaryBlue.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -32,10 +31,10 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.hub_outlined,
-                color: AppColors.primary,
+              const GradientIcon(
+                icon: Icons.hub_outlined,
                 size: 16,
+                gradient: AppColors.brandGradient,
               ),
               const SizedBox(width: 8),
               const Text(
@@ -86,7 +85,6 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
                   ),
                   child: Row(
                     children: [

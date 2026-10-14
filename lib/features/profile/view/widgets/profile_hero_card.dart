@@ -24,19 +24,11 @@ class ProfileHeroCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0A192B), // Deep Midnight Navy
-            AppColors.primary, // #102640 Brand Primary Navy
-            Color(0xFF1B3C66), // Rich Executive Indigo
-          ],
-        ),
+        gradient: AppColors.brandGradient,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.25),
+            color: AppColors.primaryBlue.withValues(alpha: 0.25),
             blurRadius: 16,
             spreadRadius: 0,
             offset: const Offset(0, 6),
@@ -73,7 +65,7 @@ class ProfileHeroCard extends StatelessWidget {
                       color: AppColors.healthGreen,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFF0A192B),
+                        color: AppColors.primaryBlue,
                         width: 2.0,
                       ),
                     ),
@@ -94,13 +86,17 @@ class ProfileHeroCard extends StatelessWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
+                        color: Colors.white.withValues(alpha: 0.22),
                         borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.35),
+                          width: 0.8,
+                        ),
                       ),
                       child: Text(
                         profile.roleLabel.toUpperCase(),
                         style: const TextStyle(
-                          color: Color(0xFF16A34A),
+                          color: Colors.white,
                           fontSize: 9.5,
                           fontWeight: FontWeight.w500,
                           letterSpacing: 0.5,
@@ -241,16 +237,19 @@ class ProfileHeroCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: Colors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../model/profile_model.dart';
 
@@ -189,15 +190,17 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(
-                        Icons.edit_note_rounded,
-                        color: AppColors.primary,
-                        size: 22,
+                      const SquareRoundedGradientIcon(
+                        icon: Icons.edit_note_rounded,
+                        boxSize: 32,
+                        iconSize: 18,
+                        borderRadius: 8,
+                        gradient: AppColors.brandGradient,
                       ),
-                      SizedBox(width: 8),
-                      Text(
+                      const SizedBox(width: 8),
+                      const Text(
                         'Edit Profile Details',
                         style: TextStyle(
                           fontSize: 16,

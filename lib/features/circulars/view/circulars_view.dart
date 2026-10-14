@@ -77,7 +77,11 @@ class _CircularsContent extends StatelessWidget {
           actions: [
             if (_canPublishCircular)
               IconButton(
-                icon: const Icon(Icons.campaign_rounded, color: AppColors.primary),
+                icon: const GradientIcon(
+                  icon: Icons.campaign_rounded,
+                  size: 24,
+                  gradient: AppColors.brandGradient,
+                ),
                 tooltip: 'Publish Circular',
                 onPressed: () => _showPublishSheet(context),
               ),
@@ -105,7 +109,11 @@ class _CircularsContent extends StatelessWidget {
                         decoration: const InputDecoration(
                           hintText: 'Search circulars & announcements...',
                           hintStyle: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                          prefixIcon: Icon(Icons.search_rounded, size: 18, color: AppColors.textSecondary),
+                          prefixIcon: GradientIcon(
+                            icon: Icons.search_rounded,
+                            size: 18,
+                            gradient: AppColors.brandGradient,
+                          ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 10),
                         ),
@@ -120,6 +128,16 @@ class _CircularsContent extends StatelessWidget {
                           child: Row(
                             children: priorities.map((p) {
                               final isSel = state.selectedPriority == p;
+                              final isSpecialColor = p == 'Urgent' || p == 'Important';
+                              final Color? solidBg = !isSel
+                                  ? AppColors.secondaryBg
+                                  : (p == 'Urgent'
+                                      ? AppColors.danger
+                                      : (p == 'Important' ? AppColors.warning : null));
+                              final Gradient? gradientBg = (isSel && !isSpecialColor)
+                                  ? AppColors.brandGradient
+                                  : null;
+
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: GestureDetector(
@@ -132,13 +150,8 @@ class _CircularsContent extends StatelessWidget {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: isSel
-                                          ? (p == 'Urgent'
-                                              ? AppColors.danger
-                                              : (p == 'Important'
-                                                  ? AppColors.warning
-                                                  : AppColors.primary))
-                                          : AppColors.secondaryBg,
+                                      color: solidBg,
+                                      gradient: gradientBg,
                                       borderRadius: BorderRadius.circular(20),
                                       boxShadow: isSel
                                           ? [
@@ -147,7 +160,7 @@ class _CircularsContent extends StatelessWidget {
                                                         ? AppColors.danger
                                                         : (p == 'Important'
                                                             ? AppColors.warning
-                                                            : AppColors.primary))
+                                                            : AppColors.primaryBlue))
                                                     .withValues(alpha: 0.3),
                                                 blurRadius: 6,
                                                 offset: const Offset(0, 2),
@@ -205,10 +218,10 @@ class _CircularsContent extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.mark_email_read_outlined,
+                            const GradientIcon(
+                              icon: Icons.mark_email_read_outlined,
                               size: 40,
-                              color: AppColors.textSecondary,
+                              gradient: AppColors.brandGradient,
                             ),
                             const SizedBox(height: 10),
                             const Text(

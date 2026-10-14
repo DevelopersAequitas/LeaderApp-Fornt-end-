@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/role_permission_model.dart';
 import 'capability_tile.dart';
 
@@ -48,20 +49,25 @@ class RoleCategorySection extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.8),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.selectionBg,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(_getCategoryIcon(categoryName), size: 16, color: AppColors.primary),
+              SquareRoundedGradientIcon(
+                icon: _getCategoryIcon(categoryName),
+                boxSize: 30,
+                iconSize: 16,
+                borderRadius: 8,
+                gradient: AppColors.brandGradient,
               ),
               const SizedBox(width: 8),
               Expanded(

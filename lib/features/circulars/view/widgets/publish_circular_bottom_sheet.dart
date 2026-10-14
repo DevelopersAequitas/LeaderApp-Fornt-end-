@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../model/circular_model.dart';
 
@@ -96,13 +97,12 @@ class _PublishCircularBottomSheetState extends State<PublishCircularBottomSheet>
             const SizedBox(height: 14),
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.selectionBg,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.campaign_rounded, color: AppColors.primary, size: 20),
+                const SquareRoundedGradientIcon(
+                  icon: Icons.campaign_rounded,
+                  boxSize: 38,
+                  iconSize: 20,
+                  borderRadius: 10,
+                  gradient: AppColors.brandGradient,
                 ),
                 const SizedBox(width: 10),
                 const Expanded(
@@ -254,7 +254,8 @@ class _PublishCircularBottomSheetState extends State<PublishCircularBottomSheet>
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isSel ? AppColors.primary : AppColors.secondaryBg,
+                      gradient: isSel ? AppColors.brandGradient : null,
+                      color: isSel ? null : AppColors.secondaryBg,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSel ? Colors.transparent : AppColors.border,

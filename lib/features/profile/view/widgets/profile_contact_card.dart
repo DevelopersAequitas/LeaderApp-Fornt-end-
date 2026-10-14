@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/profile_model.dart';
 
 /// Clean contact details and executive bio card for the leader profile without duplicate fields or copy buttons.
@@ -21,10 +22,9 @@ class ProfileContactCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.03),
+            color: AppColors.primaryBlue.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -37,10 +37,10 @@ class ProfileContactCard extends StatelessWidget {
           // Header Row: Title & Edit Button
           Row(
             children: [
-              const Icon(
-                Icons.contact_mail_outlined,
-                color: AppColors.primary,
-                size: 16,
+              const GradientIcon(
+                icon: Icons.contact_mail_outlined,
+                size: 18,
+                gradient: AppColors.brandGradient,
               ),
               const SizedBox(width: 8),
               const Expanded(
@@ -67,18 +67,18 @@ class ProfileContactCard extends StatelessWidget {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.edit_outlined,
+                        GradientIcon(
+                          icon: Icons.edit_outlined,
                           size: 12,
-                          color: AppColors.primary,
+                          gradient: AppColors.brandGradient,
                         ),
                         SizedBox(width: 4),
-                        Text(
+                        GradientText(
                           'Edit',
+                          gradient: AppColors.brandGradient,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -144,15 +144,12 @@ class ProfileContactCard extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: AppColors.secondaryBg,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          alignment: Alignment.center,
-          child: Icon(icon, color: AppColors.primary, size: 15),
+        SquareRoundedGradientIcon(
+          icon: icon,
+          iconSize: 16,
+          boxSize: 32,
+          borderRadius: 8,
+          gradient: AppColors.brandGradient,
         ),
         const SizedBox(width: 10),
         Expanded(

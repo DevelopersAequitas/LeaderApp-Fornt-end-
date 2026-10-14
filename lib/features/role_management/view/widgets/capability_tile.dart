@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/role_permission_model.dart';
 
 /// MD3-styled soft capability tile with responsive switch.
@@ -21,12 +22,8 @@ class CapabilityTile extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: isEnabled ? AppColors.selectionBg.withValues(alpha: 0.35) : Colors.white,
+        color: isEnabled ? AppColors.selectionBg.withValues(alpha: 0.35) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isEnabled ? AppColors.primary.withValues(alpha: 0.18) : AppColors.border,
-          width: 0.8,
-        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,11 +35,17 @@ class CapabilityTile extends StatelessWidget {
               color: isEnabled ? AppColors.primary.withValues(alpha: 0.1) : AppColors.secondaryBg,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              isEnabled ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-              size: 14,
-              color: isEnabled ? AppColors.primary : AppColors.textSecondary,
-            ),
+            child: isEnabled
+                ? const GradientIcon(
+                    icon: Icons.check_circle_rounded,
+                    size: 14,
+                    gradient: AppColors.brandGradient,
+                  )
+                : const Icon(
+                    Icons.radio_button_unchecked_rounded,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
           ),
           const SizedBox(width: 10),
           Expanded(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 
 /// Renders the segmented sub-tab selector for the Peer Profile screen.
 class PeerProfileTabSelector extends StatelessWidget {
@@ -24,7 +25,10 @@ class PeerProfileTabSelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF1F4F9),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: const GradientBoxBorder(
+          gradient: AppColors.subtleCardBorderGradient,
+          width: 1.0,
+        ),
       ),
       child: Row(
         children: [

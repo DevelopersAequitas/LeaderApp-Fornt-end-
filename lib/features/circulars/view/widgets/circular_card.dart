@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/circular_model.dart';
 
 /// MD3-styled soft card displaying an official circular announcement.
@@ -64,11 +65,10 @@ class _CircularCardState extends State<CircularCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
+            color: AppColors.primaryBlue.withValues(alpha: 0.04),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -153,10 +153,10 @@ class _CircularCardState extends State<CircularCard> {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Icon(
-                      Icons.account_circle_outlined,
-                      size: 14,
-                      color: AppColors.primary.withValues(alpha: 0.7),
+                    const GradientIcon(
+                      icon: Icons.account_circle_outlined,
+                      size: 16,
+                      gradient: AppColors.brandGradient,
                     ),
                     const SizedBox(width: 5),
                     Text(
@@ -168,18 +168,21 @@ class _CircularCardState extends State<CircularCard> {
                       ),
                     ),
                     const Spacer(),
-                    Text(
+                    GradientText(
                       _isExpanded ? 'Show Less' : 'Read More',
+                      gradient: AppColors.brandGradient,
                       style: const TextStyle(
                         fontSize: 11,
-                        color: AppColors.info,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Icon(
-                      _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    const SizedBox(width: 2),
+                    GradientIcon(
+                      icon: _isExpanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
                       size: 16,
-                      color: AppColors.info,
+                      gradient: AppColors.brandGradient,
                     ),
                   ],
                 ),

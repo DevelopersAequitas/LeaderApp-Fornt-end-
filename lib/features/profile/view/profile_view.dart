@@ -114,10 +114,10 @@ class _ProfileContent extends StatelessWidget {
               actions: [
                 if (profile != null)
                   IconButton(
-                    icon: const Icon(
-                      Icons.edit_outlined,
-                      color: AppColors.text,
+                    icon: const GradientIcon(
+                      icon: Icons.edit_outlined,
                       size: 20,
+                      gradient: AppColors.brandGradient,
                     ),
                     onPressed: () => _showEditProfileModal(context, profile),
                   ),

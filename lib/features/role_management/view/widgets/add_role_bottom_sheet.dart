@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../../../core/widgets/primary_button.dart';
 
 /// Modal bottom sheet allowing Super Admin to add a new custom role cleanly.
@@ -73,17 +74,12 @@ class _AddRoleBottomSheetState extends State<AddRoleBottomSheet> {
           // Header Row
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.selectionBg,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.admin_panel_settings_rounded,
-                  color: AppColors.primary,
-                  size: 22,
-                ),
+              const SquareRoundedGradientIcon(
+                icon: Icons.admin_panel_settings_rounded,
+                boxSize: 42,
+                iconSize: 22,
+                borderRadius: 12,
+                gradient: AppColors.brandGradient,
               ),
               const SizedBox(width: 12),
               const Expanded(

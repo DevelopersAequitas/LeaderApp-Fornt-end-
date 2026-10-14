@@ -125,6 +125,10 @@ class PeerMembershipScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(12),
+                  border: const GradientBoxBorder(
+                    gradient: AppColors.subtleCardBorderGradient,
+                    width: 1.0,
+                  ),
                 ),
                 child: TabBar(
                   indicatorSize: TabBarIndicatorSize.tab,
@@ -137,7 +141,7 @@ class PeerMembershipScreen extends StatelessWidget {
                   unselectedLabelColor: AppColors.textSecondary,
                   labelStyle: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                   unselectedLabelStyle: const TextStyle(
                     fontSize: 13,
@@ -204,7 +208,7 @@ class PeerMembershipScreen extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 11,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
                 letterSpacing: 0.5,
               ),
             ),
@@ -213,7 +217,6 @@ class PeerMembershipScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x0A000000),
@@ -284,7 +287,7 @@ class PeerMembershipScreen extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 11,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
                 letterSpacing: 0.5,
               ),
             ),
@@ -293,7 +296,6 @@ class PeerMembershipScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x0A000000),

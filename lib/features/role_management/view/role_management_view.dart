@@ -167,10 +167,10 @@ class _RoleManagementContent extends StatelessWidget {
               showBackButton: true,
               actions: [
                 IconButton(
-                  icon: const Icon(
-                    Icons.add_moderator_outlined,
-                    color: AppColors.text,
+                  icon: const GradientIcon(
+                    icon: Icons.add_moderator_outlined,
                     size: 22,
+                    gradient: AppColors.brandGradient,
                   ),
                   tooltip: 'Create new custom role',
                   onPressed: () => _showAddRoleModal(context),
@@ -229,16 +229,15 @@ class _RoleManagementContent extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.border),
                           ),
                           alignment: Alignment.center,
                           child: const Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.search_off_rounded,
-                                color: AppColors.textSecondary,
+                              GradientIcon(
+                                icon: Icons.search_off_rounded,
                                 size: 36,
+                                gradient: AppColors.brandGradient,
                               ),
                               SizedBox(height: 8),
                               Text(

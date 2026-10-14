@@ -136,6 +136,10 @@ class _PeerBusinessReferralsSheetState
             decoration: BoxDecoration(
               color: const Color(0xFFF1F4F9),
               borderRadius: BorderRadius.circular(12),
+              border: const GradientBoxBorder(
+                gradient: AppColors.subtleCardBorderGradient,
+                width: 1.0,
+              ),
             ),
             child: TabBar(
               controller: _tabController,
@@ -282,7 +286,6 @@ class _PeerBusinessReferralsSheetState
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/profile_model.dart';
 
 /// Renders the Granted Capabilities breakdown card.
@@ -16,12 +17,11 @@ class ProfileCapabilitiesCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: AppColors.primaryBlue.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -31,10 +31,10 @@ class ProfileCapabilitiesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.verified_user_outlined,
-                color: AppColors.primary,
+              const GradientIcon(
+                icon: Icons.verified_user_outlined,
                 size: 16,
+                gradient: AppColors.brandGradient,
               ),
               const SizedBox(width: 8),
               const Text(
@@ -86,7 +86,6 @@ class ProfileCapabilitiesCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0FDF4),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFBBF7D0)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

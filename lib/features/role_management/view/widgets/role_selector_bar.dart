@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/role_permission_model.dart';
 
 /// MD3-styled smooth horizontal role selector bar.
@@ -44,7 +45,7 @@ class RoleSelectorBar extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: Material(
-                  color: isSelected ? AppColors.primary : AppColors.secondaryBg,
+                  color: Colors.transparent,
                   borderRadius: BorderRadius.circular(24),
                   child: InkWell(
                     onTap: () => onSelectRole(rp.role.id),
@@ -53,22 +54,39 @@ class RoleSelectorBar extends StatelessWidget {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
+                        gradient: isSelected ? AppColors.brandGradient : null,
+                        color: isSelected ? null : AppColors.secondaryBg,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.border,
-                          width: 0.8,
-                        ),
+                        border: isSelected
+                            ? null
+                            : Border.all(
+                                color: AppColors.border,
+                                width: 0.8,
+                              ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primaryBlue.withValues(alpha: 0.28),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            _getRoleIcon(rp.role),
-                            size: 15,
-                            color: isSelected ? Colors.white : AppColors.textSecondary,
-                          ),
+                          isSelected
+                              ? Icon(
+                                  _getRoleIcon(rp.role),
+                                  size: 15,
+                                  color: Colors.white,
+                                )
+                              : GradientIcon(
+                                  icon: _getRoleIcon(rp.role),
+                                  size: 15,
+                                  gradient: AppColors.brandGradient,
+                                ),
                           const SizedBox(width: 7),
                           Text(
                             rp.role.label,
@@ -83,7 +101,7 @@ class RoleSelectorBar extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.white.withValues(alpha: 0.22)
+                                  ? Colors.white.withValues(alpha: 0.25)
                                   : AppColors.border.withValues(alpha: 0.8),
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -105,7 +123,7 @@ class RoleSelectorBar extends StatelessWidget {
             }),
             // Add Role Chip Action
             Material(
-              color: AppColors.selectionBg,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(24),
               child: InkWell(
                 onTap: onAddRole,
@@ -113,23 +131,35 @@ class RoleSelectorBar extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   decoration: BoxDecoration(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: AppColors.infoBorder.withValues(alpha: 0.4),
-                      width: 0.8,
+                    border: const GradientBoxBorder(
+                      gradient: AppColors.cardBorderGradient,
+                      width: 1.0,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryBlue.withValues(alpha: 0.04),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.add_rounded, size: 15, color: AppColors.info),
+                      GradientIcon(
+                        icon: Icons.add_rounded,
+                        size: 15,
+                        gradient: AppColors.brandGradient,
+                      ),
                       SizedBox(width: 4),
-                      Text(
+                      GradientText(
                         'New Role',
+                        gradient: AppColors.brandGradient,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.info,
                         ),
                       ),
                     ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 
 /// Renders the brand gradient segmented sub-tab selector for Reports screen.
 class ReportsTabSelector extends StatelessWidget {
@@ -26,7 +27,10 @@ class ReportsTabSelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF1F4F9),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: const GradientBoxBorder(
+          gradient: AppColors.subtleCardBorderGradient,
+          width: 1.0,
+        ),
       ),
       child: Row(
         children: [

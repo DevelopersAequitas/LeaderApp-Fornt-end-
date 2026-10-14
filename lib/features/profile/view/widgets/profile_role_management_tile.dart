@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 
 /// Navigation tile for Super Admins to manage organization roles and permissions.
 class ProfileRoleManagementTile extends StatelessWidget {
@@ -12,12 +13,11 @@ class ProfileRoleManagementTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: AppColors.primaryBlue.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -32,18 +32,12 @@ class ProfileRoleManagementTile extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.admin_panel_settings_rounded,
-                    color: Color(0xFF4CAF50),
-                    size: 18,
-                  ),
+                const SquareRoundedGradientIcon(
+                  icon: Icons.admin_panel_settings_rounded,
+                  iconSize: 20,
+                  boxSize: 38,
+                  borderRadius: 10,
+                  gradient: AppColors.brandGradient,
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -70,10 +64,10 @@ class ProfileRoleManagementTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppColors.textSecondary,
+                const GradientIcon(
+                  icon: Icons.chevron_right_rounded,
                   size: 20,
+                  gradient: AppColors.brandGradient,
                 ),
               ],
             ),
