@@ -742,4 +742,194 @@ class PeersRemoteDataSource {
       },
     );
   }
+
+  /// Fetches referral asks for a specific user from /leader/asks/referral/user/{userId}.
+  Future<ApiResponse<List<PeerCollaborationItemModel>>> getUserReferralAsks(
+    String userId, {
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? search,
+  }) async {
+    final cleanId = userId.trim();
+    if (!_isValidId(cleanId)) {
+      return getMyReferralAsks(
+        page: page,
+        perPage: perPage,
+        status: status,
+        search: search,
+      );
+    }
+
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      if (status != null && status != 'All') 'status': status,
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+
+    return _apiClient.get<List<PeerCollaborationItemModel>>(
+      ApiEndpoints.leaderReferralAsksUser(cleanId),
+      queryParameters: params,
+      fromJsonT: (json) {
+        final list = <PeerCollaborationItemModel>[];
+        dynamic rawList;
+        if (json is List) {
+          rawList = json;
+        } else if (json is Map) {
+          rawList = json['items'] ?? json['data'];
+          if (rawList is Map) {
+            rawList = rawList['items'] ?? rawList['data'];
+          }
+        }
+        if (rawList is List) {
+          for (final item in rawList) {
+            if (item is Map<String, dynamic>) {
+              list.add(PeerCollaborationItemModel.fromJson(item));
+            } else if (item is Map) {
+              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+            }
+          }
+        }
+        return list;
+      },
+    );
+  }
+
+  /// Fetches the authenticated leader's own referral asks from /leader/asks/referral/my.
+  Future<ApiResponse<List<PeerCollaborationItemModel>>> getMyReferralAsks({
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? search,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      if (status != null && status != 'All') 'status': status,
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+
+    return _apiClient.get<List<PeerCollaborationItemModel>>(
+      ApiEndpoints.leaderReferralAsksMy,
+      queryParameters: params,
+      fromJsonT: (json) {
+        final list = <PeerCollaborationItemModel>[];
+        dynamic rawList;
+        if (json is List) {
+          rawList = json;
+        } else if (json is Map) {
+          rawList = json['items'] ?? json['data'];
+          if (rawList is Map) {
+            rawList = rawList['items'] ?? rawList['data'];
+          }
+        }
+        if (rawList is List) {
+          for (final item in rawList) {
+            if (item is Map<String, dynamic>) {
+              list.add(PeerCollaborationItemModel.fromJson(item));
+            } else if (item is Map) {
+              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+            }
+          }
+        }
+        return list;
+      },
+    );
+  }
+
+  /// Fetches help asks for a specific user from /leader/asks/help/user/{userId}.
+  Future<ApiResponse<List<PeerCollaborationItemModel>>> getUserHelpAsks(
+    String userId, {
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? search,
+  }) async {
+    final cleanId = userId.trim();
+    if (!_isValidId(cleanId)) {
+      return getMyHelpAsks(
+        page: page,
+        perPage: perPage,
+        status: status,
+        search: search,
+      );
+    }
+
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      if (status != null && status != 'All') 'status': status,
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+
+    return _apiClient.get<List<PeerCollaborationItemModel>>(
+      ApiEndpoints.leaderHelpAsksUser(cleanId),
+      queryParameters: params,
+      fromJsonT: (json) {
+        final list = <PeerCollaborationItemModel>[];
+        dynamic rawList;
+        if (json is List) {
+          rawList = json;
+        } else if (json is Map) {
+          rawList = json['items'] ?? json['data'];
+          if (rawList is Map) {
+            rawList = rawList['items'] ?? rawList['data'];
+          }
+        }
+        if (rawList is List) {
+          for (final item in rawList) {
+            if (item is Map<String, dynamic>) {
+              list.add(PeerCollaborationItemModel.fromJson(item));
+            } else if (item is Map) {
+              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+            }
+          }
+        }
+        return list;
+      },
+    );
+  }
+
+  /// Fetches the authenticated leader's own help asks from /leader/asks/help/my.
+  Future<ApiResponse<List<PeerCollaborationItemModel>>> getMyHelpAsks({
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? search,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      if (status != null && status != 'All') 'status': status,
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+
+    return _apiClient.get<List<PeerCollaborationItemModel>>(
+      ApiEndpoints.leaderHelpAsksMy,
+      queryParameters: params,
+      fromJsonT: (json) {
+        final list = <PeerCollaborationItemModel>[];
+        dynamic rawList;
+        if (json is List) {
+          rawList = json;
+        } else if (json is Map) {
+          rawList = json['items'] ?? json['data'];
+          if (rawList is Map) {
+            rawList = rawList['items'] ?? rawList['data'];
+          }
+        }
+        if (rawList is List) {
+          for (final item in rawList) {
+            if (item is Map<String, dynamic>) {
+              list.add(PeerCollaborationItemModel.fromJson(item));
+            } else if (item is Map) {
+              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+            }
+          }
+        }
+        return list;
+      },
+    );
+  }
 }

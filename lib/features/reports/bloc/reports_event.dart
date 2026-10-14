@@ -78,7 +78,7 @@ class ReportActionItemsChanged extends ReportsEvent {
 }
 
 class ReportAttendanceChanged extends ReportsEvent {
-  final double attendance;
+  final double? attendance;
   const ReportAttendanceChanged(this.attendance);
 }
 

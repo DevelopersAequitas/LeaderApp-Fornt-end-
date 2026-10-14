@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/enums/user_role.dart';
-import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../data/repositories/reports_repository.dart';
-import '../../model/report_model.dart';
-import 'reports_spline_chart.dart';
 
-/// Renders the consolidated Export tab for Country Directors & Super Admins.
+/// Consolidated Reports Export section providing authentic PDF and Excel exports.
 class ReportsExportSection extends StatefulWidget {
   final String? selectedCircle;
-  final List<ReportsChartPoint> attendanceTrend;
 
   const ReportsExportSection({
     super.key,
     this.selectedCircle,
-    required this.attendanceTrend,
   });
 
   @override
@@ -63,7 +57,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
                     ? res.message!
                     : 'Export failed',
               ),
-              backgroundColor: Colors.redAccent,
+              backgroundColor: AppColors.danger,
             ),
           );
         }
@@ -74,130 +68,11 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to generate export: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppColors.danger,
           ),
         );
       }
     }
-  }
-
-  Widget _buildQuickExportButton({
-    required String label,
-    required IconData icon,
-    required Color bgColor,
-    required Color textColor,
-  }) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Generating $label...'),
-            backgroundColor: const Color(0xFF16A34A),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SquareRoundedGradientIcon(
-              icon: icon,
-              iconSize: 15,
-              boxSize: 28,
-              showBorder: true,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSuperAdminSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildQuickExportButton(
-              label: 'Export Peers',
-              icon: Icons.description_outlined,
-              bgColor: const Color(0xFFEFF6FF),
-              textColor: const Color(0xFF2563EB),
-            ),
-            _buildQuickExportButton(
-              label: 'Export Financials',
-              icon: Icons.credit_card_rounded,
-              bgColor: const Color(0xFFDCFCE7),
-              textColor: const Color(0xFF16A34A),
-            ),
-            _buildQuickExportButton(
-              label: 'Global Export',
-              icon: Icons.public_rounded,
-              bgColor: const Color(0xFFFEE2E2),
-              textColor: const Color(0xFFDC2626),
-            ),
-          ],
-        ),
-        if (widget.attendanceTrend.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Attendance Trend',
-                  style: TextStyle(
-                    color: AppColors.text,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                const Text(
-                  'Average monthly circle attendance (%)',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ReportsSplineChart(
-                  points: widget.attendanceTrend,
-                  minY: 0.0,
-                  maxY: 100.0,
-                  yLabels: const [0, 25, 50, 75, 100],
-                  lineColor: AppColors.primary,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
   }
 
   Widget _buildStandardExportCard() {
@@ -220,7 +95,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
         children: [
           const Center(
             child: SquareRoundedGradientIcon(
-              icon: Icons.cloud_download_rounded,
+              icon: Icons.cloud_download_outlined,
               iconSize: 22,
               boxSize: 44,
               showBorder: true,
@@ -238,7 +113,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
           ),
           const SizedBox(height: 2),
           const Text(
-            'Consolidated summary of all circle reports in scope.',
+            'Consolidated summary of circle performance reports.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textSecondary,
@@ -285,8 +160,8 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
 
   Widget _buildExportFormatCard(String label, bool isSelected) {
     final iconData = label.contains('PDF')
-        ? Icons.picture_as_pdf_rounded
-        : Icons.table_chart_rounded;
+        ? Icons.picture_as_pdf_outlined
+        : Icons.table_chart_outlined;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -328,12 +203,9 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
 
   @override
   Widget build(BuildContext context) {
-    final role = SessionManager().currentRole;
-    final isSuperAdmin = role == UserRole.superAdmin;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-      child: isSuperAdmin ? _buildSuperAdminSection() : _buildStandardExportCard(),
+      child: _buildStandardExportCard(),
     );
   }
 }

@@ -13,6 +13,8 @@ import '../peer_introduced_by_screen.dart';
 import '../peer_membership_screen.dart';
 import '../peer_testimonials_screen.dart';
 import '../peer_collaboration_screen.dart';
+import '../peer_help_screen.dart';
+import '../peer_referral_screen.dart';
 import 'peer_post_card.dart';
 
 /// Renders the rich Overview tab for Peer Profile:
@@ -728,6 +730,74 @@ class PeerProfileOverviewSection extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 6),
+                Tooltip(
+                  message: 'Need Help',
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => PeerHelpScreen(
+                            peer: peer,
+                            details: details,
+                          ),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 0.8,
+                        ),
+                      ),
+                      child: const SquareRoundedGradientIcon(
+                        icon: Icons.volunteer_activism_outlined,
+                        boxSize: 22,
+                        iconSize: 12,
+                        borderRadius: 5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Tooltip(
+                  message: 'Referrals',
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => PeerReferralScreen(
+                            peer: peer,
+                            details: details,
+                          ),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 0.8,
+                        ),
+                      ),
+                      child: const SquareRoundedGradientIcon(
+                        icon: Icons.swap_horiz_rounded,
+                        boxSize: 22,
+                        iconSize: 12,
+                        borderRadius: 5,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -911,6 +981,134 @@ class PeerProfileOverviewSection extends StatelessWidget {
                         Icon(
                           Icons.chevron_right_rounded,
                           color: AppColors.primary,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Need Help Tile (Opens Screen on Tap)
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => PeerHelpScreen(
+                          peer: peer,
+                          details: details,
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: const Row(
+                      children: [
+                        SquareRoundedGradientIcon(
+                          icon: Icons.volunteer_activism_outlined,
+                          boxSize: 32,
+                          iconSize: 16,
+                          borderRadius: 8,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Need Help',
+                                style: TextStyle(
+                                  color: AppColors.text,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Explore & view help asks',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: Color(0xFFD97706),
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Referral Tile (Opens Screen on Tap)
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => PeerReferralScreen(
+                          peer: peer,
+                          details: details,
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBBF7D0)),
+                    ),
+                    child: const Row(
+                      children: [
+                        SquareRoundedGradientIcon(
+                          icon: Icons.swap_horiz_rounded,
+                          boxSize: 32,
+                          iconSize: 16,
+                          borderRadius: 8,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Referrals',
+                                style: TextStyle(
+                                  color: AppColors.text,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Explore & view referral asks',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: Color(0xFF16A34A),
                           size: 20,
                         ),
                       ],

@@ -58,7 +58,7 @@ class _ReportsContentState extends State<_ReportsContent> {
   void initState() {
     super.initState();
     _periodController = TextEditingController();
-    _attendanceController = TextEditingController(text: '95.0');
+    _attendanceController = TextEditingController();
     _dealsClosedController = TextEditingController();
     _totalRevenueController = TextEditingController();
     _contentController = TextEditingController();
@@ -87,6 +87,7 @@ class _ReportsContentState extends State<_ReportsContent> {
   }
 
   void _clearFormControllers() {
+    _attendanceController.clear();
     _contentController.clear();
     _highlightsController.clear();
     _challengesController.clear();
@@ -174,7 +175,8 @@ class _ReportsContentState extends State<_ReportsContent> {
                       actionItemsController: _actionItemsController,
                       isSubmitting: state.isSubmitting,
                       onSubmit: () {
-                        final attVal = double.tryParse(_attendanceController.text.trim()) ?? 95.0;
+                        final attText = _attendanceController.text.trim();
+                        final attVal = attText.isNotEmpty ? double.tryParse(attText) : null;
                         bloc.add(ReportPeriodChanged(_periodController.text.trim()));
                         bloc.add(ReportAttendanceChanged(attVal));
                         bloc.add(ReportDealsValueChanged(_dealsClosedController.text.trim()));
@@ -201,7 +203,6 @@ class _ReportsContentState extends State<_ReportsContent> {
                       const SizedBox(height: 16),
                       ReportsExportSection(
                         selectedCircle: widget.selectedCircle,
-                        attendanceTrend: state.attendanceTrend,
                       ),
                     ],
                   ],

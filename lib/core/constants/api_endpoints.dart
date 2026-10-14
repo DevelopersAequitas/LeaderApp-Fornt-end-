@@ -122,6 +122,18 @@ abstract class ApiEndpoints {
   static String leaderCollaborationUser(String userId) =>
       '$baseUrl/leader/asks/collaboration/user/$userId';
 
+  // --- 7d. Leader Referral Asks ---
+  static String get leaderReferralAsksMy =>
+      '$baseUrl/leader/asks/referral/my';
+  static String leaderReferralAsksUser(String userId) =>
+      '$baseUrl/leader/asks/referral/user/$userId';
+
+  // --- 7e. Leader Help Asks ---
+  static String get leaderHelpAsksMy =>
+      '$baseUrl/leader/asks/help/my';
+  static String leaderHelpAsksUser(String userId) =>
+      '$baseUrl/leader/asks/help/user/$userId';
+
   // --- 8. Notifications ---
   static String get notifications => '$baseUrl/notifications';
   static String get notificationsMarkRead => '$baseUrl/notifications/mark-read';

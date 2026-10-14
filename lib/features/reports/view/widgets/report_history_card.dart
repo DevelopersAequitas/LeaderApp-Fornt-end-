@@ -141,7 +141,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                                     : 'Circle Performance Report',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                   color: AppColors.text,
                                 ),
                               ),
@@ -186,7 +186,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                                 style: TextStyle(
                                   color: _getStatusText(activeReport.status),
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -211,7 +211,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                                         'PDF',
                                         style: TextStyle(
                                           fontSize: 10.5,
-                                          fontWeight: FontWeight.w600,
+                                          fontWeight: FontWeight.w500,
                                           color: AppColors.primary,
                                         ),
                                       ),
@@ -254,7 +254,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                                     Text(
                                       activeReport.author.isNotEmpty ? activeReport.author : 'Circle Leader',
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w500,
                                         fontSize: 13,
                                         color: AppColors.text,
                                       ),
@@ -290,7 +290,9 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                             Expanded(
                               child: _buildMetricCard(
                                 'Deals Closed',
-                                activeReport.dealsClosedValue ?? '₹0.0',
+                                (activeReport.dealsClosedValue != null && activeReport.dealsClosedValue!.isNotEmpty)
+                                    ? activeReport.dealsClosedValue!
+                                    : '-',
                                 Icons.monetization_on_rounded,
                                 const Color(0xFF16A34A),
                               ),
@@ -315,7 +317,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                           'Executive Summary & Notes',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             color: AppColors.text,
                           ),
                         ),
@@ -346,7 +348,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                             'Key Highlights & Wins',
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                           ),
@@ -377,7 +379,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                             'Challenges Faced & Roadblocks',
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                           ),
@@ -408,7 +410,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                             'Action Items & Next Steps',
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.text,
                             ),
                           ),
@@ -440,7 +442,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                               'Peer Roster & Membership Breakdown',
                               style: TextStyle(
                                 fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                                 color: AppColors.text,
                               ),
                             ),
@@ -511,7 +513,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
             value,
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: color,
             ),
           ),
@@ -553,36 +555,37 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                 child: peer.avatarUrl == null || peer.avatarUrl!.isEmpty
                     ? Text(
                         peer.name.isNotEmpty ? peer.name[0].toUpperCase() : 'P',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary),
                       )
                     : null,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  peer.name,
+                  peer.name.isNotEmpty ? peer.name : 'Peer Member',
                   style: const TextStyle(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     fontSize: 13,
                     color: AppColors.text,
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isActive ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  peer.status,
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: isActive ? const Color(0xFF16A34A) : const Color(0xFFD97706),
+              if (peer.status.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isActive ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    peer.status,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                      color: isActive ? const Color(0xFF16A34A) : const Color(0xFFD97706),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           if (peer.company.isNotEmpty || peer.designation.isNotEmpty) ...[
@@ -596,71 +599,87 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
               ),
             ),
           ],
-          const SizedBox(height: 6),
-          // Membership Dates Row
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Column(
-              children: [
-                if (peer.platformMembershipStart.isNotEmpty)
-                  Row(
-                    children: [
-                      const Icon(Icons.apps_rounded, size: 12, color: AppColors.primary),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Platform Validity: ',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        '${peer.platformMembershipStart} ➔ ${peer.platformMembershipEnd.isNotEmpty ? peer.platformMembershipEnd : "Active"}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+          if (peer.platformMembershipStart.isNotEmpty || peer.circleJoiningDate.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            // Membership Dates Row
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Column(
+                children: [
+                  if (peer.platformMembershipStart.isNotEmpty)
+                    Row(
+                      children: [
+                        const Icon(Icons.apps_rounded, size: 12, color: AppColors.primary),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Platform Validity: ',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
                         ),
-                      ),
-                    ],
-                  ),
-                if (peer.circleJoiningDate.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.circle_outlined, size: 12, color: Color(0xFF16A34A)),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Circle Membership: ',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        '${peer.circleJoiningDate} ➔ ${peer.circleRenewalDate.isNotEmpty ? peer.circleRenewalDate : "Active"}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF16A34A),
+                        Text(
+                          '${peer.platformMembershipStart} ➔ ${peer.platformMembershipEnd.isNotEmpty ? peer.platformMembershipEnd : "Active"}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.primary,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  if (peer.circleJoiningDate.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.circle_outlined, size: 12, color: Color(0xFF16A34A)),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Circle Membership: ',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          '${peer.circleJoiningDate} ➔ ${peer.circleRenewalDate.isNotEmpty ? peer.circleRenewalDate : "Active"}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF16A34A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          // Contribution Badges
-          Row(
-            children: [
-              _buildSmallBadge('Att: ${peer.attendance}'),
-              const SizedBox(width: 6),
-              _buildSmallBadge('Deals: ${peer.dealsClosed}'),
-              const SizedBox(width: 6),
-              _buildSmallBadge('P2P: ${peer.p2pCount}'),
-              const SizedBox(width: 6),
-              _buildSmallBadge('Ref: ${peer.referralsCount}'),
-            ],
+          ],
+          Builder(
+            builder: (context) {
+              final badges = <Widget>[];
+              if (peer.attendance.isNotEmpty && peer.attendance != '-') {
+                badges.add(_buildSmallBadge('Att: ${peer.attendance}'));
+              }
+              if (peer.dealsClosed.isNotEmpty && peer.dealsClosed != '-' && peer.dealsClosed != '₹0') {
+                badges.add(_buildSmallBadge('Deals: ${peer.dealsClosed}'));
+              }
+              if (peer.p2pCount > 0) {
+                badges.add(_buildSmallBadge('P2P: ${peer.p2pCount}'));
+              }
+              if (peer.referralsCount > 0) {
+                badges.add(_buildSmallBadge('Ref: ${peer.referralsCount}'));
+              }
+
+              if (badges.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: badges,
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -726,7 +745,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -743,7 +762,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                     style: TextStyle(
                       color: statusText,
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -839,7 +858,7 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                         style: const TextStyle(
                           color: Color(0xFF16A34A),
                           fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),

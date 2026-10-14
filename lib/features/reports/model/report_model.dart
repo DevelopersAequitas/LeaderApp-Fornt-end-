@@ -55,17 +55,17 @@ class ReportPeerRosterItem {
   factory ReportPeerRosterItem.fromJson(Map<String, dynamic> json) {
     return ReportPeerRosterItem(
       peerId: json['peer_id']?.toString() ?? json['id']?.toString() ?? '',
-      name: json['name'] as String? ?? json['peer_name'] as String? ?? 'Peer',
+      name: json['name'] as String? ?? json['peer_name'] as String? ?? json['display_name'] as String? ?? '',
       avatarUrl: json['avatar_url'] as String? ?? json['profile_photo_url'] as String?,
       company: json['company'] as String? ?? json['company_name'] as String? ?? '',
       designation: json['designation'] as String? ?? '',
-      status: json['status'] as String? ?? 'Active',
+      status: json['status'] as String? ?? '',
       platformMembershipStart: json['platform_membership_start'] as String? ?? json['app_membership_start'] as String? ?? '',
       platformMembershipEnd: json['platform_membership_end'] as String? ?? json['app_membership_end'] as String? ?? '',
       circleJoiningDate: json['circle_joining_date'] as String? ?? json['joined_date'] as String? ?? '',
       circleRenewalDate: json['circle_renewal_date'] as String? ?? json['renewal_date'] as String? ?? '',
-      attendance: json['attendance']?.toString() ?? json['attendance_rate']?.toString() ?? '100%',
-      dealsClosed: json['deals_closed']?.toString() ?? json['deals']?.toString() ?? '₹0',
+      attendance: json['attendance']?.toString() ?? json['attendance_rate']?.toString() ?? '',
+      dealsClosed: json['deals_closed']?.toString() ?? json['deals']?.toString() ?? '',
       p2pCount: json['p2p_count'] as int? ?? json['p2p_meetings'] as int? ?? 0,
       referralsCount: json['referrals_count'] as int? ?? json['referrals_given'] as int? ?? 0,
     );
@@ -140,7 +140,7 @@ class ReportModel {
   });
 
   String get formattedAttendance {
-    if (attendancePercentage == null) return '100%';
+    if (attendancePercentage == null) return '-';
     if (attendancePercentage! % 1 == 0) {
       return '${attendancePercentage!.toInt()}%';
     }
@@ -178,7 +178,7 @@ class ReportModel {
       districtId: json['district_id']?.toString(),
       districtName: json['district_name'] as String?,
       industryName: json['industry_name'] as String?,
-      status: json['status'] as String? ?? 'Approved',
+      status: json['status'] as String? ?? 'Submitted',
       date: dateStr,
       period: periodStr,
       submittedAt: submittedAtStr,

@@ -63,7 +63,7 @@ class ReportHistorySection extends StatelessWidget {
                       style: TextStyle(
                         color: AppColors.text,
                         fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
@@ -89,7 +89,7 @@ class ReportHistorySection extends StatelessWidget {
                     style: const TextStyle(
                       color: Color(0xFF16A34A),
                       fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -141,7 +141,7 @@ class ReportHistorySection extends StatelessWidget {
                         label,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: FontWeight.w500,
                           color: isSelected ? Colors.white : AppColors.text,
                         ),
                       ),
@@ -177,7 +177,7 @@ class ReportHistorySection extends StatelessWidget {
                         label,
                         style: TextStyle(
                           fontSize: 10.5,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: FontWeight.w500,
                           color: isSelected ? AppColors.primary : AppColors.textSecondary,
                         ),
                       ),
@@ -210,7 +210,7 @@ class ReportHistorySection extends StatelessWidget {
               'No Reports Found',
               style: TextStyle(
                 fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
                 color: AppColors.text,
               ),
             ),
