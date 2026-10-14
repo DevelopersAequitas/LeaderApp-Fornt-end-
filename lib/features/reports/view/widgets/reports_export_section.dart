@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/enums/user_role.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -42,12 +43,18 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
             SnackBar(
               content: Text(
                 downloadUrl.isNotEmpty
-                    ? 'Export generated! Ready for download.'
+                    ? 'Export generated! Opening download link...'
                     : 'Report export downloaded successfully.',
               ),
               backgroundColor: const Color(0xFF16A34A),
             ),
           );
+          if (downloadUrl.isNotEmpty) {
+            final uri = Uri.tryParse(downloadUrl);
+            if (uri != null) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

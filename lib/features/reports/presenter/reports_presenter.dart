@@ -19,8 +19,12 @@ class ReportsPresenter {
 
   ReportsPresenter({required this.view, required this.bloc});
 
-  void load({String? selectedCircle}) {
-    bloc.add(LoadReports(selectedCircle: selectedCircle));
+  void load({String? selectedCircle, String? reportType, String? status}) {
+    bloc.add(LoadReports(
+      selectedCircle: selectedCircle,
+      reportType: reportType,
+      status: status,
+    ));
   }
 
   void changeSubTab(int index) {
@@ -31,14 +35,57 @@ class ReportsPresenter {
     bloc.add(ChangeReportType(type));
   }
 
-  void changeCircle(String circleName) {
-    bloc.add(ChangeSelectedCircle(circleName));
+  void changeCircle(String circleName, {String? circleId}) {
+    bloc.add(ChangeSelectedCircle(circleName, circleId: circleId));
+  }
+
+  void onPeriodChanged(String period) {
+    bloc.add(ReportPeriodChanged(period));
   }
 
   void onContentChanged(String content) {
     bloc.add(ReportContentChanged(content));
   }
 
+  void onHighlightsChanged(String highlights) {
+    bloc.add(ReportHighlightsChanged(highlights));
+  }
+
+  void onChallengesChanged(String challenges) {
+    bloc.add(ReportChallengesChanged(challenges));
+  }
+
+  void onActionItemsChanged(String actionItems) {
+    bloc.add(ReportActionItemsChanged(actionItems));
+  }
+
+  void onAttendanceChanged(double attendance) {
+    bloc.add(ReportAttendanceChanged(attendance));
+  }
+
+  void onDealsValueChanged(String dealsValue) {
+    bloc.add(ReportDealsValueChanged(dealsValue));
+  }
+
+  void onRevenueChanged(String revenue) {
+    bloc.add(ReportRevenueChanged(revenue));
+  }
+
+  void filterByType(String reportType) {
+    bloc.add(FilterReportsByType(reportType));
+  }
+
+  void filterByStatus(String status) {
+    bloc.add(FilterReportsByStatus(status));
+  }
+
+  void fetchReportDetails(String reportId) {
+    bloc.add(FetchReportDetails(reportId));
+  }
+
+  void downloadReportPdf(String reportId) {
+    bloc.add(DownloadReportPdf(reportId));
+  }
 
   void submit() {
     bloc.add(const SubmitReportForm());
@@ -66,3 +113,4 @@ class ReportsPresenter {
     }
   }
 }
+

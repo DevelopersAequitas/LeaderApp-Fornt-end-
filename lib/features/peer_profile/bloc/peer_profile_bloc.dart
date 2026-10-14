@@ -82,30 +82,7 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
           final meetingsRes =
               await _peersRepository.getPeerMeetings(currentPeer.id.trim());
           if (meetingsRes.success && meetingsRes.data != null) {
-            details = PeerProfileDetailModel(
-              bio: details.bio,
-              birthday: details.birthday,
-              anniversary: details.anniversary,
-              joinedDate: details.joinedDate,
-              dealsClosed: details.dealsClosed,
-              dealsGiven: details.dealsGiven,
-              dealsReceived: details.dealsReceived,
-              referralsGiven: details.referralsGiven,
-              referralsReceived: details.referralsReceived,
-              p2pSessions: details.p2pSessions,
-              coinsEarned: details.coinsEarned,
-              attendanceRate: details.attendanceRate,
-              impactCount: details.impactCount,
-              introducedPeersCount: details.introducedPeersCount,
-              tags: details.tags,
-              phone: details.phone,
-              email: details.email,
-              whatsapp: details.whatsapp,
-              linkedin: details.linkedin,
-              meetings: meetingsRes.data!,
-              activities: details.activities,
-              testimonials: details.testimonials,
-            );
+            details = details.copyWith(meetings: meetingsRes.data!);
           }
         }
 

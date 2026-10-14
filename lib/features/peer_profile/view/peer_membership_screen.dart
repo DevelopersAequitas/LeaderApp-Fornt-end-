@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_color.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../peers/model/peer_model.dart';
 import '../model/peer_profile_model.dart';
@@ -16,16 +16,36 @@ class PeerMembershipScreen extends StatelessWidget {
   });
 
   String _formatDate(String rawDate) {
-    if (rawDate.isEmpty) {
+    if (rawDate.isEmpty || rawDate == 'null') {
       return 'N/A';
     }
     try {
+      final parsed = DateTime.tryParse(rawDate);
+      if (parsed != null) {
+        const monthNames = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
+        final day = parsed.day.toString().padLeft(2, '0');
+        final monthStr = monthNames[(parsed.month - 1).clamp(0, 11)];
+        return '$day $monthStr ${parsed.year}';
+      }
       final clean = rawDate.split('T').first;
       final parts = clean.split('-');
       if (parts.length == 3) {
         final year = parts[0];
         final monthInt = int.tryParse(parts[1]) ?? 1;
-        final day = parts[2];
+        final day = parts[2].padLeft(2, '0');
         const monthNames = [
           'Jan',
           'Feb',
@@ -41,11 +61,48 @@ class PeerMembershipScreen extends StatelessWidget {
           'Dec',
         ];
         final monthStr = monthNames[(monthInt - 1).clamp(0, 11)];
-        return '$monthStr $day, $year';
+        return '$day $monthStr $year';
       }
       return clean;
     } catch (_) {
       return rawDate;
+    }
+  }
+
+  String _formatPrice(dynamic rawPrice) {
+    if (rawPrice == null) return '₹0';
+    final str =
+        rawPrice.toString().replaceAll('₹', '').replaceAll(',', '').trim();
+    if (str.isEmpty || str == 'null') return '₹0';
+    final numVal = num.tryParse(str);
+    if (numVal != null) {
+      if (numVal == numVal.toInt()) {
+        final intVal = numVal.toInt();
+        final formatted = intVal.toString().replaceAllMapped(
+              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+              (Match m) => '${m[1]},',
+            );
+        return '₹$formatted';
+      }
+      return '₹${numVal.toStringAsFixed(2)}';
+    }
+    return rawPrice.toString().startsWith('₹')
+        ? rawPrice.toString()
+        : '₹$rawPrice';
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return const Color(0xFF16A34A);
+      case 'pending':
+        return const Color(0xFFEAB308);
+      case 'expired':
+      case 'cancelled':
+      case 'inactive':
+        return const Color(0xFFDC2626);
+      default:
+        return AppColors.text;
     }
   }
 
@@ -73,7 +130,7 @@ class PeerMembershipScreen extends StatelessWidget {
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
                   indicator: BoxDecoration(
-                    gradient: AppColor.brandGradient,
+                    gradient: AppColors.brandGradient,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   labelColor: Colors.white,
@@ -91,7 +148,7 @@ class PeerMembershipScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.card_membership_rounded, size: 16),
+                          Icon(Icons.devices_rounded, size: 16),
                           SizedBox(width: 6),
                           Text('App Membership'),
                         ],
@@ -125,134 +182,45 @@ class PeerMembershipScreen extends StatelessWidget {
     );
   }
 
-  /// App Membership Tab
+  /// App Membership Tab - displays only the subscription details card as requested
   Widget _buildAppMembershipTab(BuildContext context) {
     final appSub = details.appSubscription;
-    final planName = (appSub?.planName ?? '').isNotEmpty
-        ? appSub!.planName
-        : 'App Pro Plan';
-    final planPrice = (appSub?.price ?? '').isNotEmpty
-        ? appSub!.price
-        : '₹0';
+    final planPrice = _formatPrice(appSub?.price);
     final status = (appSub?.status ?? 'active').toUpperCase();
     final startDateText = _formatDate(appSub?.startDate ?? '');
     final endDateText = _formatDate(appSub?.endDate ?? '');
     final daysLeftText = '${appSub?.daysLeft ?? 0} Days';
-    final isActive = (appSub?.status ?? 'active').toLowerCase() == 'active';
+    final statusColor = _getStatusColor(appSub?.status ?? 'active');
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. App Plan Highlight Banner
+          const Padding(
+            padding: EdgeInsets.only(left: 4, bottom: 8),
+            child: Text(
+              'SUBSCRIPTION DETAILS',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
           Container(
-            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              gradient: AppColor.brandGradient,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x221D4ED8),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
+                  color: Color(0x0A000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
                 ),
               ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    color: Colors.white24,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.workspace_premium_rounded,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              planName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isActive
-                                  ? const Color(0xFF16A34A)
-                                  : const Color(0xFFEAB308),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              status,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Price: $planPrice',
-                        style: const TextStyle(
-                          color: Color(0xE6FFFFFF),
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // 2. Details Grid List
-          const Text(
-            'SUBSCRIPTION DETAILS',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
             ),
             child: Column(
               children: [
@@ -260,7 +228,7 @@ class PeerMembershipScreen extends StatelessWidget {
                   icon: Icons.check_circle_outline_rounded,
                   label: 'Membership Status',
                   value: status,
-                  valueColor: isActive ? const Color(0xFF16A34A) : const Color(0xFFEAB308),
+                  valueColor: statusColor,
                 ),
                 _buildDivider(),
                 _buildDetailRow(
@@ -294,127 +262,45 @@ class PeerMembershipScreen extends StatelessWidget {
     );
   }
 
-  /// Circle Membership Tab
+  /// Circle Membership Tab - displays only the circle subscription details card as requested
   Widget _buildCircleMembershipTab(BuildContext context) {
     final circleSub = details.circleSubscription;
-    final circleName = (circleSub?.circleName ?? '').isNotEmpty
-        ? circleSub!.circleName
-        : (peer.circle.isNotEmpty ? peer.circle : 'Peers Circle');
-    final planPrice = (circleSub?.amount ?? '').isNotEmpty
-        ? circleSub!.amount
-        : '₹1';
+    final planPrice = _formatPrice(circleSub?.amount);
     final status = (circleSub?.status ?? 'pending').toUpperCase();
     final startDateText = _formatDate(circleSub?.startDate ?? '');
     final endDateText = _formatDate(circleSub?.endDate ?? '');
     final daysLeftText = '${circleSub?.daysLeft ?? 0} Days';
-    final isActive = (circleSub?.status ?? 'pending').toLowerCase() == 'active';
+    final statusColor = _getStatusColor(circleSub?.status ?? 'pending');
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Circle Banner Card
+          const Padding(
+            padding: EdgeInsets.only(left: 4, bottom: 8),
+            child: Text(
+              'SUBSCRIPTION DETAILS',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
           Container(
-            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              gradient: AppColor.brandGradient,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x221D4ED8),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
+                  color: Color(0x0A000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
                 ),
               ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    color: Colors.white24,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.diversity_3_rounded,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              circleName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 15.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isActive
-                                  ? const Color(0xFF16A34A)
-                                  : const Color(0xFFEAB308),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              status,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // 2. Details Grid List
-          const Text(
-            'CIRCLE SUBSCRIPTION DETAILS',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
             ),
             child: Column(
               children: [
@@ -422,7 +308,7 @@ class PeerMembershipScreen extends StatelessWidget {
                   icon: Icons.check_circle_outline_rounded,
                   label: 'Membership Status',
                   value: status,
-                  valueColor: isActive ? const Color(0xFF16A34A) : const Color(0xFFEAB308),
+                  valueColor: statusColor,
                 ),
                 _buildDivider(),
                 _buildDetailRow(
@@ -463,34 +349,34 @@ class PeerMembershipScreen extends StatelessWidget {
     Color? valueColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ShaderMask(
             shaderCallback: (bounds) =>
-                AppColor.brandGradient.createShader(bounds),
-            child: Icon(icon, color: Colors.white, size: 18),
+                AppColors.brandGradient.createShader(bounds),
+            child: Icon(icon, color: Colors.white, size: 19),
           ),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: valueColor ?? AppColors.text,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+          Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: valueColor ?? AppColors.text,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -502,7 +388,7 @@ class PeerMembershipScreen extends StatelessWidget {
     return const Divider(
       height: 1,
       thickness: 1,
-      color: AppColors.border,
+      color: Color(0xFFF1F5F9),
       indent: 16,
       endIndent: 16,
     );

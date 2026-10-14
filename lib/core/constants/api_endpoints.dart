@@ -47,6 +47,8 @@ abstract class ApiEndpoints {
   static String peerSendWish(String id) => '$baseUrl/peers/$id/send-wish';
   static String peerMeetings(String id) => '$baseUrl/peers/$id/meetings';
   static String peerActivities(String id) => '$baseUrl/peers/$id/activities';
+  static String memberProfile(String memberId) =>
+      '$baseUrl/leader/members/$memberId';
   static String memberActivities(String memberId) =>
       '$baseUrl/leader/members/$memberId/activities';
   static String memberSpecificActivity(String memberId, String path) =>
@@ -65,7 +67,16 @@ abstract class ApiEndpoints {
   static String circlePeers(String id) => '$baseUrl/teams/circles/$id/peers';
   static String circleSubIndustries(String id) =>
       '$baseUrl/teams/circles/$id/sub-industries';
-  static String circleEvents(String id) => '$baseUrl/teams/circles/$id/events';
+  static String circleEvents(String id) =>
+      '$baseUrl/leader/teams/circles/$id/events';
+
+  // --- 4b. Member 360° Events, Passes & Attendance ---
+  static String memberEvents(String memberId) =>
+      '$baseUrl/leader/members/$memberId/events';
+  static String memberEventRegistrations(String memberId) =>
+      '$baseUrl/leader/members/$memberId/event-registrations';
+  static String memberAttendance(String memberId) =>
+      '$baseUrl/leader/members/$memberId/attendance';
 
   // --- 5. Finance ---
   static String get financeMetrics => '$baseUrl/finance/metrics';
@@ -76,11 +87,13 @@ abstract class ApiEndpoints {
       '$baseUrl/finance/transactions/record-offline';
 
   // --- 6. Reports & Analytics ---
-  static String get reports => '$baseUrl/reports';
+  static String get reports => '$baseUrl/leader/reports';
+  static String reportById(String id) => '$baseUrl/leader/reports/$id';
   static String get reportsAttendanceTrend =>
-      '$baseUrl/reports/attendance-trend';
-  static String get reportsExport => '$baseUrl/reports/export';
-  static String reportDownload(String id) => '$baseUrl/reports/$id/download';
+      '$baseUrl/leader/reports/attendance-trend';
+  static String get reportsExport => '$baseUrl/leader/reports/export';
+  static String reportDownload(String id) =>
+      '$baseUrl/leader/reports/$id/download';
 
   // --- 7. Referrals, Testimonials & Coins ---
   static String get referrals => '$baseUrl/referrals';
@@ -118,3 +131,4 @@ abstract class ApiEndpoints {
   static String circularById(String id) => '$baseUrl/circulars/$id';
   static String get circularPublish => '$baseUrl/circulars/publish';
 }
+

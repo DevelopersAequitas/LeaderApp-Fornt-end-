@@ -1,6 +1,7 @@
 import '../../core/network/api_response.dart';
 import '../../core/storage/hive_cache_service.dart';
 import '../../features/member_activities/model/member_activity_model.dart';
+import '../../features/peer_profile/model/peer_event_models.dart';
 import '../../features/peer_profile/model/peer_profile_model.dart';
 import '../../features/peers/model/celebration_model.dart';
 import '../../features/peers/model/peer_model.dart';
@@ -86,6 +87,32 @@ abstract class PeersRepository {
     String? search,
   });
   Future<ApiResponse<List<PeerModel>>> getIntroducedPeers(String memberId);
+  Future<ApiResponse<List<MemberEventItemModel>>> getMemberEvents(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? search,
+    String? status,
+    String? eventType,
+    String? fromDate,
+    String? toDate,
+  });
+  Future<ApiResponse<List<MemberEventRegistrationModel>>> getMemberEventRegistrations(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? eventType,
+    String? fromDate,
+    String? toDate,
+  });
+  Future<ApiResponse<List<MemberAttendanceRecordModel>>> getMemberAttendance(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? fromDate,
+    String? toDate,
+  });
 }
 
 class PeersRepositoryImpl implements PeersRepository {
@@ -451,5 +478,66 @@ class PeersRepositoryImpl implements PeersRepository {
   @override
   Future<ApiResponse<List<PeerModel>>> getIntroducedPeers(String memberId) async {
     return _remoteDataSource.getIntroducedPeers(memberId);
+  }
+
+  @override
+  Future<ApiResponse<List<MemberEventItemModel>>> getMemberEvents(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? search,
+    String? status,
+    String? eventType,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    return _remoteDataSource.getMemberEvents(
+      memberId,
+      page: page,
+      perPage: perPage,
+      search: search,
+      status: status,
+      eventType: eventType,
+      fromDate: fromDate,
+      toDate: toDate,
+    );
+  }
+
+  @override
+  Future<ApiResponse<List<MemberEventRegistrationModel>>> getMemberEventRegistrations(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? eventType,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    return _remoteDataSource.getMemberEventRegistrations(
+      memberId,
+      page: page,
+      perPage: perPage,
+      status: status,
+      eventType: eventType,
+      fromDate: fromDate,
+      toDate: toDate,
+    );
+  }
+
+  @override
+  Future<ApiResponse<List<MemberAttendanceRecordModel>>> getMemberAttendance(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    return _remoteDataSource.getMemberAttendance(
+      memberId,
+      page: page,
+      perPage: perPage,
+      fromDate: fromDate,
+      toDate: toDate,
+    );
   }
 }

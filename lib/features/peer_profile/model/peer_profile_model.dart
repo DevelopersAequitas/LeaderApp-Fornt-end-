@@ -304,6 +304,42 @@ class PeerProfileDetailModel {
       }
     }
 
+    final subsMap = (json['subscriptions'] is Map)
+        ? (json['subscriptions'] as Map)
+        : ((dataMap?['subscriptions'] is Map)
+            ? (dataMap!['subscriptions'] as Map)
+            : null);
+
+    PeerSubscriptionModel? appSub;
+    if (subsMap != null) {
+      if (subsMap['app_subscription'] is Map) {
+        appSub = PeerSubscriptionModel.fromJson(
+          Map<String, dynamic>.from(subsMap['app_subscription'] as Map),
+        );
+      } else if (subsMap['app_subscriptions'] is List &&
+          (subsMap['app_subscriptions'] as List).isNotEmpty &&
+          (subsMap['app_subscriptions'] as List).first is Map) {
+        appSub = PeerSubscriptionModel.fromJson(
+          Map<String, dynamic>.from((subsMap['app_subscriptions'] as List).first as Map),
+        );
+      }
+    }
+
+    PeerCircleSubscriptionModel? circleSub;
+    if (subsMap != null) {
+      if (subsMap['circle_subscription'] is Map) {
+        circleSub = PeerCircleSubscriptionModel.fromJson(
+          Map<String, dynamic>.from(subsMap['circle_subscription'] as Map),
+        );
+      } else if (subsMap['circle_subscriptions'] is List &&
+          (subsMap['circle_subscriptions'] as List).isNotEmpty &&
+          (subsMap['circle_subscriptions'] as List).first is Map) {
+        circleSub = PeerCircleSubscriptionModel.fromJson(
+          Map<String, dynamic>.from((subsMap['circle_subscriptions'] as List).first as Map),
+        );
+      }
+    }
+
     return PeerProfileDetailModel(
       bio: parseString(['bio', 'about']),
       birthday: parseString(['birthday', 'birth_date', 'date_of_birth']),
@@ -336,6 +372,8 @@ class PeerProfileDetailModel {
       activities: activitiesList,
       testimonials: testimonialsList,
       posts: postsList,
+      appSubscription: appSub,
+      circleSubscription: circleSub,
     );
   }
 
@@ -481,13 +519,39 @@ class PeerSubscriptionModel {
   });
 
   factory PeerSubscriptionModel.fromJson(Map<String, dynamic> json) {
+    final rawPrice = json['price'] ?? json['amount'];
+    String priceStr = '₹0';
+    if (rawPrice != null) {
+      final str = rawPrice.toString().trim();
+      if (str.isNotEmpty && str != 'null') {
+        priceStr = str.startsWith('₹') ? str : '₹$str';
+      }
+    }
+
+    final rawStatus = json['status']?.toString().trim();
+    final statusStr = (rawStatus != null && rawStatus.isNotEmpty && rawStatus != 'null')
+        ? rawStatus
+        : 'active';
+
+    final start = json['start_date'] ?? json['starts_at'] ?? json['started_at'] ?? json['startdate'];
+    final end = json['end_date'] ?? json['ends_at'] ?? json['expires_at'] ?? json['enddate'];
+
+    int daysLeftVal = 0;
+    if (json['days_left'] != null) {
+      if (json['days_left'] is num) {
+        daysLeftVal = (json['days_left'] as num).toInt();
+      } else {
+        daysLeftVal = int.tryParse(json['days_left'].toString()) ?? 0;
+      }
+    }
+
     return PeerSubscriptionModel(
-      planName: json['plan_name']?.toString() ?? json['plan']?.toString() ?? 'App Pro Plan',
-      price: json['price']?.toString() ?? json['amount']?.toString() ?? '₹0',
-      status: json['status']?.toString() ?? 'active',
-      startDate: json['start_date']?.toString() ?? '',
-      endDate: json['end_date']?.toString() ?? '',
-      daysLeft: json['days_left'] as int? ?? (int.tryParse(json['days_left']?.toString() ?? '0') ?? 0),
+      planName: json['plan_name']?.toString() ?? json['plan']?.toString() ?? 'App Membership',
+      price: priceStr,
+      status: statusStr,
+      startDate: start?.toString() ?? '',
+      endDate: end?.toString() ?? '',
+      daysLeft: daysLeftVal,
     );
   }
 }
@@ -510,13 +574,39 @@ class PeerCircleSubscriptionModel {
   });
 
   factory PeerCircleSubscriptionModel.fromJson(Map<String, dynamic> json) {
+    final rawAmount = json['amount'] ?? json['paid_amount'] ?? json['price'];
+    String amountStr = '₹0';
+    if (rawAmount != null) {
+      final str = rawAmount.toString().trim();
+      if (str.isNotEmpty && str != 'null') {
+        amountStr = str.startsWith('₹') ? str : '₹$str';
+      }
+    }
+
+    final rawStatus = json['status']?.toString().trim();
+    final statusStr = (rawStatus != null && rawStatus.isNotEmpty && rawStatus != 'null')
+        ? rawStatus
+        : 'active';
+
+    final start = json['start_date'] ?? json['starts_at'] ?? json['started_at'] ?? json['startdate'];
+    final end = json['end_date'] ?? json['ends_at'] ?? json['expires_at'] ?? json['enddate'];
+
+    int daysLeftVal = 0;
+    if (json['days_left'] != null) {
+      if (json['days_left'] is num) {
+        daysLeftVal = (json['days_left'] as num).toInt();
+      } else {
+        daysLeftVal = int.tryParse(json['days_left'].toString()) ?? 0;
+      }
+    }
+
     return PeerCircleSubscriptionModel(
       circleName: json['circle_name']?.toString() ?? json['circle']?.toString() ?? 'Primary Circle',
-      amount: json['amount']?.toString() ?? json['price']?.toString() ?? '₹0',
-      status: json['status']?.toString() ?? 'active',
-      startDate: json['start_date']?.toString() ?? '',
-      endDate: json['end_date']?.toString() ?? '',
-      daysLeft: json['days_left'] as int? ?? (int.tryParse(json['days_left']?.toString() ?? '0') ?? 0),
+      amount: amountStr,
+      status: statusStr,
+      startDate: start?.toString() ?? '',
+      endDate: end?.toString() ?? '',
+      daysLeft: daysLeftVal,
     );
   }
 }

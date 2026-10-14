@@ -5,13 +5,28 @@ import '../../features/reports/model/report_model.dart';
 import '../datasources/remote/reports_remote_datasource.dart';
 
 abstract class ReportsRepository {
-  Future<ApiResponse<List<ReportModel>>> getReports({String? circleId, String? type, String? status});
+  Future<ApiResponse<List<ReportModel>>> getReports({
+    String? circleId,
+    String? reportType,
+    String? status,
+    String? districtId,
+    int? page,
+    int? perPage,
+  });
   Future<ApiResponse<ReportModel>> getReportDetails(String id);
-  Future<ApiResponse<Map<String, dynamic>>> submitReport({
+  Future<ApiResponse<ReportSubmitResponse>> submitReport({
     required String circleId,
-    required String type,
+    required String reportType,
     required String period,
-    required String content,
+    required String summaryText,
+    num? attendancePercentage,
+    String? dealsClosedValue,
+    String? totalRevenue,
+    String? highlights,
+    String? challengesFaced,
+    String? actionItems,
+    List<String>? includedSections,
+    List<Map<String, dynamic>>? peersRoster,
   });
   Future<ApiResponse<List<ReportsChartPoint>>> getAttendanceTrend({String? circleId});
   Future<ApiResponse<Map<String, dynamic>>> exportReports({required String format, String? circleId});
@@ -30,22 +45,45 @@ class ReportsRepositoryImpl implements ReportsRepository {
 
   @override
   Future<ApiResponse<ReportModel>> getReportDetails(String id) async {
-    return _remoteDataSource.getReportDetails(id);
+    final cacheKey = 'report_details_$id';
+    try {
+      final response = await _remoteDataSource.getReportDetails(id);
+      if (response.success && response.data != null) {
+        await _cacheService.put(cacheKey, response.data!.toJson());
+      }
+      return response;
+    } catch (e) {
+      final cached = _cacheService.get(cacheKey);
+      if (cached is Map) {
+        final cachedData = ReportModel.fromJson(Map<String, dynamic>.from(cached));
+        return ApiResponse<ReportModel>(
+          success: true,
+          data: cachedData,
+          message: 'Loaded from offline cache',
+        );
+      }
+      rethrow;
+    }
   }
 
   @override
   Future<ApiResponse<List<ReportModel>>> getReports({
-
     String? circleId,
-    String? type,
+    String? reportType,
     String? status,
+    String? districtId,
+    int? page,
+    int? perPage,
   }) async {
-    final cacheKey = 'reports_list_${circleId ?? "all"}_${type ?? "all"}';
+    final cacheKey = 'reports_list_${circleId ?? "all"}_${reportType ?? "all"}_${status ?? "all"}';
     try {
       final response = await _remoteDataSource.getReports(
         circleId: circleId,
-        type: type,
+        reportType: reportType,
         status: status,
+        districtId: districtId,
+        page: page,
+        perPage: perPage,
       );
       if (response.success && response.data != null) {
         final listJson = response.data!.map((x) => x.toJson()).toList();
@@ -69,17 +107,33 @@ class ReportsRepositoryImpl implements ReportsRepository {
   }
 
   @override
-  Future<ApiResponse<Map<String, dynamic>>> submitReport({
+  Future<ApiResponse<ReportSubmitResponse>> submitReport({
     required String circleId,
-    required String type,
+    required String reportType,
     required String period,
-    required String content,
+    required String summaryText,
+    num? attendancePercentage,
+    String? dealsClosedValue,
+    String? totalRevenue,
+    String? highlights,
+    String? challengesFaced,
+    String? actionItems,
+    List<String>? includedSections,
+    List<Map<String, dynamic>>? peersRoster,
   }) async {
     return _remoteDataSource.submitReport(
       circleId: circleId,
-      type: type,
+      reportType: reportType,
       period: period,
-      content: content,
+      summaryText: summaryText,
+      attendancePercentage: attendancePercentage,
+      dealsClosedValue: dealsClosedValue,
+      totalRevenue: totalRevenue,
+      highlights: highlights,
+      challengesFaced: challengesFaced,
+      actionItems: actionItems,
+      includedSections: includedSections,
+      peersRoster: peersRoster,
     );
   }
 

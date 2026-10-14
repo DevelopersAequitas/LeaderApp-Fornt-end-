@@ -1,15 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/helpers/session_manager.dart';
 import '../../../data/repositories/reports_repository.dart';
 import '../../../data/repositories/teams_repository.dart';
-import '../../../core/helpers/session_manager.dart';
 import '../model/report_model.dart';
 import 'reports_event.dart';
 import 'reports_state.dart';
 
-/// Business Logic Component for managing leadership report creations and history via Clean Architecture.
+/// Business Logic Component for managing leadership report creations, history, analytics and PDF exports.
 class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
   final ReportsRepository _reportsRepository;
   final TeamsRepository _teamsRepository;
+  final Map<String, String> _circleNameToId = {};
 
   ReportsBloc({
     ReportsRepository? reportsRepository,
@@ -18,14 +19,51 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         _teamsRepository = teamsRepository ?? TeamsRepositoryImpl(),
         super(const ReportsState()) {
     on<LoadReports>(_onLoadReports);
+    on<FilterReportsByType>(_onFilterReportsByType);
+    on<FilterReportsByStatus>(_onFilterReportsByStatus);
     on<ToggleReportSubTab>(_onToggleReportSubTab);
     on<ChangeReportType>(_onChangeReportType);
     on<ChangeSelectedCircle>(_onChangeSelectedCircle);
+    on<ReportPeriodChanged>(_onReportPeriodChanged);
     on<ReportContentChanged>(_onReportContentChanged);
+    on<ReportHighlightsChanged>(_onReportHighlightsChanged);
+    on<ReportChallengesChanged>(_onReportChallengesChanged);
+    on<ReportActionItemsChanged>(_onReportActionItemsChanged);
+    on<ReportAttendanceChanged>(_onReportAttendanceChanged);
+    on<ReportDealsValueChanged>(_onReportDealsValueChanged);
+    on<ReportRevenueChanged>(_onReportRevenueChanged);
     on<SubmitReportForm>(_onSubmitReportForm);
+    on<FetchReportDetails>(_onFetchReportDetails);
+    on<DownloadReportPdf>(_onDownloadReportPdf);
   }
 
-  Future<void> _onLoadReports(LoadReports event, Emitter<ReportsState> emit) async {
+  static bool _isValidUuid(String? str) {
+    if (str == null || str.isEmpty) return false;
+    final uuidRegex = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    );
+    return uuidRegex.hasMatch(str.trim());
+  }
+
+  String _resolveCircleId(String? circleNameOrId) {
+    if (circleNameOrId == null || circleNameOrId.isEmpty) return '';
+    if (_isValidUuid(circleNameOrId)) return circleNameOrId.trim();
+    return _circleNameToId[circleNameOrId] ?? '';
+  }
+
+  static String _defaultPeriod() {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    final now = DateTime.now();
+    return '${months[now.month - 1]} ${now.year}';
+  }
+
+  Future<void> _onLoadReports(
+    LoadReports event,
+    Emitter<ReportsState> emit,
+  ) async {
     if (state.submittedReports.isEmpty) {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
     }
@@ -37,9 +75,16 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     try {
       final circlesRes = await _teamsRepository.getCircles();
       if (circlesRes.success && circlesRes.data != null && circlesRes.data!.isNotEmpty) {
+        for (final c in circlesRes.data!) {
+          if (c.name.isNotEmpty) {
+            _circleNameToId[c.name] = c.id;
+          }
+        }
         circlesList = circlesRes.data!.map((c) => c.name).where((n) => n.isNotEmpty).toList();
       }
-    } catch (_) {}
+    } catch (_) {
+      // Fallback to session circles if remote fetch fails
+    }
 
     if (circlesList.isEmpty) {
       final sessionCircles = SessionManager().currentSession.managedCircles;
@@ -54,9 +99,20 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
             ? activeCircle
             : (circlesList.isNotEmpty ? circlesList.first : ''));
 
+    final resolvedCircleId = _resolveCircleId(resolvedCircleName.isNotEmpty ? resolvedCircleName : activeCircle);
+
+    final currentPeriod = state.period.isNotEmpty ? state.period : _defaultPeriod();
+
     try {
-      final reportsResponse = await _reportsRepository.getReports(circleId: activeCircle);
-      final trendResponse = await _reportsRepository.getAttendanceTrend(circleId: activeCircle);
+      final reportsResponse = await _reportsRepository.getReports(
+        circleId: resolvedCircleId.isNotEmpty ? resolvedCircleId : null,
+        reportType: event.reportType ?? state.filterType,
+        status: event.status ?? state.filterStatus,
+        districtId: event.districtId,
+      );
+      final trendResponse = await _reportsRepository.getAttendanceTrend(
+        circleId: resolvedCircleId.isNotEmpty ? resolvedCircleId : null,
+      );
 
       emit(
         state.copyWith(
@@ -66,6 +122,8 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
           selectedCircle: activeCircle,
           availableCircles: circlesList,
           circleName: resolvedCircleName,
+          selectedCircleId: resolvedCircleId,
+          period: currentPeriod,
         ),
       );
     } catch (e) {
@@ -75,8 +133,50 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
           errorMessage: e.toString(),
           availableCircles: circlesList,
           circleName: resolvedCircleName,
+          selectedCircleId: resolvedCircleId,
+          period: currentPeriod,
         ),
       );
+    }
+  }
+
+  Future<void> _onFilterReportsByType(
+    FilterReportsByType event,
+    Emitter<ReportsState> emit,
+  ) async {
+    emit(state.copyWith(filterType: event.reportType, isLoading: true));
+    try {
+      final res = await _reportsRepository.getReports(
+        circleId: state.selectedCircleId,
+        reportType: event.reportType,
+        status: state.filterStatus,
+      );
+      emit(state.copyWith(
+        isLoading: false,
+        submittedReports: res.data ?? const [],
+      ));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onFilterReportsByStatus(
+    FilterReportsByStatus event,
+    Emitter<ReportsState> emit,
+  ) async {
+    emit(state.copyWith(filterStatus: event.status, isLoading: true));
+    try {
+      final res = await _reportsRepository.getReports(
+        circleId: state.selectedCircleId,
+        reportType: state.filterType,
+        status: event.status,
+      );
+      emit(state.copyWith(
+        isLoading: false,
+        submittedReports: res.data ?? const [],
+      ));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 
@@ -95,7 +195,12 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     ChangeSelectedCircle event,
     Emitter<ReportsState> emit,
   ) {
-    emit(state.copyWith(circleName: event.circleName));
+    final circleId = event.circleId ?? _resolveCircleId(event.circleName);
+    emit(state.copyWith(circleName: event.circleName, selectedCircleId: circleId));
+  }
+
+  void _onReportPeriodChanged(ReportPeriodChanged event, Emitter<ReportsState> emit) {
+    emit(state.copyWith(period: event.period));
   }
 
   void _onReportContentChanged(
@@ -105,12 +210,65 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     emit(state.copyWith(reportContent: event.content, errorMessage: ''));
   }
 
+  void _onReportHighlightsChanged(
+    ReportHighlightsChanged event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(highlights: event.highlights));
+  }
+
+  void _onReportChallengesChanged(
+    ReportChallengesChanged event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(challengesFaced: event.challenges));
+  }
+
+  void _onReportActionItemsChanged(
+    ReportActionItemsChanged event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(actionItems: event.actionItems));
+  }
+
+  void _onReportAttendanceChanged(
+    ReportAttendanceChanged event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(attendancePercentage: event.attendance));
+  }
+
+  void _onReportDealsValueChanged(
+    ReportDealsValueChanged event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(dealsClosedValue: event.dealsValue));
+  }
+
+  void _onReportRevenueChanged(
+    ReportRevenueChanged event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(totalRevenue: event.revenue));
+  }
+
   Future<void> _onSubmitReportForm(
     SubmitReportForm event,
     Emitter<ReportsState> emit,
   ) async {
     if (state.reportContent.trim().isEmpty) {
-      emit(state.copyWith(errorMessage: 'Report content cannot be empty.'));
+      emit(state.copyWith(errorMessage: 'Report executive summary cannot be empty.'));
+      return;
+    }
+
+    final targetCircleId = _resolveCircleId(
+      state.selectedCircleId?.isNotEmpty == true
+          ? state.selectedCircleId
+          : state.circleName,
+    );
+
+    if (targetCircleId.isEmpty && state.circleName.isEmpty) {
+      emit(state.copyWith(errorMessage: 'Please select a valid circle for this report.'));
       return;
     }
 
@@ -120,22 +278,40 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
 
     try {
       final session = SessionManager().currentSession;
+      final periodToSubmit = state.period.isNotEmpty ? state.period : _defaultPeriod();
+
       final response = await _reportsRepository.submitReport(
-        circleId: state.circleName,
-        type: state.selectedType,
-        period: 'Aug 2026',
-        content: state.reportContent,
+        circleId: targetCircleId.isNotEmpty ? targetCircleId : state.circleName,
+        reportType: state.selectedType,
+        period: periodToSubmit,
+        summaryText: state.reportContent.trim(),
+        attendancePercentage: state.attendancePercentage ?? 95.0,
+        dealsClosedValue: state.dealsClosedValue.isNotEmpty ? state.dealsClosedValue : null,
+        totalRevenue: state.totalRevenue.isNotEmpty ? state.totalRevenue : null,
+        highlights: state.highlights.isNotEmpty ? state.highlights : null,
+        challengesFaced: state.challengesFaced.isNotEmpty ? state.challengesFaced : null,
+        actionItems: state.actionItems.isNotEmpty ? state.actionItems : null,
       );
 
-      if (response.success) {
+      if (response.success && response.data != null) {
+        final submitData = response.data!;
         final newReport = ReportModel(
+          id: submitData.reportId,
           type: state.selectedType,
-          status: 'Submitted',
-          date: 'Aug 25, 2026',
+          status: submitData.status,
+          date: periodToSubmit,
+          period: periodToSubmit,
           circleName: state.circleName,
+          circleId: targetCircleId,
           content: state.reportContent,
           author: '${session.name} · ${state.circleName}',
           authorRole: session.role.label,
+          attendancePercentage: state.attendancePercentage ?? 95.0,
+          dealsClosedValue: state.dealsClosedValue.isNotEmpty ? state.dealsClosedValue : null,
+          totalRevenue: state.totalRevenue.isNotEmpty ? state.totalRevenue : null,
+          highlights: state.highlights.isNotEmpty ? state.highlights : null,
+          challengesFaced: state.challengesFaced.isNotEmpty ? state.challengesFaced : null,
+          actionItems: state.actionItems.isNotEmpty ? state.actionItems : null,
         );
 
         final updatedList = [newReport, ...state.submittedReports];
@@ -144,16 +320,74 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
           state.copyWith(
             isSubmitting: false,
             isSuccess: true,
+            successMessage: response.message ?? 'Report submitted successfully and routed to higher leadership.',
             submittedReports: updatedList,
             reportContent: '',
+            highlights: '',
+            challengesFaced: '',
+            actionItems: '',
+            activeSubTab: 1, // Automatically switch to History tab so user sees new report
           ),
         );
       } else {
-        emit(state.copyWith(isSubmitting: false, errorMessage: response.message ?? 'Submission failed.'));
+        emit(state.copyWith(
+          isSubmitting: false,
+          errorMessage: response.message ?? 'Report submission failed. Please try again.',
+        ));
       }
     } catch (e) {
       emit(state.copyWith(isSubmitting: false, errorMessage: e.toString()));
     }
   }
+
+  Future<void> _onFetchReportDetails(
+    FetchReportDetails event,
+    Emitter<ReportsState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingDetail: true));
+    try {
+      final res = await _reportsRepository.getReportDetails(event.reportId);
+      if (res.success && res.data != null) {
+        final detailed = res.data!;
+        final updatedList = state.submittedReports.map((r) {
+          return r.id == detailed.id ? detailed : r;
+        }).toList();
+
+        emit(state.copyWith(
+          isLoadingDetail: false,
+          selectedReportDetail: detailed,
+          submittedReports: updatedList,
+        ));
+      } else {
+        emit(state.copyWith(isLoadingDetail: false));
+      }
+    } catch (_) {
+      emit(state.copyWith(isLoadingDetail: false));
+    }
+  }
+
+  Future<void> _onDownloadReportPdf(
+    DownloadReportPdf event,
+    Emitter<ReportsState> emit,
+  ) async {
+    emit(state.copyWith(isDownloading: true));
+    try {
+      final res = await _reportsRepository.getReportDownloadUrl(event.reportId);
+      if (res.success && res.data != null) {
+        emit(state.copyWith(
+          isDownloading: false,
+          activeDownload: res.data,
+        ));
+      } else {
+        emit(state.copyWith(
+          isDownloading: false,
+          errorMessage: res.message ?? 'Failed to retrieve report download link.',
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(isDownloading: false, errorMessage: e.toString()));
+    }
+  }
 }
+
 

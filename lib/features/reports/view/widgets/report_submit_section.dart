@@ -4,14 +4,21 @@ import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 
-/// Form component for leaders to draft and submit weekly/monthly circle reports.
+/// Form component for leaders to draft and submit weekly/monthly/quarterly circle reports.
 class ReportSubmitSection extends StatelessWidget {
   final String selectedType;
   final ValueChanged<String> onTypeChanged;
   final String circleName;
   final List<String> availableCircles;
   final ValueChanged<String>? onCircleChanged;
+  final TextEditingController periodController;
+  final TextEditingController attendanceController;
+  final TextEditingController dealsClosedController;
+  final TextEditingController totalRevenueController;
   final TextEditingController contentController;
+  final TextEditingController highlightsController;
+  final TextEditingController challengesController;
+  final TextEditingController actionItemsController;
   final bool isSubmitting;
   final VoidCallback onSubmit;
 
@@ -22,7 +29,14 @@ class ReportSubmitSection extends StatelessWidget {
     required this.circleName,
     this.availableCircles = const [],
     this.onCircleChanged,
+    required this.periodController,
+    required this.attendanceController,
+    required this.dealsClosedController,
+    required this.totalRevenueController,
     required this.contentController,
+    required this.highlightsController,
+    required this.challengesController,
+    required this.actionItemsController,
     required this.isSubmitting,
     required this.onSubmit,
   });
@@ -34,12 +48,12 @@ class ReportSubmitSection extends StatelessWidget {
       case UserRole.chairMembership:
       case UserRole.chairEvents:
       case UserRole.circleChair:
-        return 'To: Circle Founder, Circle Director & District Leadership';
+        return 'To: Circle Founder ➔ Circle Director ➔ District Leadership';
       case UserRole.circleFounder:
       case UserRole.circleDirector:
-        return 'To: Industry Director & District Leadership';
+        return 'To: Industry Director ➔ District Executive Director';
       case UserRole.industryDirector:
-        return 'To: District Executive Director & Super Admin';
+        return 'To: District Executive Director ➔ Super Admin';
       case UserRole.districtExecDirector:
         return 'To: Super Admin & National Leadership';
       case UserRole.countryDirector:
@@ -181,7 +195,7 @@ class ReportSubmitSection extends StatelessWidget {
                                     Navigator.pop(ctx);
                                     onCircleChanged?.call(item);
                                   },
-                                  leading: SquareRoundedGradientIcon(
+                                  leading: const SquareRoundedGradientIcon(
                                     icon: Icons.group_work_rounded,
                                     iconSize: 18,
                                     boxSize: 36,
@@ -191,7 +205,7 @@ class ReportSubmitSection extends StatelessWidget {
                                     item,
                                     style: TextStyle(
                                       fontWeight: isSelected
-                                          ? FontWeight.w500
+                                          ? FontWeight.w600
                                           : FontWeight.w400,
                                       fontSize: 13,
                                       color: isSelected
@@ -240,9 +254,44 @@ class ReportSubmitSection extends StatelessWidget {
           // Circle Name Display with Interactive Picker
           _buildCircleField(context),
           const SizedBox(height: 14),
-          // Content Input Box
-          _buildContentInput(),
-          const SizedBox(height: 16),
+          // Period & Attendance Row
+          _buildPeriodAndAttendanceRow(),
+          const SizedBox(height: 14),
+          // Deals & Revenue Row
+          _buildFinancialsRow(),
+          const SizedBox(height: 14),
+          // Executive Summary Text (Required)
+          _buildField(
+            title: 'EXECUTIVE SUMMARY & NOTES *',
+            hintText: 'Describe general performance, referrals closed, member retention and progress...',
+            controller: contentController,
+            maxLines: 4,
+          ),
+          const SizedBox(height: 14),
+          // Key Highlights
+          _buildField(
+            title: 'KEY HIGHLIGHTS & WINS',
+            hintText: 'Notable partnerships, top referrers, special announcements or achievements...',
+            controller: highlightsController,
+            maxLines: 2,
+          ),
+          const SizedBox(height: 14),
+          // Challenges Faced
+          _buildField(
+            title: 'CHALLENGES FACED & ROADBLOCKS',
+            hintText: 'Issues requiring escalation, renewal roadblocks, nominee verifications...',
+            controller: challengesController,
+            maxLines: 2,
+          ),
+          const SizedBox(height: 14),
+          // Action Items
+          _buildField(
+            title: 'ACTION ITEMS & NEXT STEPS',
+            hintText: 'Upcoming assembly schedule, 1-on-1 alignment meetings, renewal follow-ups...',
+            controller: actionItemsController,
+            maxLines: 2,
+          ),
+          const SizedBox(height: 18),
           // Submit Button
           _buildSubmitButton(),
           const SizedBox(height: 20),
@@ -273,11 +322,11 @@ class ReportSubmitSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Submit Leadership Report',
+                  'Submit Performance Report',
                   style: TextStyle(
                     color: AppColors.text,
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -298,81 +347,49 @@ class ReportSubmitSection extends StatelessWidget {
   }
 
   Widget _buildTypeSelector() {
-    final isWeekly = selectedType == 'Weekly';
-    final isMonthly = selectedType == 'Monthly';
+    const types = ['Weekly', 'Monthly', 'Quarterly', 'Annual'];
 
     return Row(
-      children: [
-        Expanded(
-          child: InkWell(
-            onTap: () => onTypeChanged('Weekly'),
-            borderRadius: BorderRadius.circular(10),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                gradient: isWeekly ? AppColors.brandGradient : null,
-                color: isWeekly ? null : Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: isWeekly ? null : Border.all(color: AppColors.border),
-                boxShadow: isWeekly
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ]
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'Weekly Report',
-                style: TextStyle(
-                  color: isWeekly ? Colors.white : AppColors.text,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+      children: types.map((type) {
+        final isSelected = selectedType.toLowerCase() == type.toLowerCase();
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+            child: InkWell(
+              onTap: () => onTypeChanged(type),
+              borderRadius: BorderRadius.circular(10),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                decoration: BoxDecoration(
+                  gradient: isSelected ? AppColors.brandGradient : null,
+                  color: isSelected ? null : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: isSelected ? null : Border.all(color: AppColors.border),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.25),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ]
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  type,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : AppColors.text,
+                    fontSize: 11.5,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: InkWell(
-            onTap: () => onTypeChanged('Monthly'),
-            borderRadius: BorderRadius.circular(10),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                gradient: isMonthly ? AppColors.brandGradient : null,
-                color: isMonthly ? null : Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: isMonthly ? null : Border.all(color: AppColors.border),
-                boxShadow: isMonthly
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ]
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'Monthly Report',
-                style: TextStyle(
-                  color: isMonthly ? Colors.white : AppColors.text,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 
@@ -387,7 +404,7 @@ class ReportSubmitSection extends StatelessWidget {
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 10,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 letterSpacing: 0.4,
               ),
             ),
@@ -432,7 +449,7 @@ class ReportSubmitSection extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    circleName.isNotEmpty ? circleName : 'Select Circle',
+                    circleName.isNotEmpty ? circleName : 'Select Target Circle',
                     style: TextStyle(
                       color: circleName.isNotEmpty
                           ? AppColors.text
@@ -455,41 +472,225 @@ class ReportSubmitSection extends StatelessWidget {
     );
   }
 
-  Widget _buildContentInput() {
+  Widget _buildPeriodAndAttendanceRow() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 6,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'REPORT PERIOD',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: periodController,
+                decoration: InputDecoration(
+                  hintText: 'e.g. October 2026',
+                  hintStyle: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                  prefixIcon: const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primary),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                  ),
+                ),
+                style: const TextStyle(color: AppColors.text, fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'ATTENDANCE %',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: attendanceController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  hintText: 'e.g. 96.2',
+                  hintStyle: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                  suffixText: '%',
+                  suffixStyle: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                  ),
+                ),
+                style: const TextStyle(color: AppColors.text, fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFinancialsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'DEALS CLOSED VALUE',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: dealsClosedController,
+                decoration: InputDecoration(
+                  hintText: 'e.g. ₹22.5L',
+                  hintStyle: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                  prefixIcon: const Icon(Icons.monetization_on_rounded, size: 16, color: Color(0xFF16A34A)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                  ),
+                ),
+                style: const TextStyle(color: AppColors.text, fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'TOTAL REVENUE',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: totalRevenueController,
+                decoration: InputDecoration(
+                  hintText: 'e.g. ₹28.0L',
+                  hintStyle: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                  prefixIcon: const Icon(Icons.trending_up_rounded, size: 16, color: Color(0xFF9333EA)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                  ),
+                ),
+                style: const TextStyle(color: AppColors.text, fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildField({
+    required String title,
+    required String hintText,
+    required TextEditingController controller,
+    int maxLines = 1,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'REPORT CONTENT',
-          style: TextStyle(
+        Text(
+          title,
+          style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 10,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             letterSpacing: 0.4,
           ),
         ),
         const SizedBox(height: 6),
         TextField(
-          controller: contentController,
-          maxLines: 5,
-          keyboardType: TextInputType.multiline,
+          controller: controller,
+          maxLines: maxLines,
+          keyboardType: maxLines > 1 ? TextInputType.multiline : TextInputType.text,
           decoration: InputDecoration(
-            hintText:
-                'Describe attendance, closed deals, peer updates, concerns, or achievements...',
+            hintText: hintText,
             hintStyle: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,
               height: 1.4,
             ),
-            contentPadding: const EdgeInsets.all(14.0),
+            contentPadding: const EdgeInsets.all(12.0),
             filled: true,
             fillColor: Colors.white,
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(
                 color: AppColors.primary,
                 width: 1.5,
@@ -508,7 +709,7 @@ class ReportSubmitSection extends StatelessWidget {
 
   Widget _buildSubmitButton() {
     return PrimaryButton(
-      label: 'Submit Report →',
+      label: 'Submit Report for Leadership Review →',
       isLoading: isSubmitting,
       height: 48,
       onPressed: onSubmit,

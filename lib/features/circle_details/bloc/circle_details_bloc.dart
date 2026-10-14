@@ -14,6 +14,8 @@ class CircleDetailsBloc extends Bloc<CircleDetailsEvent, CircleDetailsState> {
     on<ChangeCircleSubTabEvent>(_onChangeCircleSubTab);
     on<FilterCircleEventsEvent>(_onFilterCircleEvents);
     on<LoadMoreCirclePeersEvent>(_onLoadMoreCirclePeers);
+    on<SearchCirclePeersEvent>(_onSearchCirclePeers);
+    on<FilterCirclePeersStatusEvent>(_onFilterCirclePeersStatus);
   }
 
   List<CircleEventModel> _applyEventFilter(List<CircleEventModel> events, String filter) {
@@ -160,5 +162,15 @@ class CircleDetailsBloc extends Bloc<CircleDetailsEvent, CircleDetailsState> {
       selectedEventFilter: event.filter,
       filteredEvents: filtered,
     ));
+  }
+
+  void _onSearchCirclePeers(
+      SearchCirclePeersEvent event, Emitter<CircleDetailsState> emit) {
+    emit(state.copyWith(peerSearchQuery: event.query));
+  }
+
+  void _onFilterCirclePeersStatus(
+      FilterCirclePeersStatusEvent event, Emitter<CircleDetailsState> emit) {
+    emit(state.copyWith(selectedPeerStatusFilter: event.status));
   }
 }

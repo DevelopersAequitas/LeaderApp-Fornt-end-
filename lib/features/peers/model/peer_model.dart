@@ -14,6 +14,7 @@ class PeerModel {
   final int coins;
   final String attendance;
   final String status; // "Active", "Needs Attention", "At Risk", "Pending"
+  final String registrationType; // "member", "visitor", "guest"
   final String? industry;
   final String? level4Category;
   final String? phone;
@@ -50,6 +51,7 @@ class PeerModel {
     required this.coins,
     required this.attendance,
     required this.status,
+    this.registrationType = 'member',
     this.industry,
     this.level4Category,
     this.phone,
@@ -71,6 +73,18 @@ class PeerModel {
     this.referralsReceived,
     this.p2pMeetings,
   });
+
+  bool get isVisitor {
+    final t = registrationType.toLowerCase();
+    final s = status.toLowerCase();
+    final tg = tags.toLowerCase();
+    return t == 'visitor' ||
+        t == 'guest' ||
+        s.contains('visitor') ||
+        s.contains('guest') ||
+        tg.contains('visitor') ||
+        tg.contains('guest');
+  }
 
   factory PeerModel.fromJson(Map<String, dynamic> json) {
     final peerMap = json['peer'] is Map<String, dynamic>
@@ -209,6 +223,12 @@ class PeerModel {
       parsedTags = level4;
     }
 
+    final regType = json['registration_type']?.toString() ??
+        json['registrationType']?.toString() ??
+        json['type']?.toString() ??
+        json['role']?.toString() ??
+        (statusStr.toLowerCase().contains('visitor') ? 'visitor' : 'member');
+
     return PeerModel(
       id: id,
       initials: initials.isNotEmpty ? initials : 'PR',
@@ -224,6 +244,7 @@ class PeerModel {
       coins: parsedCoins,
       attendance: metrics?['attendance_percentage']?.toString() ?? metrics?['attendance_rate']?.toString() ?? json['attendance']?.toString() ?? '',
       status: statusStr,
+      registrationType: regType,
       industry: industryStr,
       level4Category: level4,
       phone: phoneStr,
@@ -261,6 +282,7 @@ class PeerModel {
         'coins': coins,
         'attendance': attendance,
         'status': status,
+        'registration_type': registrationType,
         'industry': industry,
         'level4_category': level4Category,
         'phone': phone,
@@ -298,6 +320,7 @@ class PeerModel {
     int? coins,
     String? attendance,
     String? status,
+    String? registrationType,
     String? industry,
     String? level4Category,
     String? phone,
@@ -334,6 +357,7 @@ class PeerModel {
       coins: coins ?? this.coins,
       attendance: attendance ?? this.attendance,
       status: status ?? this.status,
+      registrationType: registrationType ?? this.registrationType,
       industry: industry ?? this.industry,
       level4Category: level4Category ?? this.level4Category,
       phone: phone ?? this.phone,

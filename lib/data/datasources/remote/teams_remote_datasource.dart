@@ -135,7 +135,7 @@ class TeamsRemoteDataSource {
       params['filter'] = filter.toLowerCase();
     }
 
-    return _apiClient.get<List<CircleEventModel>>(
+    final res = await _apiClient.get<List<CircleEventModel>>(
       ApiEndpoints.circleEvents(circleId),
       queryParameters: params.isNotEmpty ? params : null,
       fromJsonT: (json) {
@@ -145,6 +145,24 @@ class TeamsRemoteDataSource {
           return (json['data'] as List).map((item) => CircleEventModel.fromJson(item as Map<String, dynamic>)).toList();
         } else if (json is Map && json['events'] is List) {
           return (json['events'] as List).map((item) => CircleEventModel.fromJson(item as Map<String, dynamic>)).toList();
+        }
+        return <CircleEventModel>[];
+      },
+    );
+
+    if (res.success && res.data != null) {
+      return res;
+    }
+
+    // Secondary route fallback if leader prefix endpoint fails
+    return _apiClient.get<List<CircleEventModel>>(
+      '${ApiEndpoints.baseUrl}/teams/circles/$circleId/events',
+      queryParameters: params.isNotEmpty ? params : null,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json.map((item) => CircleEventModel.fromJson(item as Map<String, dynamic>)).toList();
+        } else if (json is Map && json['data'] is List) {
+          return (json['data'] as List).map((item) => CircleEventModel.fromJson(item as Map<String, dynamic>)).toList();
         }
         return <CircleEventModel>[];
       },

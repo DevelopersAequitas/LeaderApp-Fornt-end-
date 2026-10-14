@@ -8,6 +8,7 @@ import '../../model/peer_profile_model.dart';
 import '../peer_business_deals_screen.dart';
 import '../peer_business_referrals_screen.dart';
 import '../peer_coins_screen.dart';
+import '../peer_events_attendance_screen.dart';
 import '../peer_introduced_by_screen.dart';
 import '../peer_membership_screen.dart';
 import '../peer_testimonials_screen.dart';
@@ -822,6 +823,67 @@ class PeerProfileOverviewSection extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 10),
+
+                // Row 3: Events, Passes & Meeting Attendance
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => PeerEventsAttendanceScreen(peer: peer),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFBBF7D0)),
+                    ),
+                    child: Row(
+                      children: [
+                        const SquareRoundedGradientIcon(
+                          icon: Icons.event_available_rounded,
+                          boxSize: 32,
+                          iconSize: 16,
+                          borderRadius: 8,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Events, Passes & Meeting Attendance',
+                                style: TextStyle(
+                                  color: AppColors.text,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${details.attendanceRate} Attendance · Registered Events & Passes',
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

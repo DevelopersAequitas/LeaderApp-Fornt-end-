@@ -90,6 +90,7 @@ abstract class AppRoutes {
   /// Route generator to handle app navigation transitions.
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+
       case splash:
         return MaterialPageRoute(
           builder: (_) => const SplashView(),

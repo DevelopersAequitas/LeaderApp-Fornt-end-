@@ -43,3 +43,22 @@ class LoadMoreCirclePeersEvent extends CircleDetailsEvent {
   @override
   List<Object?> get props => [circleId];
 }
+
+class SearchCirclePeersEvent extends CircleDetailsEvent {
+  final String query;
+
+  const SearchCirclePeersEvent(this.query);
+
+  @override
+  List<Object?> get props => [query];
+}
+
+class FilterCirclePeersStatusEvent extends CircleDetailsEvent {
+  final String status;
+
+  const FilterCirclePeersStatusEvent(this.status);
+
+  @override
+  List<Object?> get props => [status];
+}
+

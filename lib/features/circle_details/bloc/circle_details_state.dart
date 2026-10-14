@@ -20,6 +20,8 @@ class CircleDetailsState extends Equatable {
   final List<CircleEventModel> allEvents;
   final List<CircleEventModel> filteredEvents;
   final String selectedEventFilter;
+  final String peerSearchQuery;
+  final String selectedPeerStatusFilter;
   final String errorMessage;
 
   const CircleDetailsState({
@@ -38,6 +40,8 @@ class CircleDetailsState extends Equatable {
     this.allEvents = const [],
     this.filteredEvents = const [],
     this.selectedEventFilter = 'All',
+    this.peerSearchQuery = '',
+    this.selectedPeerStatusFilter = 'All',
     this.errorMessage = '',
   });
 
@@ -45,6 +49,28 @@ class CircleDetailsState extends Equatable {
       isLoadingCircle || isLoadingPeers || isLoadingSubIndustries || isLoadingEvents;
 
   bool get hasMorePeers => peersCurrentPage < peersLastPage;
+
+  List<PeerModel> get filteredCirclePeers {
+    var list = circlePeers;
+    if (selectedPeerStatusFilter != 'All') {
+      list = list.where((p) {
+        final s = p.status.toLowerCase();
+        final target = selectedPeerStatusFilter.toLowerCase();
+        return s.contains(target);
+      }).toList();
+    }
+    if (peerSearchQuery.trim().isNotEmpty) {
+      final q = peerSearchQuery.trim().toLowerCase();
+      list = list.where((p) {
+        return p.name.toLowerCase().contains(q) ||
+            p.company.toLowerCase().contains(q) ||
+            (p.designation?.toLowerCase().contains(q) ?? false) ||
+            p.location.toLowerCase().contains(q) ||
+            (p.level4Category?.toLowerCase().contains(q) ?? false);
+      }).toList();
+    }
+    return list;
+  }
 
   CircleDetailsState copyWith({
     CircleTeamModel? circle,
@@ -62,6 +88,8 @@ class CircleDetailsState extends Equatable {
     List<CircleEventModel>? allEvents,
     List<CircleEventModel>? filteredEvents,
     String? selectedEventFilter,
+    String? peerSearchQuery,
+    String? selectedPeerStatusFilter,
     String? errorMessage,
   }) {
     return CircleDetailsState(
@@ -80,6 +108,8 @@ class CircleDetailsState extends Equatable {
       allEvents: allEvents ?? this.allEvents,
       filteredEvents: filteredEvents ?? this.filteredEvents,
       selectedEventFilter: selectedEventFilter ?? this.selectedEventFilter,
+      peerSearchQuery: peerSearchQuery ?? this.peerSearchQuery,
+      selectedPeerStatusFilter: selectedPeerStatusFilter ?? this.selectedPeerStatusFilter,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -101,6 +131,8 @@ class CircleDetailsState extends Equatable {
         allEvents,
         filteredEvents,
         selectedEventFilter,
+        peerSearchQuery,
+        selectedPeerStatusFilter,
         errorMessage,
       ];
 }

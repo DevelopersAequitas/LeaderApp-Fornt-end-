@@ -2,6 +2,7 @@ import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
 import '../../../features/member_activities/model/member_activity_model.dart';
+import '../../../features/peer_profile/model/peer_event_models.dart';
 import '../../../features/peer_profile/model/peer_profile_model.dart';
 import '../../../features/peers/model/celebration_model.dart';
 import '../../../features/peers/model/peer_model.dart';
@@ -16,25 +17,25 @@ class CelebrationsResponse {
   });
 
   factory CelebrationsResponse.fromJson(Map<dynamic, dynamic> json) {
-    final bdays = <CelebrationModel>[];
+    final birthdaysList = <CelebrationModel>[];
     if (json['birthdays'] is List) {
       for (final item in json['birthdays']) {
         if (item is Map) {
-          bdays.add(CelebrationModel.fromJson(item, 'birthday'));
+          birthdaysList.add(CelebrationModel.fromJson(item, 'birthday'));
         }
       }
     }
 
-    final annivs = <CelebrationModel>[];
+    final anniversariesList = <CelebrationModel>[];
     if (json['anniversaries'] is List) {
       for (final item in json['anniversaries']) {
         if (item is Map) {
-          annivs.add(CelebrationModel.fromJson(item, 'anniversary'));
+          anniversariesList.add(CelebrationModel.fromJson(item, 'anniversary'));
         }
       }
     }
 
-    return CelebrationsResponse(birthdays: bdays, anniversaries: annivs);
+    return CelebrationsResponse(birthdays: birthdaysList, anniversaries: anniversariesList);
   }
 }
 
@@ -92,7 +93,7 @@ class PeersRemoteDataSource {
 
   /// Fetches peers introduced by a specific member.
   Future<ApiResponse<List<PeerModel>>> getIntroducedPeers(String memberId) async {
-    final endpoint = ApiEndpoints.memberSpecificActivity(memberId.trim(), 'introduced-peers');
+    final endpoint = ApiEndpoints.memberSpecificActivity(memberId.trim(),'introduced-peers');
     return _apiClient.get<List<PeerModel>>(
       endpoint,
       fromJsonT: (json) {
@@ -144,7 +145,7 @@ class PeersRemoteDataSource {
     );
   }
 
-  /// Fetches full peer profile details model including metrics, milestones, bio, contact and meetings.
+  /// Fetches full peer profile details model including metrics, milestones, bio, contact, meetings, and subscriptions.
   Future<ApiResponse<PeerProfileDetailModel>> getPeerProfileDetail(String id) async {
     if (!_isValidId(id)) {
       return const ApiResponse<PeerProfileDetailModel>(
@@ -152,8 +153,26 @@ class PeersRemoteDataSource {
         message: 'Invalid peer identifier',
       );
     }
+    final cleanId = id.trim();
+    // 1. Primary: GET /leader/members/{id} (includes subscriptions, metrics, activities, testimonials)
+    final memberRes = await _apiClient.get<PeerProfileDetailModel>(
+      ApiEndpoints.memberProfile(cleanId),
+      fromJsonT: (json) {
+        if (json is Map<String, dynamic>) {
+          return PeerProfileDetailModel.fromJson(json);
+        } else if (json is Map) {
+          return PeerProfileDetailModel.fromJson(Map<String, dynamic>.from(json));
+        }
+        return const PeerProfileDetailModel();
+      },
+    );
+    if (memberRes.success && memberRes.data != null) {
+      return memberRes;
+    }
+
+    // 2. Fallback: GET /peers/{id}
     return _apiClient.get<PeerProfileDetailModel>(
-      ApiEndpoints.peerDetails(id.trim()),
+      ApiEndpoints.peerDetails(cleanId),
       fromJsonT: (json) {
         if (json is Map<String, dynamic>) {
           return PeerProfileDetailModel.fromJson(json);
@@ -515,6 +534,116 @@ class PeersRemoteDataSource {
           return json.map((item) => PeerTestimonialModel.fromJson(item as Map<String, dynamic>)).toList();
         }
         return <PeerTestimonialModel>[];
+      },
+    );
+  }
+
+  /// 6.1 Member 360° — Events List API (GET /api/v1/leader/members/{member_id}/events)
+  Future<ApiResponse<List<MemberEventItemModel>>> getMemberEvents(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? search,
+    String? status,
+    String? eventType,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      if (search != null && search.isNotEmpty) 'search': search,
+      if (status != null && status.isNotEmpty) 'status': status,
+      if (eventType != null && eventType.isNotEmpty) 'event_type': eventType,
+      if (fromDate != null && fromDate.isNotEmpty) 'from_date': fromDate,
+      if (toDate != null && toDate.isNotEmpty) 'to_date': toDate,
+    };
+
+    return _apiClient.get<List<MemberEventItemModel>>(
+      ApiEndpoints.memberEvents(memberId),
+      queryParameters: params,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json
+              .map((item) => MemberEventItemModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else if (json is Map && json['data'] is List) {
+          return (json['data'] as List)
+              .map((item) => MemberEventItemModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        return <MemberEventItemModel>[];
+      },
+    );
+  }
+
+  /// 6.2 Member 360° — Event Registrations & Passes API (GET /api/v1/leader/members/{member_id}/event-registrations)
+  Future<ApiResponse<List<MemberEventRegistrationModel>>> getMemberEventRegistrations(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? status,
+    String? eventType,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      if (status != null && status.isNotEmpty) 'status': status,
+      if (eventType != null && eventType.isNotEmpty) 'event_type': eventType,
+      if (fromDate != null && fromDate.isNotEmpty) 'from_date': fromDate,
+      if (toDate != null && toDate.isNotEmpty) 'to_date': toDate,
+    };
+
+    return _apiClient.get<List<MemberEventRegistrationModel>>(
+      ApiEndpoints.memberEventRegistrations(memberId),
+      queryParameters: params,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json
+              .map((item) => MemberEventRegistrationModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else if (json is Map && json['data'] is List) {
+          return (json['data'] as List)
+              .map((item) => MemberEventRegistrationModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        return <MemberEventRegistrationModel>[];
+      },
+    );
+  }
+
+  /// 6.3 Member 360° — Event & Meeting Attendance API (GET /api/v1/leader/members/{member_id}/attendance)
+  Future<ApiResponse<List<MemberAttendanceRecordModel>>> getMemberAttendance(
+    String memberId, {
+    int page = 1,
+    int perPage = 20,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+      'limit': perPage.toString(),
+      if (fromDate != null && fromDate.isNotEmpty) 'from_date': fromDate,
+      if (toDate != null && toDate.isNotEmpty) 'to_date': toDate,
+    };
+
+    return _apiClient.get<List<MemberAttendanceRecordModel>>(
+      ApiEndpoints.memberAttendance(memberId),
+      queryParameters: params,
+      fromJsonT: (json) {
+        if (json is List) {
+          return json
+              .map((item) => MemberAttendanceRecordModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else if (json is Map && json['data'] is List) {
+          return (json['data'] as List)
+              .map((item) => MemberAttendanceRecordModel.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        return <MemberAttendanceRecordModel>[];
       },
     );
   }

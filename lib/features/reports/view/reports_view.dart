@@ -1,12 +1,7 @@
 // ==============================================================================
 // File: lib/features/reports/view/reports_view.dart
 // Description: Leadership Reports Submission, History & Analytics Export Center
-// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
-// Features:
-//   - Segmented sub-tab switcher between Report Submission and Submitted History
-//   - Structured report submission forms with recipient hierarchy previews
-//   - Real-time submission state feedback driven by `ReportsBloc`
-//   - Export section for Super Admins and Country Directors
+// Framework: Flutter | Architecture: MVP View Layer (BLoC + State Management)
 // ==============================================================================
 
 import 'package:flutter/material.dart';
@@ -24,7 +19,6 @@ import 'widgets/reports_export_section.dart';
 import 'widgets/reports_tab_selector.dart';
 
 /// The View component of the Reports tab feature.
-/// 100% Pure StatelessWidget powered by BLoC state machine.
 class ReportsView extends StatelessWidget {
   final String? selectedCircle;
 
@@ -41,11 +35,65 @@ class ReportsView extends StatelessWidget {
   }
 }
 
-class _ReportsContent extends StatelessWidget {
+class _ReportsContent extends StatefulWidget {
   final String? selectedCircle;
-  final TextEditingController _contentController = TextEditingController();
 
-  _ReportsContent({this.selectedCircle});
+  const _ReportsContent({this.selectedCircle});
+
+  @override
+  State<_ReportsContent> createState() => _ReportsContentState();
+}
+
+class _ReportsContentState extends State<_ReportsContent> {
+  late final TextEditingController _periodController;
+  late final TextEditingController _attendanceController;
+  late final TextEditingController _dealsClosedController;
+  late final TextEditingController _totalRevenueController;
+  late final TextEditingController _contentController;
+  late final TextEditingController _highlightsController;
+  late final TextEditingController _challengesController;
+  late final TextEditingController _actionItemsController;
+
+  @override
+  void initState() {
+    super.initState();
+    _periodController = TextEditingController();
+    _attendanceController = TextEditingController(text: '95.0');
+    _dealsClosedController = TextEditingController();
+    _totalRevenueController = TextEditingController();
+    _contentController = TextEditingController();
+    _highlightsController = TextEditingController();
+    _challengesController = TextEditingController();
+    _actionItemsController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _periodController.dispose();
+    _attendanceController.dispose();
+    _dealsClosedController.dispose();
+    _totalRevenueController.dispose();
+    _contentController.dispose();
+    _highlightsController.dispose();
+    _challengesController.dispose();
+    _actionItemsController.dispose();
+    super.dispose();
+  }
+
+  void _syncControllersWithState(ReportsState state) {
+    if (_periodController.text.isEmpty && state.period.isNotEmpty) {
+      _periodController.text = state.period;
+    }
+  }
+
+  void _clearFormControllers() {
+    _contentController.clear();
+    _highlightsController.clear();
+    _challengesController.clear();
+    _actionItemsController.clear();
+    _dealsClosedController.clear();
+    _totalRevenueController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +104,7 @@ class _ReportsContent extends StatelessWidget {
 
     return BlocListener<ReportsBloc, ReportsState>(
       listenWhen: (prev, curr) =>
-          (prev.errorMessage != curr.errorMessage &&
-              curr.errorMessage.isNotEmpty) ||
+          (prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty) ||
           (prev.isSuccess != curr.isSuccess && curr.isSuccess),
       listener: (context, state) {
         if (state.errorMessage.isNotEmpty) {
@@ -69,23 +116,29 @@ class _ReportsContent extends StatelessWidget {
           );
         } else if (state.isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Report submitted successfully!'),
+            SnackBar(
+              content: Text(
+                state.successMessage.isNotEmpty
+                    ? state.successMessage
+                    : 'Report submitted successfully and routed to higher leadership.',
+              ),
               backgroundColor: AppColors.success,
             ),
           );
-          _contentController.clear();
+          _clearFormControllers();
         }
       },
       child: BlocBuilder<ReportsBloc, ReportsState>(
         builder: (context, state) {
-          if (state.isLoading && state.submittedReports.isEmpty) {
+          _syncControllersWithState(state);
+
+          if (state.isLoading && state.submittedReports.isEmpty && state.attendanceTrend.isEmpty) {
             return const CenteredLoadingIndicator(height: 300);
           }
 
           return RefreshIndicator(
             onRefresh: () async {
-              bloc.add(LoadReports(selectedCircle: selectedCircle));
+              bloc.add(LoadReports(selectedCircle: widget.selectedCircle));
             },
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: 32),
@@ -96,38 +149,58 @@ class _ReportsContent extends StatelessWidget {
                   ReportsTabSelector(
                     activeIndex: state.activeSubTab,
                     firstTabLabel: 'Submit Report',
-                    secondTabLabel: 'History',
+                    secondTabLabel: 'History & Analytics',
                     secondTabBadge: state.submittedReports.isNotEmpty
                         ? '${state.submittedReports.length}'
                         : null,
-                    onTabSelected: (idx) =>
-                        bloc.add(ToggleReportSubTab(idx)),
+                    onTabSelected: (idx) => bloc.add(ToggleReportSubTab(idx)),
                   ),
                   const SizedBox(height: 12),
                   if (state.activeSubTab == 0)
                     ReportSubmitSection(
                       selectedType: state.selectedType,
-                      onTypeChanged: (type) =>
-                          bloc.add(ChangeReportType(type)),
+                      onTypeChanged: (type) => bloc.add(ChangeReportType(type)),
                       circleName: state.circleName,
                       availableCircles: state.availableCircles,
                       onCircleChanged: (circle) =>
                           bloc.add(ChangeSelectedCircle(circle)),
+                      periodController: _periodController,
+                      attendanceController: _attendanceController,
+                      dealsClosedController: _dealsClosedController,
+                      totalRevenueController: _totalRevenueController,
                       contentController: _contentController,
+                      highlightsController: _highlightsController,
+                      challengesController: _challengesController,
+                      actionItemsController: _actionItemsController,
                       isSubmitting: state.isSubmitting,
                       onSubmit: () {
-                        bloc.add(
-                          ReportContentChanged(_contentController.text),
-                        );
+                        final attVal = double.tryParse(_attendanceController.text.trim()) ?? 95.0;
+                        bloc.add(ReportPeriodChanged(_periodController.text.trim()));
+                        bloc.add(ReportAttendanceChanged(attVal));
+                        bloc.add(ReportDealsValueChanged(_dealsClosedController.text.trim()));
+                        bloc.add(ReportRevenueChanged(_totalRevenueController.text.trim()));
+                        bloc.add(ReportContentChanged(_contentController.text.trim()));
+                        bloc.add(ReportHighlightsChanged(_highlightsController.text.trim()));
+                        bloc.add(ReportChallengesChanged(_challengesController.text.trim()));
+                        bloc.add(ReportActionItemsChanged(_actionItemsController.text.trim()));
                         bloc.add(const SubmitReportForm());
                       },
                     )
                   else ...[
-                    ReportHistorySection(reports: state.submittedReports),
+                    ReportHistorySection(
+                      reports: state.submittedReports,
+                      attendanceTrend: state.attendanceTrend,
+                      filterType: state.filterType,
+                      filterStatus: state.filterStatus,
+                      onFilterTypeChanged: (type) =>
+                          bloc.add(FilterReportsByType(type)),
+                      onFilterStatusChanged: (status) =>
+                          bloc.add(FilterReportsByStatus(status)),
+                    ),
                     if (canExport) ...[
                       const SizedBox(height: 16),
                       ReportsExportSection(
-                        selectedCircle: selectedCircle,
+                        selectedCircle: widget.selectedCircle,
                         attendanceTrend: state.attendanceTrend,
                       ),
                     ],
