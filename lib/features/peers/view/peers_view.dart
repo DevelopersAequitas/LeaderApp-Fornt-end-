@@ -82,10 +82,22 @@ class _PeersContentState extends State<_PeersContent> {
   ) {
     final celebrations = [...birthdays, ...anniversaries];
     if (celebrations.isEmpty) {
-      return const PeersEmptyState(
-        icon: Icons.cake_outlined,
-        title: 'No upcoming celebrations',
-        message: 'Birthdays and work anniversaries will appear here.',
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: const Center(
+                child: PeersEmptyState(
+                  icon: Icons.cake_outlined,
+                  title: 'No upcoming celebrations',
+                  message: 'Birthdays and work anniversaries will appear here.',
+                ),
+              ),
+            ),
+          );
+        },
       );
     }
     return ListView.builder(
@@ -119,10 +131,22 @@ class _PeersContentState extends State<_PeersContent> {
     VoidCallback onLoadMore,
   ) {
     if (peers.isEmpty) {
-      return const PeersEmptyState(
-        icon: Icons.people_outline,
-        title: 'No peers found',
-        message: 'Try changing your search query or filters.',
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: const Center(
+                child: PeersEmptyState(
+                  icon: Icons.people_outline,
+                  title: 'No peers found',
+                  message: 'Try changing your search query or filters.',
+                ),
+              ),
+            ),
+          );
+        },
       );
     }
     return ListView.builder(

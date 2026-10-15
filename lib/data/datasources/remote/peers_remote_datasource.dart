@@ -61,7 +61,9 @@ class PeersRemoteDataSource {
     final params = <String, String>{};
     if (_isValidId(circleId)) params['circle_id'] = circleId!.trim();
     if (status != null && status != 'All') params['status'] = status;
-    if (search != null && search.isNotEmpty) params['search'] = search;
+    if (search != null && search.trim().isNotEmpty) {
+      params['search'] = search.trim().toLowerCase();
+    }
     if (page != null) params['page'] = page.toString();
     if (perPage != null) params['per_page'] = perPage.toString();
 

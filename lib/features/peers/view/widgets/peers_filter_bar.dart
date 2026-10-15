@@ -48,6 +48,8 @@ class PeersFilterBar extends StatelessWidget {
                   child: TextField(
                     controller: searchController,
                     onChanged: onSearchChanged,
+                    onSubmitted: onSearchChanged,
+                    textInputAction: TextInputAction.search,
                     style: const TextStyle(fontSize: 13, color: AppColors.text),
                     decoration: const InputDecoration(
                       hintText: 'Search by name, company, circle...',

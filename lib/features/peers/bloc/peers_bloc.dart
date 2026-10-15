@@ -45,11 +45,12 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
       }
     }
 
+    final cleanQuery = state.searchQuery.toLowerCase().trim();
     try {
       final peersResponse = await _peersRepository.getPeers(
         circleId: activeCircle,
         status: state.selectedStatus,
-        search: state.searchQuery,
+        search: cleanQuery.isNotEmpty ? cleanQuery : null,
         page: 1,
         perPage: 20,
       );
@@ -61,7 +62,7 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
       final allPeers = peersResponse.data ?? const [];
       final filtered = _filterAndSort(
         allPeers,
-        state.searchQuery,
+        cleanQuery,
         state.selectedStatus,
         state.selectedSort,
       );
@@ -94,12 +95,13 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     if (state.isLoadingMore || !state.hasMore) return;
 
     emit(state.copyWith(isLoadingMore: true));
+    final cleanQuery = state.searchQuery.toLowerCase().trim();
     try {
       final nextPage = state.currentPage + 1;
       final peersResponse = await _peersRepository.getPeers(
         circleId: state.selectedCircle,
         status: state.selectedStatus,
-        search: state.searchQuery,
+        search: cleanQuery.isNotEmpty ? cleanQuery : null,
         page: nextPage,
         perPage: 20,
       );
@@ -113,7 +115,7 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
 
       final filtered = _filterAndSort(
         combined,
-        state.searchQuery,
+        cleanQuery,
         state.selectedStatus,
         state.selectedSort,
       );
@@ -138,43 +140,64 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     SearchQueryChanged event,
     Emitter<PeersState> emit,
   ) async {
-    // 1. Immediately filter in-memory list for instant responsiveness
+    final cleanQuery = event.query.toLowerCase().trim();
+
+    // 1. Immediately filter in-memory list for instant responsiveness in lowercase
     final localFiltered = _filterAndSort(
       state.allPeers,
-      event.query,
+      cleanQuery,
       state.selectedStatus,
       state.selectedSort,
     );
     emit(state.copyWith(searchQuery: event.query, filteredPeers: localFiltered));
+
+    if (cleanQuery.isEmpty) {
+      return;
+    }
 
     // 2. Query backend to search across the entire peer directory on all pages
     try {
       final peersResponse = await _peersRepository.getPeers(
         circleId: state.selectedCircle,
         status: state.selectedStatus,
-        search: event.query,
+        search: cleanQuery,
         page: 1,
         perPage: 20,
       );
 
-      final peers = peersResponse.data ?? const [];
-      final filtered = _filterAndSort(
-        peers,
-        event.query,
-        state.selectedStatus,
-        state.selectedSort,
-      );
-      final meta = peersResponse.meta;
+      // Discard response if user continued typing another query
+      if (state.searchQuery.toLowerCase().trim() != cleanQuery) {
+        return;
+      }
 
-      emit(
-        state.copyWith(
-          allPeers: peers,
-          filteredPeers: filtered,
-          currentPage: meta?.currentPage ?? 1,
-          lastPage: meta?.lastPage ?? 1,
-          totalPeersCount: meta?.total ?? peers.length,
-        ),
-      );
+      if (peersResponse.success &&
+          peersResponse.data != null &&
+          peersResponse.data!.isNotEmpty) {
+        final serverPeers = peersResponse.data!;
+        final existingIds = state.allPeers.map((p) => p.id).toSet();
+        final combined = [
+          ...state.allPeers,
+          ...serverPeers.where((p) => !existingIds.contains(p.id)),
+        ];
+
+        final filtered = _filterAndSort(
+          combined,
+          cleanQuery,
+          state.selectedStatus,
+          state.selectedSort,
+        );
+        final meta = peersResponse.meta;
+
+        emit(
+          state.copyWith(
+            allPeers: combined,
+            filteredPeers: filtered,
+            currentPage: meta?.currentPage ?? 1,
+            lastPage: meta?.lastPage ?? 1,
+            totalPeersCount: meta?.total ?? combined.length,
+          ),
+        );
+      }
     } catch (_) {}
   }
 
@@ -182,9 +205,10 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     StatusFilterChanged event,
     Emitter<PeersState> emit,
   ) async {
+    final cleanQuery = state.searchQuery.toLowerCase().trim();
     final localFiltered = _filterAndSort(
       state.allPeers,
-      state.searchQuery,
+      cleanQuery,
       event.status,
       state.selectedSort,
     );
@@ -194,36 +218,46 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
       final peersResponse = await _peersRepository.getPeers(
         circleId: state.selectedCircle,
         status: event.status,
-        search: state.searchQuery,
+        search: cleanQuery.isNotEmpty ? cleanQuery : null,
         page: 1,
         perPage: 20,
       );
 
-      final peers = peersResponse.data ?? const [];
-      final filtered = _filterAndSort(
-        peers,
-        state.searchQuery,
-        event.status,
-        state.selectedSort,
-      );
-      final meta = peersResponse.meta;
+      if (peersResponse.success &&
+          peersResponse.data != null &&
+          peersResponse.data!.isNotEmpty) {
+        final peers = peersResponse.data!;
+        final existingIds = state.allPeers.map((p) => p.id).toSet();
+        final combined = [
+          ...state.allPeers,
+          ...peers.where((p) => !existingIds.contains(p.id)),
+        ];
+        final filtered = _filterAndSort(
+          combined,
+          cleanQuery,
+          event.status,
+          state.selectedSort,
+        );
+        final meta = peersResponse.meta;
 
-      emit(
-        state.copyWith(
-          allPeers: peers,
-          filteredPeers: filtered,
-          currentPage: meta?.currentPage ?? 1,
-          lastPage: meta?.lastPage ?? 1,
-          totalPeersCount: meta?.total ?? peers.length,
-        ),
-      );
+        emit(
+          state.copyWith(
+            allPeers: combined,
+            filteredPeers: filtered,
+            currentPage: meta?.currentPage ?? 1,
+            lastPage: meta?.lastPage ?? 1,
+            totalPeersCount: meta?.total ?? combined.length,
+          ),
+        );
+      }
     } catch (_) {}
   }
 
   void _onMetricSortChanged(MetricSortChanged event, Emitter<PeersState> emit) {
+    final cleanQuery = state.searchQuery.toLowerCase().trim();
     final filtered = _filterAndSort(
       state.allPeers,
-      state.searchQuery,
+      cleanQuery,
       state.selectedStatus,
       event.metric,
     );
@@ -274,22 +308,56 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     String sort,
   ) {
     var result = list;
-    if (query.trim().isNotEmpty) {
-      final cleanQuery = query.toLowerCase().trim();
-      result = result
-          .where(
-            (p) =>
-                p.name.toLowerCase().contains(cleanQuery) ||
-                p.company.toLowerCase().contains(cleanQuery) ||
-                p.circle.toLowerCase().contains(cleanQuery) ||
-                p.tags.toLowerCase().contains(cleanQuery) ||
-                p.location.toLowerCase().contains(cleanQuery) ||
-                (p.level4Category != null &&
-                    p.level4Category!.toLowerCase().contains(cleanQuery)) ||
-                (p.industry != null &&
-                    p.industry!.toLowerCase().contains(cleanQuery)),
-          )
+    final cleanQuery = query.toLowerCase().trim();
+    if (cleanQuery.isNotEmpty) {
+      final queryWords = cleanQuery
+          .split(RegExp(r'\s+'))
+          .where((w) => w.isNotEmpty)
           .toList();
+
+      result = result.where((p) {
+        final nameLower = p.name.toLowerCase();
+        final companyLower = p.company.toLowerCase();
+        final circleLower = p.circle.toLowerCase();
+        final tagsLower = p.tags.toLowerCase();
+        final locationLower = p.location.toLowerCase();
+        final industryLower = (p.industry ?? '').toLowerCase();
+        final catLower = (p.level4Category ?? '').toLowerCase();
+        final desigLower = (p.designation ?? '').toLowerCase();
+        final emailLower = (p.email ?? '').toLowerCase();
+        final phoneLower = (p.phone ?? '').toLowerCase();
+        final regTypeLower = p.registrationType.toLowerCase();
+        final statusLower = p.status.toLowerCase();
+        final initialsLower = p.initials.toLowerCase();
+
+        // 1. Direct match on full lowercase query across any individual field
+        if (nameLower.contains(cleanQuery) ||
+            companyLower.contains(cleanQuery) ||
+            circleLower.contains(cleanQuery) ||
+            tagsLower.contains(cleanQuery) ||
+            locationLower.contains(cleanQuery) ||
+            industryLower.contains(cleanQuery) ||
+            catLower.contains(cleanQuery) ||
+            desigLower.contains(cleanQuery) ||
+            emailLower.contains(cleanQuery) ||
+            phoneLower.contains(cleanQuery) ||
+            regTypeLower.contains(cleanQuery) ||
+            statusLower.contains(cleanQuery) ||
+            initialsLower.contains(cleanQuery)) {
+          return true;
+        }
+
+        // 2. Multi-word match: every word in cleanQuery must appear in the combined searchable metadata
+        if (queryWords.length > 1) {
+          final combined =
+              '$nameLower $companyLower $circleLower $tagsLower $locationLower $industryLower $catLower $desigLower $emailLower $phoneLower $regTypeLower $statusLower $initialsLower';
+          if (queryWords.every((word) => combined.contains(word))) {
+            return true;
+          }
+        }
+
+        return false;
+      }).toList();
     }
 
     if (status != 'All') {
