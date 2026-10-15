@@ -76,7 +76,7 @@ class PeersRemoteDataSource {
       },
     );
   }
-
+ 
   /// Fetches single peer profile details.
   Future<ApiResponse<PeerModel>> getPeerDetails(String id) async {
     if (!_isValidId(id)) {

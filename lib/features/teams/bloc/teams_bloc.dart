@@ -144,19 +144,59 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
 
     if (query.trim().isNotEmpty) {
       final cleanQuery = query.toLowerCase().trim();
-      result = result
-          .where(
-            (c) =>
-                c.name.toLowerCase().contains(cleanQuery) ||
-                c.category.toLowerCase().contains(cleanQuery) ||
-                c.location.toLowerCase().contains(cleanQuery) ||
-                c.founderName.toLowerCase().contains(cleanQuery),
-          )
+      final queryWords = cleanQuery
+          .split(RegExp(r'\s+'))
+          .where((w) => w.isNotEmpty)
           .toList();
+
+      result = result.where((c) {
+        final nameLower = c.name.toLowerCase();
+        final catLower = c.category.toLowerCase();
+        final locLower = c.location.toLowerCase();
+        final founderLower = c.founderName.toLowerCase();
+        final chairLower = c.chairName.toLowerCase();
+        final directorLower = c.directorName.toLowerCase();
+        final tagsLower = c.tags.map((t) => t.toLowerCase()).join(' ');
+        final leadersLower = [
+          ...c.chairs.map((ch) => ch.name.toLowerCase()),
+          ...c.founders.map((f) => f.name.toLowerCase()),
+          ...c.directors.map((d) => d.name.toLowerCase()),
+        ].join(' ');
+
+        // Compute acronym/initials (e.g. "ad" for Ahmedabad District, "ae" for Ahmedabad Events)
+        final initials = c.name
+            .split(RegExp(r'\s+'))
+            .where((w) => w.isNotEmpty)
+            .map((w) => w[0].toLowerCase())
+            .join();
+
+        // 1. Direct match on full lowercase query across all metadata and initials
+        if (nameLower.contains(cleanQuery) ||
+            catLower.contains(cleanQuery) ||
+            locLower.contains(cleanQuery) ||
+            founderLower.contains(cleanQuery) ||
+            chairLower.contains(cleanQuery) ||
+            directorLower.contains(cleanQuery) ||
+            tagsLower.contains(cleanQuery) ||
+            leadersLower.contains(cleanQuery) ||
+            initials.contains(cleanQuery)) {
+          return true;
+        }
+
+        // 2. Multi-word match: each word must match somewhere in the circle metadata
+        if (queryWords.length > 1) {
+          final searchable = '$nameLower $catLower $locLower $founderLower $chairLower $directorLower $tagsLower $leadersLower';
+          return queryWords.every((w) => searchable.contains(w));
+        }
+
+        return false;
+      }).toList();
     }
 
     if (status != 'All') {
-      result = result.where((c) => c.status.toLowerCase() == status.toLowerCase()).toList();
+      result = result
+          .where((c) => c.status.toLowerCase().trim() == status.toLowerCase().trim())
+          .toList();
     }
 
     if (industry != 'All Industries') {

@@ -150,6 +150,7 @@ class CircleTeamModel {
   final List<CircleLeaderModel> directors;
   final String status;
   final String? launchDate;
+  final String? circleImageUrl;
 
   const CircleTeamModel({
     this.id = '',
@@ -168,6 +169,7 @@ class CircleTeamModel {
     this.directors = const [],
     required this.status,
     this.launchDate,
+    this.circleImageUrl,
   });
 
   factory CircleTeamModel.fromJson(Map<String, dynamic> json) {
@@ -245,6 +247,19 @@ class CircleTeamModel {
         : (json['founders_count'] != null ? '${json['founders_count']} Founders' : (json['founder_name'] as String? ?? ''));
     final rawDirector = directorsList.isNotEmpty ? directorsList.map((d) => d.name).join(', ') : (json['director_name'] as String? ?? '');
 
+    // Parse Circle Image
+    final dynamic rawImage = json['circle_image'];
+    String? circleImg;
+    if (rawImage is Map) {
+      circleImg = rawImage['url']?.toString();
+    } else if (rawImage is String && rawImage.trim().isNotEmpty) {
+      circleImg = rawImage.trim();
+    } else {
+      circleImg = json['circle_image_url']?.toString() ??
+          json['cover_image_url']?.toString() ??
+          json['image_url']?.toString();
+    }
+
     return CircleTeamModel(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
@@ -262,6 +277,7 @@ class CircleTeamModel {
       directors: directorsList,
       status: json['status'] as String? ?? 'Active',
       launchDate: json['launch_date'] as String?,
+      circleImageUrl: circleImg,
     );
   }
 
@@ -282,5 +298,7 @@ class CircleTeamModel {
         'directors': directors.map((d) => d.toJson()).toList(),
         'status': status,
         'launch_date': launchDate,
+        'circle_image': circleImageUrl != null ? {'url': circleImageUrl} : null,
+        'circle_image_url': circleImageUrl,
       };
 }

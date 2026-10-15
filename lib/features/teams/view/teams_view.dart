@@ -40,11 +40,29 @@ class TeamsView extends StatelessWidget {
   }
 }
 
-class _TeamsContent extends StatelessWidget {
+class _TeamsContent extends StatefulWidget {
   final String? selectedCircle;
-  final TextEditingController _searchController = TextEditingController();
 
-  _TeamsContent({this.selectedCircle});
+  const _TeamsContent({this.selectedCircle});
+
+  @override
+  State<_TeamsContent> createState() => _TeamsContentState();
+}
+
+class _TeamsContentState extends State<_TeamsContent> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   String _getSectionTitle(String selectedIndustry) {
     if (selectedIndustry == 'All Industries' || selectedIndustry.isEmpty) {
@@ -84,7 +102,7 @@ class _TeamsContent extends StatelessWidget {
 
           return RefreshIndicator(
             onRefresh: () async {
-              bloc.add(LoadTeamsData(selectedCircle: selectedCircle));
+              bloc.add(LoadTeamsData(selectedCircle: widget.selectedCircle));
             },
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: 24),

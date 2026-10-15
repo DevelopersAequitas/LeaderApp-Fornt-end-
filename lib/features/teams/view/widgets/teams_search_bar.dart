@@ -39,6 +39,8 @@ class TeamsSearchBar extends StatelessWidget {
               child: TextField(
                 controller: controller,
                 onChanged: onChanged,
+                textCapitalization: TextCapitalization.none,
+                textInputAction: TextInputAction.search,
                 style: const TextStyle(fontSize: 13, color: AppColors.text),
                 decoration: const InputDecoration(
                   hintText: 'Search circles by name, founder, city...',

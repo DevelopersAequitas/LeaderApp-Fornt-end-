@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/widgets.dart';
 import '../../model/teams_model.dart';
 
 /// Renders a LinkedIn-style executive circle card featuring a top half-cover banner,
@@ -47,79 +46,12 @@ class TeamsCircleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // LinkedIn-Style Top Half Cover Image Banner & Overlapping Avatar
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Top Cover Banner
-                Container(
-                  height: 110,
-                  decoration: const BoxDecoration(
-                    gradient: AppColors.brandGradient,
-                  ),
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _CoverPatternPainter(),
-                        ),
-                      ),
-                      // Status Pill Top-Right
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusBgColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            circle.status,
-                            style: TextStyle(
-                              color: statusTextColor,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Overlapping Circle Avatar
-                Positioned(
-                  top: 82,
-                  left: 16,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: InitialsAvatar(
-                      name: circle.name.toUpperCase(),
-                      imageUrl: circle.chairs.isNotEmpty ? circle.chairs.first.avatarUrl : null,
-                      radius: 28,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32), // Space for overlapping avatar
+            // Top Cover Image Banner with Status Pill (No overlapping avatar)
+            _buildCoverBanner(statusBgColor, statusTextColor),
+
             // Card Content Body
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -128,12 +60,12 @@ class TeamsCircleCard extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.text,
                       fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     '${circle.category}$metaLocation',
                     style: TextStyle(
@@ -179,6 +111,95 @@ class TeamsCircleCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCoverBanner(Color statusBgColor, Color statusTextColor) {
+    final hasImage = circle.circleImageUrl != null && circle.circleImageUrl!.trim().isNotEmpty;
+
+    return Container(
+      height: 120,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF1F5F9),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (hasImage)
+            Image.network(
+              circle.circleImageUrl!.trim(),
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              errorBuilder: (context, error, stackTrace) => _buildDefaultGradientBanner(),
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return _buildDefaultGradientBanner(isLoading: true);
+              },
+            )
+          else
+            _buildDefaultGradientBanner(),
+
+          // Status Pill Top-Right
+          Positioned(
+            top: 10,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: statusBgColor,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Text(
+                circle.status,
+                style: TextStyle(
+                  color: statusTextColor,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDefaultGradientBanner({bool isLoading = false}) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: AppColors.brandGradient,
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _CoverPatternPainter(),
+            ),
+          ),
+          if (isLoading)
+            const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
