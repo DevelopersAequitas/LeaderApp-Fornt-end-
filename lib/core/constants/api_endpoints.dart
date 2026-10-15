@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Defines the active server environment for the Leader App.
 enum AppEnvironment {
   dev('Development', 'https://dev.peersunity.com/api/v1'),
@@ -17,9 +15,23 @@ enum AppEnvironment {
 /// Adheres strictly to the Leader App API Specification and New Endpoints release.
 abstract class ApiEndpoints {
   /// Active Environment.
-  /// Uses Development in debug mode and Production in release mode.
-  static AppEnvironment activeEnvironment =
-      kDebugMode ? AppEnvironment.dev : AppEnvironment.prod;
+  /// Defaults to Development (dev.peersunity.com) so generated release APKs connect to dev peers.
+  /// Can be overridden at build-time using `--dart-define=ENV=prod` or runtime via [setEnvironment].
+  static AppEnvironment activeEnvironment = () {
+    const env = String.fromEnvironment('ENV', defaultValue: 'dev');
+    switch (env.toLowerCase()) {
+      case 'prod':
+      case 'production':
+        return AppEnvironment.prod;
+      case 'staging':
+        return AppEnvironment.staging;
+      case 'local':
+        return AppEnvironment.local;
+      case 'dev':
+      default:
+        return AppEnvironment.dev;
+    }
+  }();
 
   /// Gets the current Base URL.
   static String get baseUrl => activeEnvironment.baseUrl;
