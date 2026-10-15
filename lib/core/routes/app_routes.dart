@@ -29,6 +29,8 @@ import '../../features/role_management/view/role_management_view.dart';
 import '../../features/circulars/view/circulars_view.dart';
 import '../../features/maintenance/view/maintenance_view.dart';
 import '../../features/peers/view/peers_view.dart';
+import '../../features/reports/model/report_model.dart';
+import '../../features/reports/view/report_details_view.dart';
 
 /// Centralized routing configuration for the Leader App.
 abstract class AppRoutes {
@@ -91,6 +93,9 @@ abstract class AppRoutes {
 
   /// Maintenance mode route
   static const String maintenance = '/maintenance';
+
+  /// Report Details screen route
+  static const String reportDetails = '/report-details';
 
   /// Route generator to handle app navigation transitions.
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -316,6 +321,12 @@ abstract class AppRoutes {
             peer: peerModel,
             details: detailModel,
           ),
+          settings: settings,
+        );
+      case reportDetails:
+        final report = settings.arguments as ReportModel;
+        return MaterialPageRoute(
+          builder: (_) => ReportDetailsView(report: report),
           settings: settings,
         );
       default:

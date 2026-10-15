@@ -1,3 +1,5 @@
+import '../../peers/model/peer_model.dart';
+
 /// Model representing coordinates for attendance & performance spline charts.
 class ReportsChartPoint {
   final String month;
@@ -53,13 +55,55 @@ class ReportPeerRosterItem {
   });
 
   factory ReportPeerRosterItem.fromJson(Map<String, dynamic> json) {
+    final peerMap = json['peer'] is Map<String, dynamic>
+        ? json['peer'] as Map<String, dynamic>
+        : (json['peer'] is Map
+            ? Map<String, dynamic>.from(json['peer'] as Map)
+            : (json['user'] is Map<String, dynamic>
+                ? json['user'] as Map<String, dynamic>
+                : (json['user'] is Map
+                    ? Map<String, dynamic>.from(json['user'] as Map)
+                    : (json['member'] is Map<String, dynamic>
+                        ? json['member'] as Map<String, dynamic>
+                        : (json['member'] is Map
+                            ? Map<String, dynamic>.from(json['member'] as Map)
+                            : null)))));
+
+    final rawAvatar = json['profile_image'] as String? ??
+        json['profile_photo_url'] as String? ??
+        json['avatar_url'] as String? ??
+        peerMap?['profile_image'] as String? ??
+        peerMap?['avatar_url'] as String? ??
+        peerMap?['profile_photo_url'] as String? ??
+        json['avatar'] as String? ??
+        peerMap?['avatar'] as String? ??
+        json['profile_picture'] as String? ??
+        json['image_url'] as String? ??
+        json['image'] as String? ??
+        json['photo'] as String? ??
+        json['photo_url'] as String?;
+
     return ReportPeerRosterItem(
-      peerId: json['peer_id']?.toString() ?? json['id']?.toString() ?? '',
-      name: json['name'] as String? ?? json['peer_name'] as String? ?? json['display_name'] as String? ?? '',
-      avatarUrl: json['avatar_url'] as String? ?? json['profile_photo_url'] as String?,
-      company: json['company'] as String? ?? json['company_name'] as String? ?? '',
-      designation: json['designation'] as String? ?? '',
-      status: json['status'] as String? ?? '',
+      peerId: json['peer_id']?.toString() ??
+          json['id']?.toString() ??
+          peerMap?['id']?.toString() ??
+          peerMap?['peer_user_id']?.toString() ??
+          '',
+      name: (json['name'] as String? ??
+              json['peer_name'] as String? ??
+              json['display_name'] as String? ??
+              peerMap?['name'] as String? ??
+              peerMap?['peer_name'] as String? ??
+              '')
+          .trim(),
+      avatarUrl: rawAvatar?.trim(),
+      company: json['company'] as String? ??
+          json['company_name'] as String? ??
+          peerMap?['company'] as String? ??
+          peerMap?['company_name'] as String? ??
+          '',
+      designation: json['designation'] as String? ?? peerMap?['designation'] as String? ?? '',
+      status: json['status']?.toString() ?? peerMap?['status']?.toString() ?? 'Active',
       platformMembershipStart: json['platform_membership_start'] as String? ?? json['app_membership_start'] as String? ?? '',
       platformMembershipEnd: json['platform_membership_end'] as String? ?? json['app_membership_end'] as String? ?? '',
       circleJoiningDate: json['circle_joining_date'] as String? ?? json['joined_date'] as String? ?? '',
@@ -87,6 +131,61 @@ class ReportPeerRosterItem {
         'p2p_count': p2pCount,
         'referrals_count': referralsCount,
       };
+
+  ReportPeerRosterItem copyWith({
+    String? peerId,
+    String? name,
+    String? avatarUrl,
+    String? company,
+    String? designation,
+    String? status,
+    String? platformMembershipStart,
+    String? platformMembershipEnd,
+    String? circleJoiningDate,
+    String? circleRenewalDate,
+    String? attendance,
+    String? dealsClosed,
+    int? p2pCount,
+    int? referralsCount,
+  }) {
+    return ReportPeerRosterItem(
+      peerId: peerId ?? this.peerId,
+      name: name ?? this.name,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      company: company ?? this.company,
+      designation: designation ?? this.designation,
+      status: status ?? this.status,
+      platformMembershipStart: platformMembershipStart ?? this.platformMembershipStart,
+      platformMembershipEnd: platformMembershipEnd ?? this.platformMembershipEnd,
+      circleJoiningDate: circleJoiningDate ?? this.circleJoiningDate,
+      circleRenewalDate: circleRenewalDate ?? this.circleRenewalDate,
+      attendance: attendance ?? this.attendance,
+      dealsClosed: dealsClosed ?? this.dealsClosed,
+      p2pCount: p2pCount ?? this.p2pCount,
+      referralsCount: referralsCount ?? this.referralsCount,
+    );
+  }
+
+  PeerModel toPeerModel([String circleName = '']) {
+    return PeerModel(
+      id: peerId,
+      initials: name.isNotEmpty ? name[0].toUpperCase() : 'P',
+      name: name,
+      avatarUrl: avatarUrl,
+      company: company,
+      circle: circleName,
+      location: '',
+      tags: '',
+      impactCount: 0,
+      dealsFormatted: dealsClosed,
+      coins: 0,
+      attendance: attendance,
+      status: status,
+      designation: designation,
+      p2pMeetings: p2pCount,
+      referralsGiven: referralsCount,
+    );
+  }
 }
 
 /// Model representing a leadership report submission with peer breakdown.

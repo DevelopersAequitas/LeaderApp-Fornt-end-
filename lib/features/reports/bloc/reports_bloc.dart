@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../data/repositories/reports_repository.dart';
 import '../../../data/repositories/teams_repository.dart';
@@ -68,6 +69,9 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
     }
 
+    final isSuperAdmin = SessionManager().currentSession.role == UserRole.superAdmin ||
+        SessionManager().currentSession.customRoleLabel?.toLowerCase().contains('admin') == true;
+
     final activeCircle = event.selectedCircle ?? state.selectedCircle ?? '';
 
     // Retrieve available circles for this user's scope
@@ -93,13 +97,24 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       }
     }
 
-    final resolvedCircleName = state.circleName.isNotEmpty
-        ? state.circleName
-        : (activeCircle.isNotEmpty
-            ? activeCircle
-            : (circlesList.isNotEmpty ? circlesList.first : ''));
+    if (isSuperAdmin && !circlesList.contains('All Circles')) {
+      circlesList.insert(0, 'All Circles');
+    }
 
-    final resolvedCircleId = _resolveCircleId(resolvedCircleName.isNotEmpty ? resolvedCircleName : activeCircle);
+    final String resolvedCircleName;
+    if (isSuperAdmin && (activeCircle.isEmpty || activeCircle == 'All Circles')) {
+      resolvedCircleName = 'All Circles';
+    } else {
+      resolvedCircleName = state.circleName.isNotEmpty
+          ? state.circleName
+          : (activeCircle.isNotEmpty
+              ? activeCircle
+              : (circlesList.isNotEmpty ? circlesList.first : ''));
+    }
+
+    final resolvedCircleId = (resolvedCircleName == 'All Circles' || resolvedCircleName.isEmpty)
+        ? ''
+        : _resolveCircleId(resolvedCircleName.isNotEmpty ? resolvedCircleName : activeCircle);
 
     final currentPeriod = state.period.isNotEmpty ? state.period : _defaultPeriod();
 
@@ -138,6 +153,7 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       emit(
         state.copyWith(
           isLoading: false,
+          activeSubTab: isSuperAdmin ? 1 : state.activeSubTab,
           submittedReports: reportsList,
           attendanceTrend: trendList,
           selectedCircle: activeCircle,
@@ -151,6 +167,7 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       emit(
         state.copyWith(
           isLoading: false,
+          activeSubTab: isSuperAdmin ? 1 : state.activeSubTab,
           errorMessage: e.toString(),
           availableCircles: circlesList,
           circleName: resolvedCircleName,
@@ -216,8 +233,11 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     ChangeSelectedCircle event,
     Emitter<ReportsState> emit,
   ) {
-    final circleId = event.circleId ?? _resolveCircleId(event.circleName);
+    final circleId = event.circleName == 'All Circles'
+        ? ''
+        : (event.circleId ?? _resolveCircleId(event.circleName));
     emit(state.copyWith(circleName: event.circleName, selectedCircleId: circleId));
+    add(LoadReports(selectedCircle: event.circleName));
   }
 
   void _onReportPeriodChanged(ReportPeriodChanged event, Emitter<ReportsState> emit) {
@@ -277,6 +297,17 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     SubmitReportForm event,
     Emitter<ReportsState> emit,
   ) async {
+    final session = SessionManager().currentSession;
+    final isSuperAdmin = session.role == UserRole.superAdmin ||
+        session.customRoleLabel?.toLowerCase().contains('admin') == true;
+
+    if (isSuperAdmin) {
+      emit(state.copyWith(
+        errorMessage: 'Global Admin cannot submit reports. Only circle leadership can submit reports.',
+      ));
+      return;
+    }
+
     if (state.reportContent.trim().isEmpty) {
       emit(state.copyWith(errorMessage: 'Report executive summary cannot be empty.'));
       return;

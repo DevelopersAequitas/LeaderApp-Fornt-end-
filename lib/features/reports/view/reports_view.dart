@@ -1,9 +1,3 @@
-// ==============================================================================
-// File: lib/features/reports/view/reports_view.dart
-// Description: Leadership Reports Submission, History & Analytics Export Center
-// Framework: Flutter | Architecture: MVP View Layer (BLoC + State Management)
-// ==============================================================================
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
@@ -15,10 +9,9 @@ import '../bloc/reports_event.dart';
 import '../bloc/reports_state.dart';
 import 'widgets/report_history_section.dart';
 import 'widgets/report_submit_section.dart';
-import 'widgets/reports_export_section.dart';
 import 'widgets/reports_tab_selector.dart';
 
-/// The View component of the Reports tab feature.
+/// The View component of the Leadership Reports feature.
 class ReportsView extends StatelessWidget {
   final String? selectedCircle;
 
@@ -96,17 +89,26 @@ class _ReportsContentState extends State<_ReportsContent> {
     _totalRevenueController.clear();
   }
 
+  void _handleFormSubmit(ReportsBloc bloc) {
+    final attText = _attendanceController.text.trim();
+    final attVal = attText.isNotEmpty ? double.tryParse(attText) : null;
+    bloc.add(ReportPeriodChanged(_periodController.text.trim()));
+    bloc.add(ReportAttendanceChanged(attVal));
+    bloc.add(ReportDealsValueChanged(_dealsClosedController.text.trim()));
+    bloc.add(ReportRevenueChanged(_totalRevenueController.text.trim()));
+    bloc.add(ReportContentChanged(_contentController.text.trim()));
+    bloc.add(ReportHighlightsChanged(_highlightsController.text.trim()));
+    bloc.add(ReportChallengesChanged(_challengesController.text.trim()));
+    bloc.add(ReportActionItemsChanged(_actionItemsController.text.trim()));
+    bloc.add(const SubmitReportForm());
+  }
+
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<ReportsBloc>();
     final session = SessionManager().currentSession;
-    final permissions = SessionManager().permissions;
-    final canExport = session.role == UserRole.superAdmin ||
-        session.role == UserRole.countryDirector ||
-        permissions.canExportPeerData ||
-        permissions.canExportFinancialData ||
-        permissions.canExportGlobalData ||
-        permissions.canAccessReportsTab;
+    final isGlobalAdmin = session.role == UserRole.superAdmin ||
+        session.customRoleLabel?.toLowerCase().contains('admin') == true;
 
     return BlocListener<ReportsBloc, ReportsState>(
       listenWhen: (prev, curr) =>
@@ -115,10 +117,7 @@ class _ReportsContentState extends State<_ReportsContent> {
       listener: (context, state) {
         if (state.errorMessage.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage),
-              backgroundColor: AppColors.danger,
-            ),
+            SnackBar(content: Text(state.errorMessage), backgroundColor: AppColors.danger),
           );
         } else if (state.isSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -152,24 +151,26 @@ class _ReportsContentState extends State<_ReportsContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ReportsTabSelector(
-                    activeIndex: state.activeSubTab,
-                    firstTabLabel: 'Submit Report',
-                    secondTabLabel: 'History & Analytics',
-                    secondTabBadge: state.submittedReports.isNotEmpty
-                        ? '${state.submittedReports.length}'
-                        : null,
-                    onTabSelected: (idx) => bloc.add(ToggleReportSubTab(idx)),
-                  ),
-                  const SizedBox(height: 12),
-                  if (state.activeSubTab == 0)
+                  // Tab selector only shown for non-global admin roles
+                  if (!isGlobalAdmin) ...[
+                    ReportsTabSelector(
+                      activeIndex: state.activeSubTab,
+                      firstTabLabel: 'Submit Report',
+                      secondTabLabel: 'History & Analytics',
+                      secondTabBadge: state.submittedReports.isNotEmpty
+                          ? '${state.submittedReports.length}'
+                          : null,
+                      onTabSelected: (idx) => bloc.add(ToggleReportSubTab(idx)),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (!isGlobalAdmin && state.activeSubTab == 0)
                     ReportSubmitSection(
                       selectedType: state.selectedType,
                       onTypeChanged: (type) => bloc.add(ChangeReportType(type)),
                       circleName: state.circleName,
                       availableCircles: state.availableCircles,
-                      onCircleChanged: (circle) =>
-                          bloc.add(ChangeSelectedCircle(circle)),
+                      onCircleChanged: (circle) => bloc.add(ChangeSelectedCircle(circle)),
                       periodController: _periodController,
                       attendanceController: _attendanceController,
                       dealsClosedController: _dealsClosedController,
@@ -179,41 +180,20 @@ class _ReportsContentState extends State<_ReportsContent> {
                       challengesController: _challengesController,
                       actionItemsController: _actionItemsController,
                       isSubmitting: state.isSubmitting,
-                      onSubmit: () {
-                        final attText = _attendanceController.text.trim();
-                        final attVal = attText.isNotEmpty ? double.tryParse(attText) : null;
-                        bloc.add(ReportPeriodChanged(_periodController.text.trim()));
-                        bloc.add(ReportAttendanceChanged(attVal));
-                        bloc.add(ReportDealsValueChanged(_dealsClosedController.text.trim()));
-                        bloc.add(ReportRevenueChanged(_totalRevenueController.text.trim()));
-                        bloc.add(ReportContentChanged(_contentController.text.trim()));
-                        bloc.add(ReportHighlightsChanged(_highlightsController.text.trim()));
-                        bloc.add(ReportChallengesChanged(_challengesController.text.trim()));
-                        bloc.add(ReportActionItemsChanged(_actionItemsController.text.trim()));
-                        bloc.add(const SubmitReportForm());
-                      },
+                      onSubmit: () => _handleFormSubmit(bloc),
                     )
-                  else ...[
+                  else
                     ReportHistorySection(
                       reports: state.submittedReports,
                       attendanceTrend: state.attendanceTrend,
                       filterType: state.filterType,
                       filterStatus: state.filterStatus,
-                      onFilterTypeChanged: (type) =>
-                          bloc.add(FilterReportsByType(type)),
-                      onFilterStatusChanged: (status) =>
-                          bloc.add(FilterReportsByStatus(status)),
+                      selectedCircle: state.circleName,
+                      availableCircles: state.availableCircles,
+                      onFilterTypeChanged: (type) => bloc.add(FilterReportsByType(type)),
+                      onFilterStatusChanged: (status) => bloc.add(FilterReportsByStatus(status)),
+                      onCircleChanged: (circle) => bloc.add(ChangeSelectedCircle(circle)),
                     ),
-                    if (canExport) ...[
-                      const SizedBox(height: 16),
-                      ReportsExportSection(
-                        selectedCircle: state.selectedCircleId?.isNotEmpty == true
-                            ? state.selectedCircleId
-                            : (state.circleName.isNotEmpty ? state.circleName : widget.selectedCircle),
-                        submittedReports: state.submittedReports,
-                      ),
-                    ],
-                  ],
                 ],
               ),
             ),

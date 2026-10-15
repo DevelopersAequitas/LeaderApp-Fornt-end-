@@ -132,15 +132,7 @@ class _OtpContentState extends State<_OtpContent> {
                         child: Container(
                           width: double.infinity,
                           decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF0A1828),
-                                AppColors.primary,
-                                Color(0xFF1B3B60),
-                              ],
-                            ),
+                            gradient: AppColors.brandGradient,
                           ),
                           child: SafeArea(
                             bottom: false,

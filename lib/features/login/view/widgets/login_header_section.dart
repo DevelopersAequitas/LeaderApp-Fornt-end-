@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Top Navy Banner Brand Header presenting the official emblem and white "PEERS GLOBAL" typography.
+/// Top Brand Banner Header presenting the official emblem and white "PEERS GLOBAL" typography.
 class LoginHeaderSection extends StatelessWidget {
   const LoginHeaderSection({super.key});
 
@@ -10,19 +10,18 @@ class LoginHeaderSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Emblem Container with Soft Glass/White Finish
         Container(
-          width: 82,
-          height: 82,
+          width: 76,
+          height: 76,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 20,
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 16,
                 spreadRadius: 0,
-                offset: const Offset(0, 8),
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -36,14 +35,13 @@ class LoginHeaderSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        // White Brand Title
         const Text(
           'PEERS GLOBAL',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w500,
             color: Colors.white,
-            letterSpacing: 1.2,
+            letterSpacing: 1.5,
           ),
         ),
       ],
