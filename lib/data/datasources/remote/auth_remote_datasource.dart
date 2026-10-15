@@ -20,11 +20,41 @@ class AuthVerifyResult {
   });
 
   factory AuthVerifyResult.fromJson(Map<String, dynamic> json) {
+    final map = (json['data'] is Map<String, dynamic>)
+        ? json['data'] as Map<String, dynamic>
+        : json;
+
+    final token = (map['access_token'] ??
+            map['auth_token'] ??
+            map['token'] ??
+            json['access_token'] ??
+            json['auth_token'] ??
+            json['token'])
+        ?.toString() ??
+        '';
+
+    final refreshToken =
+        (map['refresh_token'] ?? json['refresh_token'])?.toString();
+
+    final userMap = (map['user'] is Map<String, dynamic>)
+        ? map['user'] as Map<String, dynamic>
+        : (map['leader'] is Map<String, dynamic>
+            ? map['leader'] as Map<String, dynamic>
+            : (json['user'] is Map<String, dynamic>
+                ? json['user'] as Map<String, dynamic>
+                : map));
+
+    final permsRaw = map['permissions'] ??
+        map['capabilities'] ??
+        map['enabled_capabilities'] ??
+        json['permissions'] ??
+        json['capabilities'];
+
     return AuthVerifyResult(
-      authToken: (json['access_token'] ?? json['auth_token'] ?? json['token'])?.toString() ?? '',
-      refreshToken: json['refresh_token']?.toString(),
-      user: UserSession.fromJson(json['user'] as Map<String, dynamic>? ?? {}),
-      permissions: LeaderPermissions.fromJson(json['permissions'] as Map<String, dynamic>?),
+      authToken: token,
+      refreshToken: refreshToken,
+      user: UserSession.fromJson(userMap),
+      permissions: LeaderPermissions.fromJson(permsRaw),
     );
   }
 }

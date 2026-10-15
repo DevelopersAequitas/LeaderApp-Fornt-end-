@@ -30,8 +30,8 @@ abstract class ApiEndpoints {
   }
 
   // --- 1. Authentication & Profile ---
-  static String get sendOtp => '$baseUrl/auth/send-otp';
-  static String get verifyOtp => '$baseUrl/auth/verify-otp';
+  static String get sendOtp => '$baseUrl/leader/auth/send-otp';
+  static String get verifyOtp => '$baseUrl/leader/auth/verify-otp';
   static String get profile => '$baseUrl/leader/profile';
   static String get updateProfile => '$baseUrl/leader/profile';
   static String get uploadAvatar => '$baseUrl/auth/profile/avatar';
