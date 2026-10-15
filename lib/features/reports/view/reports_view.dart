@@ -100,8 +100,13 @@ class _ReportsContentState extends State<_ReportsContent> {
   Widget build(BuildContext context) {
     final bloc = context.read<ReportsBloc>();
     final session = SessionManager().currentSession;
+    final permissions = SessionManager().permissions;
     final canExport = session.role == UserRole.superAdmin ||
-        session.role == UserRole.countryDirector;
+        session.role == UserRole.countryDirector ||
+        permissions.canExportPeerData ||
+        permissions.canExportFinancialData ||
+        permissions.canExportGlobalData ||
+        permissions.canAccessReportsTab;
 
     return BlocListener<ReportsBloc, ReportsState>(
       listenWhen: (prev, curr) =>
@@ -202,7 +207,10 @@ class _ReportsContentState extends State<_ReportsContent> {
                     if (canExport) ...[
                       const SizedBox(height: 16),
                       ReportsExportSection(
-                        selectedCircle: widget.selectedCircle,
+                        selectedCircle: state.selectedCircleId?.isNotEmpty == true
+                            ? state.selectedCircleId
+                            : (state.circleName.isNotEmpty ? state.circleName : widget.selectedCircle),
+                        submittedReports: state.submittedReports,
                       ),
                     ],
                   ],

@@ -114,11 +114,32 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         circleId: resolvedCircleId.isNotEmpty ? resolvedCircleId : null,
       );
 
+      final reportsList = reportsResponse.data ?? const <ReportModel>[];
+      List<ReportsChartPoint> trendList = trendResponse.data ?? const <ReportsChartPoint>[];
+
+      // If remote attendance trend is empty, derive live points from submitted reports
+      if (trendList.isEmpty && reportsList.isNotEmpty) {
+        final Map<String, List<double>> monthToAtt = {};
+        for (final r in reportsList) {
+          if (r.attendancePercentage != null && r.attendancePercentage! > 0) {
+            final m = (r.period?.isNotEmpty == true ? r.period! : r.date).trim();
+            final shortM = m.length > 3 ? m.substring(0, 3) : m;
+            monthToAtt.putIfAbsent(shortM, () => []).add(r.attendancePercentage!);
+          }
+        }
+        if (monthToAtt.isNotEmpty) {
+          trendList = monthToAtt.entries.map((e) {
+            final avg = e.value.reduce((a, b) => a + b) / e.value.length;
+            return ReportsChartPoint(month: e.key, value: avg);
+          }).toList();
+        }
+      }
+
       emit(
         state.copyWith(
           isLoading: false,
-          submittedReports: reportsResponse.data ?? const [],
-          attendanceTrend: trendResponse.data ?? const [],
+          submittedReports: reportsList,
+          attendanceTrend: trendList,
           selectedCircle: activeCircle,
           availableCircles: circlesList,
           circleName: resolvedCircleName,
@@ -280,6 +301,37 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       final session = SessionManager().currentSession;
       final periodToSubmit = state.period.isNotEmpty ? state.period : _defaultPeriod();
 
+      // Retrieve live peers for the circle so the report has authentic live peer breakdown
+      List<Map<String, dynamic>> livePeersRoster = [];
+      List<ReportPeerRosterItem> rosterItems = [];
+      if (targetCircleId.isNotEmpty) {
+        try {
+          final peersRes = await _teamsRepository.getCirclePeers(targetCircleId);
+          if (peersRes.success && peersRes.data != null && peersRes.data!.isNotEmpty) {
+            for (final p in peersRes.data!) {
+              final item = ReportPeerRosterItem(
+                peerId: p.id,
+                name: p.name,
+                avatarUrl: p.avatarUrl,
+                company: p.company,
+                designation: p.designation ?? '',
+                status: p.status,
+                platformMembershipStart: p.joinedDate ?? '',
+                platformMembershipEnd: '',
+                circleJoiningDate: p.joinedDate ?? '',
+                circleRenewalDate: '',
+                attendance: p.attendance,
+                dealsClosed: p.dealsFormatted,
+                p2pCount: p.p2pMeetings ?? 0,
+                referralsCount: p.referralsGiven ?? 0,
+              );
+              rosterItems.add(item);
+              livePeersRoster.add(item.toJson());
+            }
+          }
+        } catch (_) {}
+      }
+
       final response = await _reportsRepository.submitReport(
         circleId: targetCircleId.isNotEmpty ? targetCircleId : state.circleName,
         reportType: state.selectedType,
@@ -291,6 +343,7 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         highlights: state.highlights.isNotEmpty ? state.highlights : null,
         challengesFaced: state.challengesFaced.isNotEmpty ? state.challengesFaced : null,
         actionItems: state.actionItems.isNotEmpty ? state.actionItems : null,
+        peersRoster: livePeersRoster,
       );
 
       if (response.success && response.data != null) {
@@ -312,6 +365,7 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
           highlights: state.highlights.isNotEmpty ? state.highlights : null,
           challengesFaced: state.challengesFaced.isNotEmpty ? state.challengesFaced : null,
           actionItems: state.actionItems.isNotEmpty ? state.actionItems : null,
+          peersRoster: rosterItems,
         );
 
         final updatedList = [newReport, ...state.submittedReports];

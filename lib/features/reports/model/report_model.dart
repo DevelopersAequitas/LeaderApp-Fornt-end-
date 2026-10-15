@@ -66,8 +66,8 @@ class ReportPeerRosterItem {
       circleRenewalDate: json['circle_renewal_date'] as String? ?? json['renewal_date'] as String? ?? '',
       attendance: json['attendance']?.toString() ?? json['attendance_rate']?.toString() ?? '',
       dealsClosed: json['deals_closed']?.toString() ?? json['deals']?.toString() ?? '',
-      p2pCount: json['p2p_count'] as int? ?? json['p2p_meetings'] as int? ?? 0,
-      referralsCount: json['referrals_count'] as int? ?? json['referrals_given'] as int? ?? 0,
+      p2pCount: int.tryParse(json['p2p_count']?.toString() ?? json['p2p_meetings']?.toString() ?? '') ?? 0,
+      referralsCount: int.tryParse(json['referrals_count']?.toString() ?? json['referrals_given']?.toString() ?? '') ?? 0,
     );
   }
 
@@ -128,7 +128,7 @@ class ReportModel {
     this.submittedAt,
     required this.content,
     required this.author,
-    this.authorRole = 'Circle Chair',
+    this.authorRole = 'Circle Leadership',
     this.attendancePercentage,
     this.dealsClosedValue,
     this.totalRevenue,
@@ -152,8 +152,8 @@ class ReportModel {
     final rawPeers = json['peers_roster'] ?? json['peers'] ?? json['members'];
     if (rawPeers is List) {
       for (final p in rawPeers) {
-        if (p is Map<String, dynamic>) {
-          peersList.add(ReportPeerRosterItem.fromJson(p));
+        if (p is Map) {
+          peersList.add(ReportPeerRosterItem.fromJson(Map<String, dynamic>.from(p)));
         }
       }
     }
@@ -170,6 +170,14 @@ class ReportModel {
     final submittedAtStr = json['submitted_at'] as String?;
     final dateStr = periodStr ?? submittedAtStr ?? json['date'] as String? ?? '';
 
+    double? parsedAttendance;
+    final rawAtt = json['attendance_percentage'] ?? json['attendance'];
+    if (rawAtt is num) {
+      parsedAttendance = rawAtt.toDouble();
+    } else if (rawAtt != null) {
+      parsedAttendance = double.tryParse(rawAtt.toString().replaceAll('%', '').trim());
+    }
+
     return ReportModel(
       id: json['id']?.toString() ?? json['report_id']?.toString() ?? '',
       type: json['report_type'] as String? ?? json['type'] as String? ?? 'Monthly',
@@ -185,7 +193,7 @@ class ReportModel {
       content: json['summary_text'] as String? ?? json['content'] as String? ?? '',
       author: json['submitted_by'] as String? ?? json['author'] as String? ?? '',
       authorRole: json['submitter_role'] as String? ?? json['author_role'] as String? ?? 'Circle Leadership',
-      attendancePercentage: (json['attendance_percentage'] as num?)?.toDouble(),
+      attendancePercentage: parsedAttendance,
       dealsClosedValue: json['deals_closed_value']?.toString() ?? json['deals_closed']?.toString(),
       totalRevenue: json['total_revenue']?.toString(),
       highlights: json['highlights'] as String?,

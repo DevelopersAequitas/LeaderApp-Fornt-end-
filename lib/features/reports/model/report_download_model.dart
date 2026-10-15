@@ -17,13 +17,22 @@ class ReportDownloadModel {
   });
 
   factory ReportDownloadModel.fromJson(Map<String, dynamic> json) {
+    final url = json['download_url']?.toString() ??
+        json['url']?.toString() ??
+        json['file_url']?.toString() ??
+        json['link']?.toString() ??
+        json['export_url']?.toString() ??
+        '';
     return ReportDownloadModel(
       reportId: json['report_id']?.toString() ?? json['id']?.toString() ?? '',
       fileName: json['file_name'] as String? ?? 'Report.pdf',
       fileFormat: json['file_format'] as String? ?? 'PDF',
       fileSize: json['file_size'] as String? ?? '',
-      downloadUrl: json['download_url'] as String? ?? '',
-      expiresInSeconds: json['expires_in_seconds'] as int? ?? 3600,
+      downloadUrl: url,
+      expiresInSeconds: int.tryParse(json['expires_in_seconds']?.toString() ??
+              json['expires_in']?.toString() ??
+              '') ??
+          3600,
     );
   }
 
