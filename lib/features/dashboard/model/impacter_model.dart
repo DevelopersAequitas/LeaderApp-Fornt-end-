@@ -122,6 +122,9 @@ class ImpacterModel {
     // Impact count / lives parsing
     int lives = 0;
     final rawLives = json['life_impacted_count'] ??
+        json['life_impact'] ??
+        json['lives_impacted_count'] ??
+        json['lives_impacted'] ??
         json['impact_count'] ??
         json['lives'] ??
         json['impact'] ??
@@ -131,7 +134,7 @@ class ImpacterModel {
     } else if (rawLives is num) {
       lives = rawLives.toInt();
     } else if (rawLives != null) {
-      lives = int.tryParse(rawLives.toString()) ?? 0;
+      lives = int.tryParse(rawLives.toString().replaceAll(',', '').trim()) ?? 0;
     }
 
     // Coins parsing

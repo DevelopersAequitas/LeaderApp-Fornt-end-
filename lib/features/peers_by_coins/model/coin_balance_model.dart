@@ -21,6 +21,7 @@ class CoinBalanceModel {
   final int referralsCount; // e.g. 8
   final String dealsCount; // e.g. "₹32k"
   final int coinsCount; // e.g. 420
+  final int lifeImpactedCount;
 
   const CoinBalanceModel({
     this.id = '',
@@ -42,6 +43,7 @@ class CoinBalanceModel {
     required this.referralsCount,
     required this.dealsCount,
     required this.coinsCount,
+    this.lifeImpactedCount = 0,
   });
 
   factory CoinBalanceModel.fromJson(Map<String, dynamic> json) {
@@ -129,6 +131,22 @@ class CoinBalanceModel {
       circleStr = rawCircle;
     }
 
+    final rawImpact = json['life_impacted_count'] ??
+        json['life_impact'] ??
+        json['lives_impacted_count'] ??
+        json['lives_impacted'] ??
+        json['impact_count'] ??
+        json['impact_score'] ??
+        peerMap?['life_impacted_count'] ??
+        peerMap?['life_impact'] ??
+        peerMap?['lives_impacted_count'] ??
+        peerMap?['lives_impacted'] ??
+        peerMap?['impact_count'] ??
+        peerMap?['impact_score'];
+    final impact = (rawImpact is num)
+        ? rawImpact.toInt()
+        : (int.tryParse(rawImpact?.toString() ?? '0') ?? 0);
+
     return CoinBalanceModel(
       id: json['id']?.toString() ?? peerUserId,
       peerUserId: peerUserId,
@@ -149,6 +167,7 @@ class CoinBalanceModel {
       referralsCount: json['referrals_count'] as int? ?? 0,
       dealsCount: json['deals_count']?.toString() ?? '₹0',
       coinsCount: coins,
+      lifeImpactedCount: impact,
     );
   }
 
@@ -162,7 +181,7 @@ class CoinBalanceModel {
       circle: circle,
       location: city,
       tags: categoryLevel4.isNotEmpty ? categoryLevel4 : category,
-      impactCount: referralsCount,
+      impactCount: lifeImpactedCount > 0 ? lifeImpactedCount : referralsCount,
       dealsFormatted: dealsCount,
       coins: coins,
       attendance: attendanceRate,

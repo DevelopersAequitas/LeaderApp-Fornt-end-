@@ -89,7 +89,17 @@ class PeerModel {
   factory PeerModel.fromJson(Map<String, dynamic> json) {
     final peerMap = json['peer'] is Map<String, dynamic>
         ? json['peer'] as Map<String, dynamic>
-        : (json['peer'] is Map ? Map<String, dynamic>.from(json['peer'] as Map) : null);
+        : (json['peer'] is Map
+            ? Map<String, dynamic>.from(json['peer'] as Map)
+            : (json['user'] is Map<String, dynamic>
+                ? json['user'] as Map<String, dynamic>
+                : (json['user'] is Map
+                    ? Map<String, dynamic>.from(json['user'] as Map)
+                    : (json['member'] is Map<String, dynamic>
+                        ? json['member'] as Map<String, dynamic>
+                        : (json['member'] is Map
+                            ? Map<String, dynamic>.from(json['member'] as Map)
+                            : null)))));
 
     final id = json['id']?.toString() ??
         json['peer_user_id']?.toString() ??
@@ -191,13 +201,37 @@ class PeerModel {
     final liStr = contact?['linkedin']?.toString() ?? json['linkedin']?.toString();
 
     int parsedImpact = 0;
-    final rawImpact = metrics?['impact_count'] ?? metrics?['impact'] ?? json['impact_count'] ?? json['impact'] ?? json['lives'];
+    final rawImpact = json['life_impacted_count'] ??
+        json['life_impact'] ??
+        json['lives_impacted_count'] ??
+        json['lives_impacted'] ??
+        json['impact_score'] ??
+        json['impact_count'] ??
+        json['impact'] ??
+        json['lives'] ??
+        peerMap?['life_impacted_count'] ??
+        peerMap?['life_impact'] ??
+        peerMap?['lives_impacted_count'] ??
+        peerMap?['lives_impacted'] ??
+        peerMap?['impact_score'] ??
+        peerMap?['impact_count'] ??
+        peerMap?['impact'] ??
+        peerMap?['lives'] ??
+        metrics?['life_impacted_count'] ??
+        metrics?['life_impact'] ??
+        metrics?['lives_impacted_count'] ??
+        metrics?['lives_impacted'] ??
+        metrics?['impact_score'] ??
+        metrics?['impact_count'] ??
+        metrics?['impact'] ??
+        metrics?['lives'];
+
     if (rawImpact is int) {
       parsedImpact = rawImpact;
     } else if (rawImpact is num) {
       parsedImpact = rawImpact.toInt();
     } else if (rawImpact != null) {
-      parsedImpact = int.tryParse(rawImpact.toString()) ?? 0;
+      parsedImpact = int.tryParse(rawImpact.toString().replaceAll(',', '').trim()) ?? 0;
     }
 
     int parsedCoins = 0;
@@ -278,6 +312,9 @@ class PeerModel {
         'location': location,
         'tags': tags,
         'impact_count': impactCount,
+        'life_impacted_count': impactCount,
+        'life_impact': impactCount,
+        'lives': impactCount,
         'deals_formatted': dealsFormatted,
         'coins': coins,
         'attendance': attendance,
