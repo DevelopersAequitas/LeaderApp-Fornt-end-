@@ -1,47 +1,61 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../../../core/widgets/initials_avatar.dart';
 import '../../model/report_model.dart';
 import '../report_details_view.dart';
-import '../services/report_export_service.dart';
 import 'report_history_card_header.dart';
 
-/// Card item displaying a past submitted report with type, status, author, metrics, and download options.
-class ReportHistoryCard extends StatefulWidget {
+/// Card item displaying a past submitted report with type, status, author, and metrics.
+/// Full export options are available in ReportDetailsView upon tapping the card.
+class ReportHistoryCard extends StatelessWidget {
   final ReportModel report;
   const ReportHistoryCard({super.key, required this.report});
 
-  @override
-  State<ReportHistoryCard> createState() => _ReportHistoryCardState();
-}
-
-class _ReportHistoryCardState extends State<ReportHistoryCard> {
-  bool _isDownloadingPdf = false;
-  bool _isExportingExcel = false;
-
-  Future<void> _handlePdf() async {
-    setState(() => _isDownloadingPdf = true);
-    await ReportExportService.downloadPdf(context, widget.report);
-    if (mounted) setState(() => _isDownloadingPdf = false);
-  }
-
-  Future<void> _handleExcel() async {
-    setState(() => _isExportingExcel = true);
-    await ReportExportService.downloadExcel(context, widget.report);
-    if (mounted) setState(() => _isExportingExcel = false);
-  }
-
-  Widget _chip(String text) {
+  Widget _metricChip({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(4)),
-      child: Text(text, style: const TextStyle(color: AppColors.text, fontSize: 10, fontWeight: FontWeight.w500)),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(6),
+        border: const GradientBoxBorder(
+          gradient: AppColors.subtleCardBorderGradient,
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GradientIcon(icon: icon, size: 12, gradient: AppColors.brandGradient),
+          const SizedBox(width: 4),
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          GradientText(
+            value,
+            style: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
+            gradient: AppColors.brandGradient,
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final r = widget.report;
+    final r = report;
     final by = r.author.isNotEmpty ? r.author : (r.circleName.isNotEmpty ? r.circleName : "Circle Leadership");
 
     return InkWell(
@@ -63,10 +77,6 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
           children: [
             ReportHistoryCardHeader(
               report: r,
-              isDownloadingPdf: _isDownloadingPdf,
-              isExportingExcel: _isExportingExcel,
-              onDownloadPdf: _handlePdf,
-              onDownloadExcel: _handleExcel,
             ),
             const SizedBox(height: 8),
             Row(
@@ -89,13 +99,32 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
                 ),
               ],
             ),
-            if (r.attendancePercentage != null || (r.dealsClosedValue?.isNotEmpty == true)) ...[
-              const SizedBox(height: 6),
+            if (r.attendancePercentage != null ||
+                (r.dealsClosedValue?.isNotEmpty == true) ||
+                (r.totalRevenue?.isNotEmpty == true)) ...[
+              const SizedBox(height: 7),
               Wrap(
                 spacing: 8,
+                runSpacing: 4,
                 children: [
-                  if (r.attendancePercentage != null) _chip('Attendance: ${r.formattedAttendance}'),
-                  if (r.dealsClosedValue?.isNotEmpty == true) _chip('Deals: ${r.dealsClosedValue}'),
+                  if (r.attendancePercentage != null)
+                    _metricChip(
+                      icon: Icons.how_to_reg_rounded,
+                      label: 'Attendance',
+                      value: r.formattedAttendance,
+                    ),
+                  if (r.dealsClosedValue?.isNotEmpty == true)
+                    _metricChip(
+                      icon: Icons.currency_rupee_rounded,
+                      label: 'Deals',
+                      value: r.dealsClosedValue!,
+                    ),
+                  if (r.totalRevenue?.isNotEmpty == true)
+                    _metricChip(
+                      icon: Icons.trending_up_rounded,
+                      label: 'Revenue',
+                      value: r.totalRevenue!,
+                    ),
                 ],
               ),
             ],

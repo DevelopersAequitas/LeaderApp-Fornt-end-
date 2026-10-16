@@ -104,7 +104,7 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
           SnackBar(
             content: Text(
               launched
-                  ? 'PDF Report ready! Use browser print/save as PDF.'
+                  ? 'PDF Report generated successfully.'
                   : 'PDF Document generated from live data.',
             ),
             backgroundColor: const Color(0xFF16A34A),
@@ -365,7 +365,12 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
         gradient: isSelected ? AppColors.brandGradient : null,
         color: isSelected ? null : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: isSelected ? null : Border.all(color: AppColors.border),
+        border: isSelected
+            ? null
+            : const GradientBoxBorder(
+                gradient: AppColors.subtleCardBorderGradient,
+                width: 1.0,
+              ),
         boxShadow: isSelected
             ? [
                 BoxShadow(
@@ -378,11 +383,13 @@ class _ReportsExportSectionState extends State<ReportsExportSection> {
       ),
       child: Column(
         children: [
-          Icon(
-            iconData,
-            color: isSelected ? Colors.white : AppColors.textSecondary,
-            size: 22,
-          ),
+          isSelected
+              ? Icon(iconData, color: Colors.white, size: 22)
+              : GradientIcon(
+                  icon: iconData,
+                  size: 22,
+                  gradient: AppColors.brandGradient,
+                ),
           const SizedBox(height: 6),
           Text(
             label,

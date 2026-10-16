@@ -6,6 +6,7 @@ import 'widgets/report_details_header_section.dart';
 import 'widgets/report_details_metrics_section.dart';
 import 'widgets/report_details_roster_section.dart';
 import 'widgets/report_details_summary_section.dart';
+import 'widgets/report_export_button.dart';
 
 /// Full screen view presenting complete performance report details and live peer roster.
 class ReportDetailsView extends StatefulWidget {
@@ -67,40 +68,6 @@ class _ReportDetailsViewState extends State<ReportDetailsView> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            actions: [
-              if (_isExporting)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Center(
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                )
-              else ...[
-                IconButton(
-                  tooltip: 'Download PDF',
-                  icon: const Icon(
-                    Icons.picture_as_pdf_rounded,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
-                  onPressed: () => _onDownloadPdf(activeReport),
-                ),
-                IconButton(
-                  tooltip: 'Export CSV / Excel',
-                  icon: const Icon(
-                    Icons.table_chart_rounded,
-                    color: Color(0xFF16A34A),
-                    size: 20,
-                  ),
-                  onPressed: () => _onDownloadExcel(activeReport),
-                ),
-                const SizedBox(width: 8),
-              ],
-            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -108,7 +75,29 @@ class _ReportDetailsViewState extends State<ReportDetailsView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ReportDetailsHeaderSection(report: activeReport),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ReportExportButton(
+                        label: 'Export PDF',
+                        icon: Icons.picture_as_pdf_rounded,
+                        isLoading: _isExporting,
+                        onTap: () => _onDownloadPdf(activeReport),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ReportExportButton(
+                        label: 'Export Excel',
+                        icon: Icons.table_chart_rounded,
+                        isLoading: _isExporting,
+                        onTap: () => _onDownloadExcel(activeReport),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
                 ReportDetailsMetricsSection(report: activeReport),
                 const SizedBox(height: 16),
                 ReportDetailsSummarySection(report: activeReport),

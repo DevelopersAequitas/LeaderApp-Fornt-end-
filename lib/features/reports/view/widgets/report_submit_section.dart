@@ -263,7 +263,6 @@ class ReportSubmitSection extends StatelessWidget {
           // Executive Summary Text (Required)
           _buildField(
             title: 'EXECUTIVE SUMMARY & NOTES *',
-            hintText: 'Describe general performance, referrals closed, member retention and progress...',
             controller: contentController,
             maxLines: 4,
           ),
@@ -271,7 +270,6 @@ class ReportSubmitSection extends StatelessWidget {
           // Key Highlights
           _buildField(
             title: 'KEY HIGHLIGHTS & WINS',
-            hintText: 'Notable partnerships, top referrers, special announcements or achievements...',
             controller: highlightsController,
             maxLines: 2,
           ),
@@ -279,7 +277,6 @@ class ReportSubmitSection extends StatelessWidget {
           // Challenges Faced
           _buildField(
             title: 'CHALLENGES FACED & ROADBLOCKS',
-            hintText: 'Issues requiring escalation, renewal roadblocks, nominee verifications...',
             controller: challengesController,
             maxLines: 2,
           ),
@@ -287,7 +284,6 @@ class ReportSubmitSection extends StatelessWidget {
           // Action Items
           _buildField(
             title: 'ACTION ITEMS & NEXT STEPS',
-            hintText: 'Upcoming assembly schedule, 1-on-1 alignment meetings, renewal follow-ups...',
             controller: actionItemsController,
             maxLines: 2,
           ),
@@ -493,11 +489,6 @@ class ReportSubmitSection extends StatelessWidget {
               TextField(
                 controller: periodController,
                 decoration: InputDecoration(
-                  hintText: 'e.g. October 2026',
-                  hintStyle: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
                   prefixIcon: const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primary),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   filled: true,
@@ -536,10 +527,9 @@ class ReportSubmitSection extends StatelessWidget {
                 controller: attendanceController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  hintText: 'e.g. 96.2',
-                  hintStyle: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
+                  prefixIcon: const GradientIcon(
+                    icon: Icons.how_to_reg_rounded,
+                    size: 16,
                   ),
                   suffixText: '%',
                   suffixStyle: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primary),
@@ -584,12 +574,10 @@ class ReportSubmitSection extends StatelessWidget {
               TextField(
                 controller: dealsClosedController,
                 decoration: InputDecoration(
-                  hintText: 'e.g. ₹22.5L',
-                  hintStyle: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
+                  prefixIcon: const GradientIcon(
+                    icon: Icons.currency_rupee_rounded,
+                    size: 16,
                   ),
-                  prefixIcon: const Icon(Icons.monetization_on_rounded, size: 16, color: Color(0xFF16A34A)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   filled: true,
                   fillColor: Colors.white,
@@ -625,12 +613,10 @@ class ReportSubmitSection extends StatelessWidget {
               TextField(
                 controller: totalRevenueController,
                 decoration: InputDecoration(
-                  hintText: 'e.g. ₹28.0L',
-                  hintStyle: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
+                  prefixIcon: const GradientIcon(
+                    icon: Icons.trending_up_rounded,
+                    size: 16,
                   ),
-                  prefixIcon: const Icon(Icons.trending_up_rounded, size: 16, color: Color(0xFF9333EA)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   filled: true,
                   fillColor: Colors.white,
@@ -654,7 +640,6 @@ class ReportSubmitSection extends StatelessWidget {
 
   Widget _buildField({
     required String title,
-    required String hintText,
     required TextEditingController controller,
     int maxLines = 1,
   }) {
@@ -676,12 +661,6 @@ class ReportSubmitSection extends StatelessWidget {
           maxLines: maxLines,
           keyboardType: maxLines > 1 ? TextInputType.multiline : TextInputType.text,
           decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              height: 1.4,
-            ),
             contentPadding: const EdgeInsets.all(12.0),
             filled: true,
             fillColor: Colors.white,

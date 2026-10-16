@@ -1,27 +1,46 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/report_model.dart';
 
-/// Key performance metric cards section for ReportDetailsView.
+/// Key performance metric cards section for ReportDetailsView with brand gradient styling.
 class ReportDetailsMetricsSection extends StatelessWidget {
   final ReportModel report;
 
   const ReportDetailsMetricsSection({super.key, required this.report});
 
-  Widget _buildCard(String label, String value, IconData icon, Color color) {
+  Widget _buildCard({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: const GradientBoxBorder(
+          gradient: AppColors.subtleCardBorderGradient,
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: color),
+              GradientIcon(
+                icon: icon,
+                size: 16,
+                gradient: AppColors.brandGradient,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -29,7 +48,7 @@ class ReportDetailsMetricsSection extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -37,13 +56,13 @@ class ReportDetailsMetricsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
+          GradientText(
             value,
             style: const TextStyle(
               fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppColors.text,
+              fontWeight: FontWeight.w700,
             ),
+            gradient: AppColors.brandGradient,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -58,29 +77,26 @@ class ReportDetailsMetricsSection extends StatelessWidget {
       children: [
         Expanded(
           child: _buildCard(
-            'Attendance',
-            report.formattedAttendance,
-            Icons.how_to_reg_rounded,
-            AppColors.primary,
+            label: 'Attendance',
+            value: report.formattedAttendance,
+            icon: Icons.how_to_reg_rounded,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _buildCard(
-            'Deals',
-            report.dealsClosedValue?.isNotEmpty == true ? report.dealsClosedValue! : '-',
-            Icons.monetization_on_rounded,
-            AppColors.primary,
+            label: 'Deals',
+            value: report.dealsClosedValue?.isNotEmpty == true ? report.dealsClosedValue! : '-',
+            icon: Icons.currency_rupee_rounded,
           ),
         ),
         if (report.totalRevenue?.isNotEmpty == true) ...[
           const SizedBox(width: 8),
           Expanded(
             child: _buildCard(
-              'Revenue',
-              report.totalRevenue!,
-              Icons.trending_up_rounded,
-              AppColors.primary,
+              label: 'Revenue',
+              value: report.totalRevenue!,
+              icon: Icons.trending_up_rounded,
             ),
           ),
         ],

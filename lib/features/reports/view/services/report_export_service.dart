@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/gradient_widgets.dart';
 import '../../../../data/repositories/peers_repository.dart';
 import '../../../../data/repositories/reports_repository.dart';
 import '../../../../data/repositories/teams_repository.dart';
@@ -381,19 +382,11 @@ class ReportExportService {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFA7F3D0)),
-                      ),
-                      child: const Icon(
-                        Icons.table_chart_rounded,
-                        color: Color(0xFF16A34A),
-                        size: 24,
-                      ),
+                    const SquareRoundedGradientIcon(
+                      icon: Icons.table_chart_rounded,
+                      iconSize: 22,
+                      boxSize: 44,
+                      showBorder: true,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -435,7 +428,11 @@ class ReportExportService {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.analytics_outlined, size: 18, color: Color(0xFF16A34A)),
+                      const GradientIcon(
+                        icon: Icons.how_to_reg_rounded,
+                        size: 18,
+                        gradient: AppColors.brandGradient,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -543,19 +540,11 @@ class ReportExportService {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFBFDBFE)),
-                      ),
-                      child: const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        color: AppColors.primary,
-                        size: 26,
-                      ),
+                    const SquareRoundedGradientIcon(
+                      icon: Icons.picture_as_pdf_rounded,
+                      iconSize: 24,
+                      boxSize: 48,
+                      showBorder: true,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -563,7 +552,7 @@ class ReportExportService {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'PDF Report Opened in Browser',
+                            'PDF Report Generated',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -585,31 +574,6 @@ class ReportExportService {
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.info_outline, size: 20, color: AppColors.primary),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'In your browser, tap "📥 Download as PDF / Print" or select "Save as PDF" to download the document.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF334155),
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 16),
                 if (fileName != null && htmlBytes != null) ...[
                   ElevatedButton.icon(
@@ -622,7 +586,7 @@ class ReportExportService {
                       );
                     },
                     icon: const Icon(Icons.open_in_browser_rounded, size: 18),
-                    label: const Text('Open Again in Browser'),
+                    label: const Text('Open PDF Document'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -644,7 +608,7 @@ class ReportExportService {
                       );
                     },
                     icon: const Icon(Icons.share_rounded, size: 18),
-                    label: const Text('Share Report HTML'),
+                    label: const Text('Share PDF Document'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.text,
                       side: const BorderSide(color: Color(0xFFCBD5E1)),
