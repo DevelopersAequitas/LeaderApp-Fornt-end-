@@ -183,9 +183,7 @@ class CircleEventsSection extends StatelessWidget {
 
         if (isLoading)
           const Expanded(
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+            child: ListShimmerSkeleton(),
           )
         else if (events.isEmpty)
           Expanded(

@@ -8,7 +8,6 @@ import '../../features/peers/model/peer_model.dart';
 import '../../features/peer_profile/view/peer_profile_view.dart';
 import '../../features/peer_profile/view/peer_collaboration_screen.dart';
 import '../../features/peer_profile/model/peer_profile_model.dart';
-import '../../features/notifications/view/notifications_view.dart';
 import '../../features/testimonials/model/testimonial_model.dart';
 import '../../features/testimonials/view/testimonials_view.dart';
 import '../../features/referrals/model/referral_model.dart';
@@ -57,9 +56,6 @@ abstract class AppRoutes {
 
   /// Peer Collaboration route
   static const String peerCollaboration = '/peer-collaboration';
-
-  /// Notifications route
-  static const String notifications = '/notifications';
 
   /// Testimonials route
   static const String testimonials = '/testimonials';
@@ -212,11 +208,6 @@ abstract class AppRoutes {
         }
         return MaterialPageRoute(
           builder: (_) => PeerProfileView(peer: peer),
-          settings: settings,
-        );
-      case notifications:
-        return MaterialPageRoute(
-          builder: (_) => const NotificationsView(),
           settings: settings,
         );
       case testimonials:

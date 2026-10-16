@@ -28,6 +28,7 @@ import 'widgets/profile_circulars_tile.dart';
 import 'widgets/profile_contact_card.dart';
 import 'widgets/profile_hero_card.dart';
 import 'widgets/profile_role_management_tile.dart';
+import 'widgets/profile_shimmer_skeleton.dart';
 import 'widgets/profile_sign_out_bottom_sheet.dart';
 
 /// The View component of the Profile Screen feature.
@@ -126,7 +127,7 @@ class _ProfileContent extends StatelessWidget {
             body: SafeArea(
               top: false,
               child: state.isLoading && profile == null
-                  ? const CenteredLoadingIndicator(height: 300)
+                  ? const ProfileSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
                         bloc.add(const LoadProfileData());

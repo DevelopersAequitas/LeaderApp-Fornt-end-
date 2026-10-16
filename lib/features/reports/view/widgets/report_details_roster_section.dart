@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../model/report_model.dart';
 import 'report_peer_roster_tile.dart';
 
@@ -36,9 +37,16 @@ class ReportDetailsRosterSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         if (isLoading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          const AppShimmer(
+            child: Column(
+              children: [
+                ShimmerBox(width: double.infinity, height: 60, borderRadius: 10),
+                SizedBox(height: 8),
+                ShimmerBox(width: double.infinity, height: 60, borderRadius: 10),
+                SizedBox(height: 8),
+                ShimmerBox(width: double.infinity, height: 60, borderRadius: 10),
+              ],
+            ),
           )
         else if (peers.isEmpty)
           Container(

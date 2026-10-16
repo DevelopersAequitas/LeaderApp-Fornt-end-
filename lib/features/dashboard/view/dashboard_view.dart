@@ -17,7 +17,6 @@ import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/widgets.dart';
 import '../../finance/view/finance_view.dart';
 import '../../peers/view/peers_view.dart';
 import '../../reports/view/reports_view.dart';
@@ -32,6 +31,7 @@ import 'widgets/dashboard_bottom_nav_bar.dart';
 import 'widgets/dashboard_hero_card.dart';
 import 'widgets/dashboard_key_metrics_grid.dart';
 import 'widgets/dashboard_pending_peers_card.dart';
+import 'widgets/dashboard_shimmer_skeleton.dart';
 import 'widgets/dashboard_top_impacters.dart';
 
 /// The View component of the Executive Dashboard feature.
@@ -80,7 +80,7 @@ class _DashboardContentState extends State<_DashboardContent> {
     required String? selectedCircle,
   }) {
     if (isLoading || metrics == null) {
-      return const CenteredLoadingIndicator(height: 300);
+      return const DashboardSkeleton();
     }
 
     final session = SessionManager().currentSession;
@@ -180,14 +180,8 @@ class _DashboardContentState extends State<_DashboardContent> {
                   DashboardAppBar(
                     activeTab: state.activeTab,
                     selectedCircle: state.selectedCircle,
-                    unreadNotificationCount: state.unreadNotificationCount,
                     dynamicIndustries: state.dynamicIndustries,
                     onCircleSelected: (c) => bloc.add(SelectCircle(c)),
-                    onNotificationTap: () async {
-                      await Navigator.of(context)
-                          .pushNamed(AppRoutes.notifications);
-                      bloc.add(const RefreshNotificationsCount());
-                    },
                   ),
                   Expanded(
                     child: PageView(

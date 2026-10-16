@@ -256,7 +256,7 @@ class _PeerReferralScreenState extends State<PeerReferralScreen> {
             // Content Area
             Expanded(
               child: _isLoading && _referrals.isEmpty
-                  ? const CenteredLoadingIndicator(height: 260)
+                  ? const ListShimmerSkeleton()
                   : _errorMessage != null && _referrals.isEmpty
                       ? _buildErrorState()
                       : RefreshIndicator(

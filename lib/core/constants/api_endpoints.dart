@@ -146,11 +146,7 @@ abstract class ApiEndpoints {
   static String leaderHelpAsksUser(String userId) =>
       '$baseUrl/leader/asks/help/user/$userId';
 
-  // --- 8. Notifications ---
-  static String get notifications => '$baseUrl/notifications';
-  static String get notificationsMarkRead => '$baseUrl/notifications/mark-read';
-
-  // --- 9. Role Management Matrix ---
+  // --- 8. Role Management Matrix ---
   static String get roleMatrix => '$baseUrl/roles/matrix';
   static String get roles => '$baseUrl/roles';
   static String roleById(String id) => '$baseUrl/roles/$id';

@@ -256,7 +256,7 @@ class _PeerHelpScreenState extends State<PeerHelpScreen> {
             // Content Area
             Expanded(
               child: _isLoading && _helps.isEmpty
-                  ? const CenteredLoadingIndicator(height: 260)
+                  ? const ListShimmerSkeleton()
                   : _errorMessage != null && _helps.isEmpty
                       ? _buildErrorState()
                       : RefreshIndicator(

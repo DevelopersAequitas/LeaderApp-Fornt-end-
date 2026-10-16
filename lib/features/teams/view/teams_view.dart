@@ -12,7 +12,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/widgets.dart';
 import '../bloc/teams_bloc.dart';
 import '../bloc/teams_event.dart';
 import '../bloc/teams_state.dart';
@@ -21,6 +20,7 @@ import 'widgets/teams_industry_filter_chips.dart';
 import 'widgets/teams_metrics_banner.dart';
 import 'widgets/teams_restricted_placeholder.dart';
 import 'widgets/teams_search_bar.dart';
+import 'widgets/teams_shimmer_skeleton.dart';
 import 'widgets/teams_status_filter_header.dart';
 
 /// The View component of the Teams tab feature.
@@ -89,7 +89,7 @@ class _TeamsContentState extends State<_TeamsContent> {
       child: BlocBuilder<TeamsBloc, TeamsState>(
         builder: (context, state) {
           if (state.isLoading && state.allCircles.isEmpty) {
-            return const CenteredLoadingIndicator(height: 300);
+            return const TeamsListSkeleton();
           }
 
           if (state.permission != null && state.permission!.isRestricted) {

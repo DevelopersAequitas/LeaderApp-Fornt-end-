@@ -10,19 +10,15 @@ import '../../../../core/widgets/widgets.dart';
 class DashboardAppBar extends StatelessWidget {
   final int activeTab;
   final String? selectedCircle;
-  final int unreadNotificationCount;
   final List<String> dynamicIndustries;
   final ValueChanged<String> onCircleSelected;
-  final VoidCallback onNotificationTap;
 
   const DashboardAppBar({
     super.key,
     required this.activeTab,
     this.selectedCircle,
-    required this.unreadNotificationCount,
     required this.dynamicIndustries,
     required this.onCircleSelected,
-    required this.onNotificationTap,
   });
 
   @override
@@ -127,50 +123,7 @@ class DashboardAppBar extends StatelessWidget {
                   ),
                 ),
                
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    SquareRoundedGradientIcon(
-                      icon: Icons.notifications_none_rounded,
-                      iconSize: 20,
-                      boxSize: 36,
-                      borderRadius: 10,
-                      onTap: onNotificationTap,
-                    ),
-                    if (unreadNotificationCount > 0)
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 1.5,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 15,
-                            minHeight: 15,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            unreadNotificationCount > 99
-                                ? '99+'
-                                : '$unreadNotificationCount',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w500,
-                              height: 1.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 4),
+
                 GestureDetector(
                   onTap: () =>
                       Navigator.of(context).pushNamed(AppRoutes.profile),

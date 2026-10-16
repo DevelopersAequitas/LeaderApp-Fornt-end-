@@ -25,6 +25,7 @@ import 'widgets/peer_profile_activity_section.dart';
 // import 'widgets/peer_profile_bottom_actions.dart';
 import 'widgets/peer_profile_hero_card.dart';
 import 'widgets/peer_profile_overview_section.dart';
+import 'widgets/peer_profile_shimmer_skeleton.dart';
 import 'widgets/peer_profile_tab_selector.dart';
 // import 'widgets/send_referral_bottom_sheet.dart';
 
@@ -136,7 +137,7 @@ class _PeerProfileContent extends StatelessWidget {
             body: SafeArea(
               top: false,
               child: state.isLoading && details == null
-                  ? const CenteredLoadingIndicator(height: 300)
+                  ? const PeerProfileSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
                         bloc.add(LoadPeerProfile(displayPeer));

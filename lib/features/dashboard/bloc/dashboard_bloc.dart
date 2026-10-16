@@ -2,35 +2,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../data/repositories/dashboard_repository.dart';
-import '../../../data/repositories/notifications_repository.dart';
 import '../../../data/repositories/teams_repository.dart';
 import '../../../core/network/api_response.dart';
 import '../../../features/dashboard/model/dashboard_metrics_model.dart';
 import '../../../features/dashboard/model/impacter_model.dart';
-import '../../../features/notifications/model/notification_model.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';
 
 /// Business Logic Component for managing Executive Dashboard state.
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final DashboardRepository _dashboardRepository;
-  final NotificationsRepository _notificationsRepository;
   final TeamsRepository _teamsRepository;
 
   DashboardBloc({
     DashboardRepository? dashboardRepository,
-    NotificationsRepository? notificationsRepository,
     TeamsRepository? teamsRepository,
   })  : _dashboardRepository =
             dashboardRepository ?? DashboardRepositoryImpl(),
-        _notificationsRepository =
-            notificationsRepository ?? NotificationsRepositoryImpl(),
         _teamsRepository = teamsRepository ?? TeamsRepositoryImpl(),
         super(const DashboardState()) {
     on<LoadDashboardData>(_onLoadDashboardData);
     on<TabChanged>(_onTabChanged);
     on<SelectCircle>(_onSelectCircle);
-    on<RefreshNotificationsCount>(_onRefreshNotificationsCount);
   }
 
   Future<void> _onLoadDashboardData(
@@ -79,23 +72,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
                   success: false,
                   data: <String>[],
                 )),
-        _notificationsRepository
-            .getNotifications()
-            .catchError((e) => const ApiResponse<List<NotificationModel>>(
-                  success: false,
-                  data: <NotificationModel>[],
-                )),
       ]);
 
       final metricsRes = results[0] as ApiResponse<DashboardMetricsModel>;
       final impactersRes = results[1] as ApiResponse<List<ImpacterModel>>;
       final industriesRes = results[2] as ApiResponse<List<String>>;
-      final notifsRes = results[3] as ApiResponse<List<NotificationModel>>;
-
-      int unreadCount = state.unreadNotificationCount;
-      if (notifsRes.success && notifsRes.data != null) {
-        unreadCount = notifsRes.data!.where((n) => n.isUnread).length;
-      }
 
       List<String> industries = state.dynamicIndustries;
       if (industriesRes.success &&
@@ -110,7 +91,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           metrics: metricsRes.data ?? state.metrics,
           impacters: impactersRes.data ?? state.impacters,
           selectedCircle: activeCircle,
-          unreadNotificationCount: unreadCount,
           dynamicIndustries: industries,
           errorMessage: metricsRes.success ? '' : (metricsRes.message ?? ''),
         ),
@@ -118,19 +98,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
-  }
-
-  Future<void> _onRefreshNotificationsCount(
-    RefreshNotificationsCount event,
-    Emitter<DashboardState> emit,
-  ) async {
-    try {
-      final res = await _notificationsRepository.getNotifications();
-      if (res.success && res.data != null) {
-        final unreadCount = res.data!.where((n) => n.isUnread).length;
-        emit(state.copyWith(unreadNotificationCount: unreadCount));
-      }
-    } catch (_) {}
   }
 
   void _onSelectCircle(SelectCircle event, Emitter<DashboardState> emit) {
@@ -142,3 +109,4 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(state.copyWith(activeTab: event.index));
   }
 }
+

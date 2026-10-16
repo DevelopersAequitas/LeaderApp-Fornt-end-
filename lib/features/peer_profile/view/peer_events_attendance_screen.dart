@@ -129,11 +129,7 @@ class _PeerEventsAttendanceContent extends StatelessWidget {
                   // Body Content
                   Expanded(
                     child: state.isLoading
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.primary,
-                            ),
-                          )
+                        ? const ListShimmerSkeleton()
                         : _buildTabContent(context, state),
                   ),
                 ],

@@ -61,7 +61,7 @@ class _PeerIntroducedByScreenState extends State<PeerIntroducedByScreen> {
       ),
       body: SafeArea(
         child: _isLoading
-            ? const CenteredLoadingIndicator()
+            ? const ListShimmerSkeleton()
             : RefreshIndicator(
                 onRefresh: _fetchIntroducedPeers,
                 child: SingleChildScrollView(

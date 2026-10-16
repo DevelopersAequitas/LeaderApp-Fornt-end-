@@ -90,7 +90,7 @@ class _PeersByCoinsContent extends StatelessWidget {
                   ),
                   Expanded(
                     child: state.isLoading && allPeers.isEmpty
-                        ? const CenteredLoadingIndicator(height: 300)
+                        ? const ListShimmerSkeleton()
                         : RefreshIndicator(
                             onRefresh: () async {
                               bloc.add(const LoadPeersByCoins());

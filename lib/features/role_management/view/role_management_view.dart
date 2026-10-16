@@ -118,7 +118,7 @@ class _RoleManagementContent extends StatelessWidget {
                 subtitle: 'System Capability Governance',
                 showBackButton: true,
               ),
-              body: const CenteredLoadingIndicator(height: 300),
+              body: const ListShimmerSkeleton(),
             );
           }
 

@@ -22,8 +22,3 @@ class SelectCircle extends DashboardEvent {
   final String? circleName;
   const SelectCircle(this.circleName);
 }
-
-/// Refreshes unread notification count badge.
-class RefreshNotificationsCount extends DashboardEvent {
-  const RefreshNotificationsCount();
-}

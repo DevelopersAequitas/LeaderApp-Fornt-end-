@@ -74,7 +74,7 @@ class _BusinessDealsContent extends StatelessWidget {
             body: SafeArea(
               top: false,
               child: state.isLoading && deals.isEmpty
-                  ? const CenteredLoadingIndicator()
+                  ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
                         bloc.add(LoadBusinessDeals(circleId: circleId));

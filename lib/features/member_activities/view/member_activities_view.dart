@@ -98,7 +98,7 @@ class _MemberActivitiesContent extends StatelessWidget {
             body: SafeArea(
               top: false,
               child: state.isLoading && items.isEmpty
-                  ? const CenteredLoadingIndicator()
+                  ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async => presenter.refresh(),
                       child: NotificationListener<ScrollNotification>(

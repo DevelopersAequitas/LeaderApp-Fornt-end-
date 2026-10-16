@@ -151,7 +151,7 @@ class _BusinessDealsList extends StatelessWidget {
         final items = state.activities;
 
         if (state.isLoading && items.isEmpty) {
-          return const CenteredLoadingIndicator();
+          return const ListShimmerSkeleton();
         }
 
         return RefreshIndicator(

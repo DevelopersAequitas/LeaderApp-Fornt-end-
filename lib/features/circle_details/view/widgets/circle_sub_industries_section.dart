@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../model/circle_sub_industry_model.dart';
 
 /// Renders the Sub-Industries tab list for Circle Details.
@@ -18,10 +19,22 @@ class CircleSubIndustriesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Padding(
-        padding: EdgeInsets.all(32.0),
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: AppShimmer(
+          child: Column(
+            children: List.generate(
+              5,
+              (index) => const Padding(
+                padding: EdgeInsets.only(bottom: 10),
+                child: ShimmerBox(
+                  width: double.infinity,
+                  height: 52,
+                  borderRadius: 12,
+                ),
+              ),
+            ),
+          ),
         ),
       );
     }

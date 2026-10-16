@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/widgets.dart';
 import '../bloc/reports_bloc.dart';
 import '../bloc/reports_event.dart';
 import '../bloc/reports_state.dart';
 import 'widgets/report_history_section.dart';
 import 'widgets/report_submit_section.dart';
+import 'widgets/reports_shimmer_skeleton.dart';
 import 'widgets/reports_tab_selector.dart';
 
 /// The View component of the Leadership Reports feature.
@@ -138,7 +138,7 @@ class _ReportsContentState extends State<_ReportsContent> {
           _syncControllersWithState(state);
 
           if (state.isLoading && state.submittedReports.isEmpty && state.attendanceTrend.isEmpty) {
-            return const CenteredLoadingIndicator(height: 300);
+            return const ReportsSkeleton();
           }
 
           return RefreshIndicator(

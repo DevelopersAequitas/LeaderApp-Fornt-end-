@@ -14,7 +14,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/widgets.dart';
 import '../bloc/peers_bloc.dart';
 import '../bloc/peers_event.dart';
 import '../bloc/peers_state.dart';
@@ -25,6 +24,7 @@ import 'widgets/peer_card.dart';
 // import 'widgets/peer_role_management_section.dart';
 import 'widgets/peers_empty_state.dart';
 import 'widgets/peers_filter_bar.dart';
+import 'widgets/peers_shimmer_skeleton.dart';
 
 /// The View component of the Peers tab feature.
 /// Pure StatelessWidget powered 100% by BLoC state machine.
@@ -230,7 +230,7 @@ class _PeersContentState extends State<_PeersContent> {
       child: BlocBuilder<PeersBloc, PeersState>(
         builder: (context, state) {
           if (state.isLoading && state.allPeers.isEmpty) {
-            return const CenteredLoadingIndicator(height: 300);
+            return const PeersListSkeleton();
           }
 
           final filteredPeers = state.filteredPeers;

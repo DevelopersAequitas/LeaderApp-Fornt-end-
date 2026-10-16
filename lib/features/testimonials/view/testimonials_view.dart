@@ -64,7 +64,7 @@ class _TestimonialsContent extends StatelessWidget {
             body: SafeArea(
               top: false,
               child: state.isLoading && testimonials.isEmpty
-                  ? const CenteredLoadingIndicator(height: 300)
+                  ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
                         bloc.add(const LoadTestimonials());

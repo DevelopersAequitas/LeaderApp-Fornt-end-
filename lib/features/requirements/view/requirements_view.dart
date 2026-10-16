@@ -56,7 +56,7 @@ class _RequirementsContent extends StatelessWidget {
             body: SafeArea(
               top: false,
               child: state.isLoading && requirements.isEmpty
-                  ? const CenteredLoadingIndicator()
+                  ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
                         bloc.add(LoadRequirements(circleId: circleId));

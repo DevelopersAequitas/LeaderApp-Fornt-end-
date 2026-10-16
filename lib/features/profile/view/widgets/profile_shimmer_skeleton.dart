@@ -89,3 +89,5 @@ class ProfileSkeleton extends StatelessWidget {
     );
   }
 }
+
+typedef ProfileShimmerSkeleton = ProfileSkeleton;

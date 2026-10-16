@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../peers/model/peer_model.dart';
 import '../../../peers/view/widgets/peer_card.dart';
+import '../../../peers/view/widgets/peers_shimmer_skeleton.dart';
 
 /// Renders the unified shared PeerCard list for Circle Details with pagination support.
 class CirclePeersSection extends StatelessWidget {
@@ -25,12 +26,7 @@ class CirclePeersSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      );
+      return const PeersListSkeleton(itemCount: 4);
     }
 
     if (peers.isEmpty) {

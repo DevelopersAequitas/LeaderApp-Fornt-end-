@@ -89,7 +89,7 @@ class _ReferralsContent extends StatelessWidget {
                   ),
                   Expanded(
                     child: state.isLoading && allReferrals.isEmpty
-                        ? const CenteredLoadingIndicator(height: 300)
+                        ? const ListShimmerSkeleton()
                         : RefreshIndicator(
                             onRefresh: () async {
                               bloc.add(const LoadReferrals());

@@ -210,7 +210,7 @@ class _CircularsContent extends StatelessWidget {
                 child: BlocBuilder<CircularsBloc, CircularsState>(
                   builder: (context, state) {
                     if (state.isLoading) {
-                      return const CenteredLoadingIndicator();
+                      return const ListShimmerSkeleton();
                     }
 
                     if (state.filteredCirculars.isEmpty) {

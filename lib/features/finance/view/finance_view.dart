@@ -15,7 +15,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/widgets.dart';
 import '../bloc/finance_bloc.dart';
 import '../bloc/finance_event.dart';
 import '../bloc/finance_state.dart';
@@ -25,6 +24,7 @@ import 'widgets/finance_commission_rates.dart';
 import 'widgets/finance_commission_structure.dart';
 import 'widgets/finance_metrics_grid.dart';
 import 'widgets/finance_restricted_view.dart';
+import 'widgets/finance_shimmer_skeleton.dart';
 
 /// The View component of the Finance tab feature.
 /// Pure StatelessWidget powered 100% by BLoC state machine.
@@ -98,7 +98,7 @@ class _FinanceContent extends StatelessWidget {
       child: BlocBuilder<FinanceBloc, FinanceState>(
         builder: (context, state) {
           if (state.isLoading || state.permission == null) {
-            return const CenteredLoadingIndicator(height: 300);
+            return const FinanceSkeleton();
           }
 
           return RefreshIndicator(
