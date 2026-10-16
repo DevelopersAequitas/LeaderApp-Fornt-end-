@@ -4,9 +4,8 @@ import '../../../../core/widgets/widgets.dart';
 import '../../model/report_model.dart';
 import 'report_history_card.dart';
 import 'reports_history_filters.dart';
-import 'reports_trend_card.dart';
 
-/// Renders historical reports list, attendance trend spline, and multi-tier filters.
+/// Renders historical reports list and multi-tier filters.
 class ReportHistorySection extends StatelessWidget {
   final List<ReportModel> reports;
   final List<ReportsChartPoint> attendanceTrend;
@@ -74,8 +73,6 @@ class ReportHistorySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ReportsTrendCard(attendanceTrend: attendanceTrend),
-        const SizedBox(height: 4),
         ReportsHistoryFilters(
           filterType: filterType,
           filterStatus: filterStatus,

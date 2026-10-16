@@ -37,6 +37,9 @@ class ReportHistoryCardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showStatus = report.status.isNotEmpty &&
+        report.status.trim().toLowerCase().replaceAll(' ', '') != 'underreview';
+
     return Row(
       children: [
         Container(
@@ -54,22 +57,24 @@ class ReportHistoryCardHeader extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: _getStatusBg(report.status),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            report.status,
-            style: TextStyle(
-              color: _getStatusText(report.status),
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
+        if (showStatus) ...[
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: _getStatusBg(report.status),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              report.status,
+              style: TextStyle(
+                color: _getStatusText(report.status),
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-        ),
+        ],
         const Spacer(),
         Text(
           report.period ?? report.date,
@@ -80,51 +85,57 @@ class ReportHistoryCardHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        InkWell(
-          onTap: isDownloadingPdf ? null : onDownloadPdf,
-          borderRadius: BorderRadius.circular(6),
-          child: Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFBFDBFE)),
+        Tooltip(
+          message: 'Download PDF',
+          child: InkWell(
+            onTap: isDownloadingPdf ? null : onDownloadPdf,
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
+              ),
+              child: isDownloadingPdf
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(
+                      Icons.picture_as_pdf_rounded,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
             ),
-            child: isDownloadingPdf
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(
-                    Icons.picture_as_pdf_rounded,
-                    size: 14,
-                    color: AppColors.primary,
-                  ),
           ),
         ),
         const SizedBox(width: 4),
-        InkWell(
-          onTap: isExportingExcel ? null : onDownloadExcel,
-          borderRadius: BorderRadius.circular(6),
-          child: Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFA7F3D0)),
+        Tooltip(
+          message: 'Export CSV / Excel',
+          child: InkWell(
+            onTap: isExportingExcel ? null : onDownloadExcel,
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECFDF5),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFA7F3D0)),
+              ),
+              child: isExportingExcel
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(
+                      Icons.table_chart_rounded,
+                      size: 14,
+                      color: Color(0xFF16A34A),
+                    ),
             ),
-            child: isExportingExcel
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(
-                    Icons.table_chart_rounded,
-                    size: 14,
-                    color: Color(0xFF16A34A),
-                  ),
           ),
         ),
       ],

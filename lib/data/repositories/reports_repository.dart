@@ -95,6 +95,7 @@ class ReportsRepositoryImpl implements ReportsRepository {
       if (cachedList is List) {
         final cachedData = cachedList
             .map((item) => ReportModel.fromJson(Map<String, dynamic>.from(item as Map)))
+            .where((report) => !ReportModel.isDummyReport(report))
             .toList();
         return ApiResponse<List<ReportModel>>(
           success: true,

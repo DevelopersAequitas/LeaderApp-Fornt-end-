@@ -90,7 +90,7 @@ class _ReportDetailsViewState extends State<ReportDetailsView> {
                   onPressed: () => _onDownloadPdf(activeReport),
                 ),
                 IconButton(
-                  tooltip: 'Export Excel',
+                  tooltip: 'Export CSV / Excel',
                   icon: const Icon(
                     Icons.table_chart_rounded,
                     color: Color(0xFF16A34A),

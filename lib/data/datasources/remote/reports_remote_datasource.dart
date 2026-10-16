@@ -60,6 +60,7 @@ class ReportsRemoteDataSource {
       return list
           .whereType<Map>()
           .map((item) => ReportModel.fromJson(Map<String, dynamic>.from(item)))
+          .where((report) => !ReportModel.isDummyReport(report))
           .toList();
     }
     return <ReportModel>[];

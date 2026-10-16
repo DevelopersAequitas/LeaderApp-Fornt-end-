@@ -129,7 +129,9 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         circleId: resolvedCircleId.isNotEmpty ? resolvedCircleId : null,
       );
 
-      final reportsList = reportsResponse.data ?? const <ReportModel>[];
+      final reportsList = (reportsResponse.data ?? const <ReportModel>[])
+          .where((r) => !ReportModel.isDummyReport(r))
+          .toList();
       List<ReportsChartPoint> trendList = trendResponse.data ?? const <ReportsChartPoint>[];
 
       // If remote attendance trend is empty, derive live points from submitted reports
@@ -189,9 +191,12 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         reportType: event.reportType,
         status: state.filterStatus,
       );
+      final list = (res.data ?? const <ReportModel>[])
+          .where((r) => !ReportModel.isDummyReport(r))
+          .toList();
       emit(state.copyWith(
         isLoading: false,
-        submittedReports: res.data ?? const [],
+        submittedReports: list,
       ));
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
@@ -209,9 +214,12 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         reportType: state.filterType,
         status: event.status,
       );
+      final list = (res.data ?? const <ReportModel>[])
+          .where((r) => !ReportModel.isDummyReport(r))
+          .toList();
       emit(state.copyWith(
         isLoading: false,
-        submittedReports: res.data ?? const [],
+        submittedReports: list,
       ));
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
@@ -390,6 +398,7 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
           content: state.reportContent,
           author: '${session.name} · ${state.circleName}',
           authorRole: session.role.label,
+          authorAvatarUrl: session.avatarUrl ?? session.profilePhotoUrl,
           attendancePercentage: state.attendancePercentage,
           dealsClosedValue: state.dealsClosedValue.isNotEmpty ? state.dealsClosedValue : null,
           totalRevenue: state.totalRevenue.isNotEmpty ? state.totalRevenue : null,

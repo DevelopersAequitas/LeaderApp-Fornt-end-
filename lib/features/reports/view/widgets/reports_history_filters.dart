@@ -75,7 +75,7 @@ class ReportsHistoryFilters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const typeFilters = ['all', 'Monthly', 'Weekly', 'Quarterly', 'Annual'];
-    const statusFilters = ['all', 'Approved', 'Under Review', 'Draft'];
+    const statusFilters = ['all', 'Approved', 'Draft'];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/initials_avatar.dart';
 import '../../model/report_model.dart';
 import '../report_details_view.dart';
 import '../services/report_export_service.dart';
@@ -68,7 +69,26 @@ class _ReportHistoryCardState extends State<ReportHistoryCard> {
               onDownloadExcel: _handleExcel,
             ),
             const SizedBox(height: 8),
-            Text('By: $by · ${r.authorRole}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+            Row(
+              children: [
+                InitialsAvatar(
+                  name: by,
+                  imageUrl: r.authorAvatarUrl,
+                  radius: 9,
+                  fontSize: 7.5,
+                  backgroundColor: AppColors.primary,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'By: $by · ${r.authorRole}',
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
             if (r.attendancePercentage != null || (r.dealsClosedValue?.isNotEmpty == true)) ...[
               const SizedBox(height: 6),
               Wrap(

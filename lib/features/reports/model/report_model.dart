@@ -204,6 +204,7 @@ class ReportModel {
   final String content;
   final String author;
   final String authorRole;
+  final String? authorAvatarUrl;
   final double? attendancePercentage;
   final String? dealsClosedValue;
   final String? totalRevenue;
@@ -228,6 +229,7 @@ class ReportModel {
     required this.content,
     required this.author,
     this.authorRole = 'Circle Leadership',
+    this.authorAvatarUrl,
     this.attendancePercentage,
     this.dealsClosedValue,
     this.totalRevenue,
@@ -237,6 +239,45 @@ class ReportModel {
     this.includedSections = const [],
     this.peersRoster = const [],
   });
+
+  /// Identifies seeded/dummy peer records like Siddharth Verma & Pooja Sharma.
+  static bool isDummyPeer(String name, [String? peerId]) {
+    final lower = name.trim().toLowerCase();
+    if (lower == 'siddharth verma' ||
+        lower == 'sidhdharth verma' ||
+        lower == 'pooja sharma' ||
+        lower.contains('siddharth verma') ||
+        lower.contains('sidhdharth verma') ||
+        lower.contains('pooja sharma')) {
+      return true;
+    }
+    if (peerId != null && peerId.isNotEmpty) {
+      final pid = peerId.trim().toLowerCase();
+      if (pid == '76265b49-4e41-406e-bb8c-7182d5f6536c' ||
+          pid == 'a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Identifies mock/dummy reports like rep_101.
+  static bool isDummyReport(ReportModel report) {
+    final idLower = report.id.trim().toLowerCase();
+    if (idLower == 'rep_101' || idLower.startsWith('dummy') || idLower.startsWith('mock')) {
+      return true;
+    }
+    final contentLower = report.content.trim().toLowerCase();
+    if (contentLower.contains('strong monthly participation with 4 new peer referrals closed') &&
+        (report.author.toLowerCase().contains('arjun patel') || idLower == 'rep_101')) {
+      return true;
+    }
+    if (report.peersRoster.isNotEmpty &&
+        report.peersRoster.every((p) => isDummyPeer(p.name, p.peerId))) {
+      return true;
+    }
+    return false;
+  }
 
   String get formattedAttendance {
     if (attendancePercentage == null) return '-';
@@ -252,7 +293,10 @@ class ReportModel {
     if (rawPeers is List) {
       for (final p in rawPeers) {
         if (p is Map) {
-          peersList.add(ReportPeerRosterItem.fromJson(Map<String, dynamic>.from(p)));
+          final item = ReportPeerRosterItem.fromJson(Map<String, dynamic>.from(p));
+          if (!isDummyPeer(item.name, item.peerId)) {
+            peersList.add(item);
+          }
         }
       }
     }
@@ -277,6 +321,14 @@ class ReportModel {
       parsedAttendance = double.tryParse(rawAtt.toString().replaceAll('%', '').trim());
     }
 
+    final authorAvatar = json['submitter_avatar_url'] as String? ??
+        json['author_avatar_url'] as String? ??
+        json['submitter_avatar'] as String? ??
+        json['author_avatar'] as String? ??
+        json['submitter_photo_url'] as String? ??
+        json['profile_photo_url'] as String? ??
+        json['avatar_url'] as String?;
+
     return ReportModel(
       id: json['id']?.toString() ?? json['report_id']?.toString() ?? '',
       type: json['report_type'] as String? ?? json['type'] as String? ?? 'Monthly',
@@ -292,6 +344,7 @@ class ReportModel {
       content: json['summary_text'] as String? ?? json['content'] as String? ?? '',
       author: json['submitted_by'] as String? ?? json['author'] as String? ?? '',
       authorRole: json['submitter_role'] as String? ?? json['author_role'] as String? ?? 'Circle Leadership',
+      authorAvatarUrl: authorAvatar,
       attendancePercentage: parsedAttendance,
       dealsClosedValue: json['deals_closed_value']?.toString() ?? json['deals_closed']?.toString(),
       totalRevenue: json['total_revenue']?.toString(),
@@ -317,6 +370,7 @@ class ReportModel {
         'summary_text': content,
         'submitted_by': author,
         'submitter_role': authorRole,
+        'submitter_avatar_url': authorAvatarUrl,
         'attendance_percentage': attendancePercentage,
         'deals_closed_value': dealsClosedValue,
         'total_revenue': totalRevenue,
@@ -342,6 +396,7 @@ class ReportModel {
     String? content,
     String? author,
     String? authorRole,
+    String? authorAvatarUrl,
     double? attendancePercentage,
     String? dealsClosedValue,
     String? totalRevenue,
@@ -366,6 +421,7 @@ class ReportModel {
       content: content ?? this.content,
       author: author ?? this.author,
       authorRole: authorRole ?? this.authorRole,
+      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
       attendancePercentage: attendancePercentage ?? this.attendancePercentage,
       dealsClosedValue: dealsClosedValue ?? this.dealsClosedValue,
       totalRevenue: totalRevenue ?? this.totalRevenue,
@@ -400,7 +456,7 @@ class ReportSubmitResponse {
     }
     return ReportSubmitResponse(
       reportId: json['report_id']?.toString() ?? json['id']?.toString() ?? '',
-      status: json['status'] as String? ?? 'Under Review',
+      status: json['status'] as String? ?? 'Submitted',
       visibleToRoles: roles,
     );
   }
