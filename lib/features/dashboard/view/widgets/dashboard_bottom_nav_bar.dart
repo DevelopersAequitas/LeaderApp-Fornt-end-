@@ -24,20 +24,26 @@ class DashboardBottomNavBar extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: () => onTabSelected(index),
+        borderRadius: BorderRadius.circular(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            isSelected
-                ? GradientIcon(
-                    icon: activeIcon,
-                    size: 22,
-                    gradient: AppColors.brandGradient,
-                  )
-                : Icon(
-                    inactiveIcon,
-                    size: 22,
-                    color: const Color(0xFF64748B),
-                  ),
+            AnimatedScale(
+              scale: isSelected ? 1.08 : 1.0,
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.fastOutSlowIn,
+              child: isSelected
+                  ? GradientIcon(
+                      icon: activeIcon,
+                      size: 22,
+                      gradient: AppColors.brandGradient,
+                    )
+                  : Icon(
+                      inactiveIcon,
+                      size: 22,
+                      color: const Color(0xFF64748B),
+                    ),
+            ),
             const SizedBox(height: 4),
             isSelected
                 ? GradientText(
@@ -45,7 +51,7 @@ class DashboardBottomNavBar extends StatelessWidget {
                     gradient: AppColors.brandGradient,
                     style: const TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   )
                 : Text(
@@ -67,9 +73,7 @@ class DashboardBottomNavBar extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.border, width: 1.0),
-        ),
+        border: Border(top: BorderSide(color: AppColors.border, width: 1.0)),
       ),
       child: SafeArea(
         top: false,

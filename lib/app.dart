@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'core/routes/app_page_route.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_colors.dart';
 
@@ -33,6 +34,15 @@ class App extends StatelessWidget {
           primary: AppColors.primary,
           surface: AppColors.cardBg,
           brightness: Brightness.light,
+        ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: SmoothPageTransitionsBuilder(),
+            TargetPlatform.iOS: SmoothPageTransitionsBuilder(),
+            TargetPlatform.windows: SmoothPageTransitionsBuilder(),
+            TargetPlatform.macOS: SmoothPageTransitionsBuilder(),
+            TargetPlatform.linux: SmoothPageTransitionsBuilder(),
+          },
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.cardBg,

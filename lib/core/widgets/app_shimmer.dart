@@ -40,6 +40,7 @@ class _AppShimmerState extends State<AppShimmer>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
+      child: widget.child,
       builder: (context, child) {
         return ShaderMask(
           blendMode: BlendMode.srcATop,
@@ -60,7 +61,7 @@ class _AppShimmerState extends State<AppShimmer>
               transform: _SlidingGradientTransform(slidePercent: dx / width),
             ).createShader(bounds);
           },
-          child: widget.child,
+          child: child,
         );
       },
     );
@@ -195,4 +196,3 @@ class CardShimmerSkeleton extends StatelessWidget {
     );
   }
 }
-

@@ -42,8 +42,7 @@ class DashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<DashboardBloc>(
-      create: (context) =>
-          DashboardBloc()..add(const LoadDashboardData()),
+      create: (context) => DashboardBloc()..add(const LoadDashboardData()),
       child: const _DashboardContent(),
     );
   }
@@ -94,8 +93,7 @@ class _DashboardContentState extends State<_DashboardContent> {
         DashboardHeroCard(
           metrics: metrics,
           selectedCircle: selectedCircle,
-          onImpactTap: () =>
-              Navigator.of(context).pushNamed(AppRoutes.impacts),
+          onImpactTap: () => Navigator.of(context).pushNamed(AppRoutes.impacts),
           onDealsTap: () =>
               Navigator.of(context).pushNamed(AppRoutes.businessDeals),
           onP2PTap: () =>
@@ -132,7 +130,8 @@ class _DashboardContentState extends State<_DashboardContent> {
 
     return BlocListener<DashboardBloc, DashboardState>(
       listenWhen: (prev, curr) =>
-          prev.errorMessage != curr.errorMessage || prev.activeTab != curr.activeTab,
+          prev.errorMessage != curr.errorMessage ||
+          prev.activeTab != curr.activeTab,
       listener: (context, state) {
         if (state.errorMessage.isNotEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -144,7 +143,11 @@ class _DashboardContentState extends State<_DashboardContent> {
         }
         if (_pageController.hasClients &&
             _pageController.page?.round() != state.activeTab) {
-          _pageController.jumpToPage(state.activeTab);
+          _pageController.animateToPage(
+            state.activeTab,
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.fastOutSlowIn,
+          );
         }
       },
       child: BlocBuilder<DashboardBloc, DashboardState>(
@@ -154,7 +157,8 @@ class _DashboardContentState extends State<_DashboardContent> {
             onPopInvokedWithResult: (didPop, _) {
               if (didPop) return;
               final now = DateTime.now();
-              final isSecondPress = _lastBackPress != null &&
+              final isSecondPress =
+                  _lastBackPress != null &&
                   now.difference(_lastBackPress!) < const Duration(seconds: 2);
               if (isSecondPress) {
                 SystemNavigator.pop();
@@ -196,7 +200,9 @@ class _DashboardContentState extends State<_DashboardContent> {
                         _KeepAlivePage(
                           child: RefreshIndicator(
                             onRefresh: () async {
-                              bloc.add(const LoadDashboardData(isRefresh: true));
+                              bloc.add(
+                                const LoadDashboardData(isRefresh: true),
+                              );
                             },
                             child: SingleChildScrollView(
                               physics: const AlwaysScrollableScrollPhysics(),
@@ -211,16 +217,24 @@ class _DashboardContentState extends State<_DashboardContent> {
                           ),
                         ),
                         _KeepAlivePage(
-                          child: PeersView(selectedCircle: state.selectedCircle),
+                          child: PeersView(
+                            selectedCircle: state.selectedCircle,
+                          ),
                         ),
                         _KeepAlivePage(
-                          child: TeamsView(selectedCircle: state.selectedCircle),
+                          child: TeamsView(
+                            selectedCircle: state.selectedCircle,
+                          ),
                         ),
                         _KeepAlivePage(
-                          child: FinanceView(selectedCircle: state.selectedCircle),
+                          child: FinanceView(
+                            selectedCircle: state.selectedCircle,
+                          ),
                         ),
                         _KeepAlivePage(
-                          child: ReportsView(selectedCircle: state.selectedCircle),
+                          child: ReportsView(
+                            selectedCircle: state.selectedCircle,
+                          ),
                         ),
                       ],
                     ),
@@ -231,8 +245,13 @@ class _DashboardContentState extends State<_DashboardContent> {
                 activeTab: state.activeTab,
                 onTabSelected: (idx) {
                   bloc.add(TabChanged(idx));
-                  if (_pageController.hasClients) {
-                    _pageController.jumpToPage(idx);
+                  if (_pageController.hasClients &&
+                      _pageController.page?.round() != idx) {
+                    _pageController.animateToPage(
+                      idx,
+                      duration: const Duration(milliseconds: 240),
+                      curve: Curves.fastOutSlowIn,
+                    );
                   }
                 },
               ),

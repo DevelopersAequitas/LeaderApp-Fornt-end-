@@ -31,7 +31,13 @@ class InitialsAvatar extends StatelessWidget {
     final cleanName = name.trim();
     final initials = cleanName.isEmpty
         ? '?'
-        : cleanName.split(' ').where((w) => w.isNotEmpty).map((w) => w[0]).take(2).join().toUpperCase();
+        : cleanName
+              .split(' ')
+              .where((w) => w.isNotEmpty)
+              .map((w) => w[0])
+              .take(2)
+              .join()
+              .toUpperCase();
 
     final textWidget = Text(
       initials,
@@ -44,11 +50,15 @@ class InitialsAvatar extends StatelessWidget {
 
     String? resolvedUrl = imageUrl?.trim();
     if (resolvedUrl != null && resolvedUrl.isNotEmpty) {
-      if (!resolvedUrl.startsWith('http://') && !resolvedUrl.startsWith('https://')) {
+      if (!resolvedUrl.startsWith('http://') &&
+          !resolvedUrl.startsWith('https://')) {
         final host = ApiEndpoints.baseUrl.replaceFirst('/api/v1', '');
-        resolvedUrl = resolvedUrl.startsWith('/') ? '$host$resolvedUrl' : '$host/$resolvedUrl';
+        resolvedUrl = resolvedUrl.startsWith('/')
+            ? '$host$resolvedUrl'
+            : '$host/$resolvedUrl';
       }
-      if (resolvedUrl.startsWith('http://') && resolvedUrl.contains('peersunity.com')) {
+      if (resolvedUrl.startsWith('http://') &&
+          resolvedUrl.contains('peersunity.com')) {
         resolvedUrl = resolvedUrl.replaceFirst('http://', 'https://');
       }
       if (resolvedUrl.contains(' ')) {
@@ -56,11 +66,18 @@ class InitialsAvatar extends StatelessWidget {
       }
     }
 
-    final hasValidImage = resolvedUrl != null &&
+    final hasValidImage =
+        resolvedUrl != null &&
         resolvedUrl.isNotEmpty &&
-        (resolvedUrl.startsWith('http://') || resolvedUrl.startsWith('https://'));
+        (resolvedUrl.startsWith('http://') ||
+            resolvedUrl.startsWith('https://'));
 
     if (hasValidImage) {
+      final pixelSize =
+          (radius * 2 * (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2.0))
+              .toInt()
+              .clamp(48, 256);
+
       return Container(
         width: radius * 2,
         height: radius * 2,
@@ -74,6 +91,8 @@ class InitialsAvatar extends StatelessWidget {
             resolvedUrl,
             width: radius * 2,
             height: radius * 2,
+            cacheWidth: pixelSize,
+            cacheHeight: pixelSize,
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => Container(
               color: backgroundColor ?? AppColors.primary,

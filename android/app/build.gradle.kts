@@ -8,7 +8,7 @@ plugins {
 }
 
 val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
+val keystorePropertiesFile = if (rootProject.file("key.properties").exists()) rootProject.file("key.properties") else file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
@@ -33,7 +33,8 @@ android {
             if (storeFileProp != null) {
                 keyAlias = keyAliasProp
                 keyPassword = keyPasswordProp
-                storeFile = file(storeFileProp)
+                val keystoreFile = file(storeFileProp)
+                storeFile = if (keystoreFile.exists()) keystoreFile else rootProject.file(storeFileProp)
                 storePassword = storePasswordProp
             }
         }

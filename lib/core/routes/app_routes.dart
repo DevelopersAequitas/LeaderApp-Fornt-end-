@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_page_route.dart';
 import '../../features/splash/view/splash_view.dart';
 import '../../features/login/view/login_view.dart';
 import '../../features/otp/view/otp_view.dart';
@@ -96,19 +97,18 @@ abstract class AppRoutes {
   /// Route generator to handle app navigation transitions.
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
-
       case splash:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const SplashView(),
           settings: settings,
         );
       case login:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const LoginView(),
           settings: settings,
         );
       case home:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const DashboardView(),
           settings: settings,
         );
@@ -122,7 +122,7 @@ abstract class AppRoutes {
         } else if (settings.arguments is String) {
           sort = settings.arguments as String;
         }
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => Scaffold(
             appBar: AppBar(
               title: Text(
@@ -136,21 +136,18 @@ abstract class AppRoutes {
               backgroundColor: const Color(0xFF102640),
               iconTheme: const IconThemeData(color: Colors.white),
             ),
-            body: PeersView(
-              selectedCircle: circle,
-              initialSort: sort,
-            ),
+            body: PeersView(selectedCircle: circle, initialSort: sort),
           ),
           settings: settings,
         );
       case otp:
         final emailOrPhone = settings.arguments as String? ?? '';
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => OtpView(emailOrPhone: emailOrPhone),
           settings: settings,
         );
       case profile:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const ProfileView(),
           settings: settings,
         );
@@ -206,67 +203,67 @@ abstract class AppRoutes {
             status: 'Active',
           );
         }
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => PeerProfileView(peer: peer),
           settings: settings,
         );
       case testimonials:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const TestimonialsView(),
           settings: settings,
         );
       case referrals:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const ReferralsView(),
           settings: settings,
         );
       case peersByCoins:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const PeersByCoinsView(),
           settings: settings,
         );
       case impacts:
         final circleId = settings.arguments as String?;
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => ImpactsView(circleId: circleId),
           settings: settings,
         );
       case p2pMeetings:
         final circleId = settings.arguments as String?;
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => P2PMeetingsView(circleId: circleId),
           settings: settings,
         );
       case businessDeals:
         final circleId = settings.arguments as String?;
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => BusinessDealsView(circleId: circleId),
           settings: settings,
         );
       case requirements:
         final circleId = settings.arguments as String?;
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => RequirementsView(circleId: circleId),
           settings: settings,
         );
       case circleDetails:
         final circle = settings.arguments as CircleTeamModel;
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => CircleDetailsView(circle: circle),
           settings: settings,
         );
       case roleManagement:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const RoleManagementView(),
           settings: settings,
         );
       case circulars:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const CircularsView(),
           settings: settings,
         );
       case maintenance:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => const MaintenanceView(),
           settings: settings,
         );
@@ -277,7 +274,8 @@ abstract class AppRoutes {
           peerModel = settings.arguments as PeerModel;
         } else if (settings.arguments is Map) {
           final map = settings.arguments as Map;
-          peerModel = map['peer'] as PeerModel? ??
+          peerModel =
+              map['peer'] as PeerModel? ??
               const PeerModel(
                 initials: '',
                 name: 'Peer',
@@ -307,21 +305,19 @@ abstract class AppRoutes {
             status: 'Active',
           );
         }
-        return MaterialPageRoute(
-          builder: (_) => PeerCollaborationScreen(
-            peer: peerModel,
-            details: detailModel,
-          ),
+        return AppPageRoute(
+          builder: (_) =>
+              PeerCollaborationScreen(peer: peerModel, details: detailModel),
           settings: settings,
         );
       case reportDetails:
         final report = settings.arguments as ReportModel;
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => ReportDetailsView(report: report),
           settings: settings,
         );
       default:
-        return MaterialPageRoute(
+        return AppPageRoute(
           builder: (_) => Scaffold(
             body: Center(child: Text('No route defined for ${settings.name}')),
           ),
