@@ -9,6 +9,8 @@ class PeerProfileState {
   final PeerProfileDetailModel? details;
   final int activeSubTab; // 0: Overview, 1: Activity, 2: Testimonials
   final String errorMessage;
+  final bool isDeleting;
+  final String successMessage;
 
   const PeerProfileState({
     this.isLoading = false,
@@ -16,6 +18,8 @@ class PeerProfileState {
     this.details,
     this.activeSubTab = 0,
     this.errorMessage = '',
+    this.isDeleting = false,
+    this.successMessage = '',
   });
 
   PeerProfileState copyWith({
@@ -24,6 +28,8 @@ class PeerProfileState {
     PeerProfileDetailModel? details,
     int? activeSubTab,
     String? errorMessage,
+    bool? isDeleting,
+    String? successMessage,
   }) {
     return PeerProfileState(
       isLoading: isLoading ?? this.isLoading,
@@ -31,6 +37,8 @@ class PeerProfileState {
       details: details ?? this.details,
       activeSubTab: activeSubTab ?? this.activeSubTab,
       errorMessage: errorMessage ?? this.errorMessage,
+      isDeleting: isDeleting ?? this.isDeleting,
+      successMessage: successMessage ?? this.successMessage,
     );
   }
 }

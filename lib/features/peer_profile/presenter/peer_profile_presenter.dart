@@ -26,6 +26,14 @@ class PeerProfilePresenter {
     bloc.add(ChangeProfileSubTab(index));
   }
 
+  void deletePost(String memberId, String postId) {
+    bloc.add(DeletePeerPost(memberId: memberId, postId: postId));
+  }
+
+  void deleteCreative(String memberId, String creativeId) {
+    bloc.add(DeletePeerCreative(memberId: memberId, creativeId: creativeId));
+  }
+
   void handleStateChange(PeerProfileState state) {
     view.onSubTabChanged(state.activeSubTab);
 

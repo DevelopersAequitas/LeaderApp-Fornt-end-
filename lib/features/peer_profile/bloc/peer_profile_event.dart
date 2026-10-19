@@ -17,3 +17,26 @@ class ChangeProfileSubTab extends PeerProfileEvent {
   final int index;
   const ChangeProfileSubTab(this.index);
 }
+
+/// Dispatched to delete a member post.
+class DeletePeerPost extends PeerProfileEvent {
+  final String memberId;
+  final String postId;
+
+  const DeletePeerPost({
+    required this.memberId,
+    required this.postId,
+  });
+}
+
+/// Dispatched to delete a member creative.
+class DeletePeerCreative extends PeerProfileEvent {
+  final String memberId;
+  final String creativeId;
+
+  const DeletePeerCreative({
+    required this.memberId,
+    required this.creativeId,
+  });
+}
+

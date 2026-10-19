@@ -17,6 +17,9 @@ import '../peer_collaboration_screen.dart';
 import '../peer_help_screen.dart';
 import '../peer_referral_screen.dart';
 import 'peer_post_card.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../bloc/peer_profile_bloc.dart';
+import '../../bloc/peer_profile_event.dart';
 
 /// Renders the rich Overview tab for Peer Profile:
 /// - Intro video player
@@ -1211,9 +1214,6 @@ class PeerProfileOverviewSection extends StatelessWidget {
   // --- 8. User Posts & Creatives Section ---
   Widget _buildUserPostsSection(BuildContext context) {
     final posts = details.posts;
-    if (posts.isEmpty) {
-      return const SizedBox.shrink();
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1228,27 +1228,135 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 'Posts & Creatives (${posts.length})',
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   color: Color(0xFF1E293B),
                 ),
               ),
             ],
           ),
         ),
-        ...posts.map((post) {
-          final peerCat = (peer.level4Category != null && peer.level4Category!.isNotEmpty)
-              ? peer.level4Category!
-              : peer.circle;
-          return PeerPostCard(
-            post: post,
-            peerName: peer.name,
-            peerAvatarUrl: peer.avatarUrl,
-            peerDesignation: peer.designation,
-            peerCompany: peer.company,
-            peerCategory: peerCat,
-          );
-        }),
+        if (posts.isEmpty)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Center(
+              child: Text(
+                'No posts or creatives available',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade500,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+          )
+        else
+          ...posts.map((post) {
+            final peerCat = (peer.level4Category != null && peer.level4Category!.isNotEmpty)
+                ? peer.level4Category!
+                : peer.circle;
+
+            return PeerPostCard(
+              post: post,
+              peerName: peer.name,
+              peerAvatarUrl: peer.avatarUrl,
+              peerDesignation: peer.designation,
+              peerCompany: peer.company,
+              peerCategory: peerCat,
+              onDelete: () => _confirmDelete(context, post),
+            );
+          }),
       ],
+    );
+  }
+
+  void _confirmDelete(BuildContext context, PeerPostModel post) {
+    final memberId = peer.id.trim();
+    if (memberId.isEmpty || post.id.isEmpty) return;
+
+    final isCreative = post.isCreative;
+    final itemType = isCreative ? 'creative' : 'post';
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.danger.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_outline,
+                color: AppColors.danger,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Delete ${isCreative ? 'Creative' : 'Post'}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete this $itemType? This action cannot be undone.',
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFF64748B),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              final bloc = context.read<PeerProfileBloc>();
+              if (isCreative) {
+                bloc.add(DeletePeerCreative(memberId: memberId, creativeId: post.id));
+              } else {
+                bloc.add(DeletePeerPost(memberId: memberId, postId: post.id));
+              }
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

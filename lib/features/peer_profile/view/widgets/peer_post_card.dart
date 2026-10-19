@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../model/peer_profile_model.dart';
 
-/// Card widget rendering a user post matching the feed design layout.
+/// Card widget rendering a user post / creative matching the feed design layout.
 class PeerPostCard extends StatelessWidget {
   final PeerPostModel post;
   final String? peerName;
@@ -60,26 +60,55 @@ class PeerPostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Top Header (Date & Actions)
+          // 1. Top Header (Date, Badge & Single Delete Action)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 12, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  post.createdAt.isNotEmpty ? post.createdAt : 'Recent',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w400,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      post.createdAt.isNotEmpty ? post.createdAt : 'Recent',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    if (post.isCreative) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Creative',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (onDelete != null)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: AppColors.danger,
+                      size: 20,
+                    ),
+                    tooltip: 'Delete',
+                    onPressed: onDelete,
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.more_horiz, color: Colors.grey.shade600, size: 20),
-                  onPressed: onDelete,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
               ],
             ),
           ),
@@ -102,7 +131,7 @@ class PeerPostCard extends StatelessWidget {
                           displayName.isNotEmpty ? displayName[0] : 'P',
                           style: const TextStyle(
                             color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             fontSize: 16,
                           ),
                         )
@@ -123,7 +152,7 @@ class PeerPostCard extends StatelessWidget {
                               displayName,
                               style: const TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w500,
                                 color: Color(0xFF1E293B),
                                 letterSpacing: 0.3,
                               ),
@@ -143,7 +172,7 @@ class PeerPostCard extends StatelessWidget {
                               'Verified',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                                 color: Color(0xFF9333EA),
                               ),
                             ),
@@ -172,7 +201,7 @@ class PeerPostCard extends StatelessWidget {
                           displayCategory,
                           style: const TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             color: Color(0xFF7C3AED),
                           ),
                           maxLines: 1,
@@ -211,7 +240,7 @@ class PeerPostCard extends StatelessWidget {
                 post.title,
                 style: const TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: Color(0xFF475569),
                 ),
               ),
@@ -348,7 +377,7 @@ class PeerPostCard extends StatelessWidget {
                       'Liked by ($displayCount)',
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                         color: Color(0xFF1E293B),
                       ),
                     ),
@@ -409,7 +438,7 @@ class PeerPostCard extends StatelessWidget {
                                           name.isNotEmpty ? name[0].toUpperCase() : 'P',
                                           style: const TextStyle(
                                             color: AppColors.primary,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w500,
                                             fontSize: 14,
                                           ),
                                         )
@@ -424,7 +453,7 @@ class PeerPostCard extends StatelessWidget {
                                         name,
                                         style: const TextStyle(
                                           fontSize: 14,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w500,
                                           color: Color(0xFF1E293B),
                                         ),
                                       ),
@@ -497,7 +526,7 @@ class PeerPostCard extends StatelessWidget {
                       'Comments ($displayCount)',
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                         color: Color(0xFF1E293B),
                       ),
                     ),
@@ -566,7 +595,7 @@ class PeerPostCard extends StatelessWidget {
                                               name.isNotEmpty ? name[0].toUpperCase() : 'P',
                                               style: const TextStyle(
                                                 color: AppColors.primary,
-                                                fontWeight: FontWeight.bold,
+                                                fontWeight: FontWeight.w500,
                                                 fontSize: 12,
                                               ),
                                             )
@@ -581,7 +610,7 @@ class PeerPostCard extends StatelessWidget {
                                             name,
                                             style: const TextStyle(
                                               fontSize: 13,
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight: FontWeight.w500,
                                               color: Color(0xFF1E293B),
                                             ),
                                           ),

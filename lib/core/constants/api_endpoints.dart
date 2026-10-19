@@ -127,6 +127,12 @@ abstract class ApiEndpoints {
       '$baseUrl/leader/members/$memberId/referrals';
   static String memberPosts(String memberId) =>
       '$baseUrl/leader/members/$memberId/posts';
+  static String memberPost(String memberId, String postId) =>
+      '$baseUrl/leader/members/$memberId/posts/$postId';
+  static String memberCreatives(String memberId) =>
+      '$baseUrl/leader/members/$memberId/creatives';
+  static String memberCreative(String memberId, String creativeId) =>
+      '$baseUrl/leader/members/$memberId/creatives/$creativeId';
 
   // --- 7c. Leader Collaboration Asks ---
   static String get leaderCollaborationMy =>

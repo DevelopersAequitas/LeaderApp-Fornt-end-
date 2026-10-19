@@ -1118,6 +1118,7 @@ class PeerPostModel {
   final int commentsCount;
   final bool isLiked;
   final bool canDelete;
+  final bool isCreative;
   final List<PeerPostLikeModel> likes;
   final List<PeerPostCommentModel> comments;
 
@@ -1143,6 +1144,7 @@ class PeerPostModel {
     this.commentsCount = 0,
     this.isLiked = false,
     this.canDelete = false,
+    this.isCreative = false,
     this.likes = const [],
     this.comments = const [],
   });
@@ -1262,6 +1264,12 @@ class PeerPostModel {
       }
     }
 
+    final bool isCreative = (json['is_creative'] == true) ||
+        (json['creative_id'] != null) ||
+        postType.toLowerCase().contains('creative') ||
+        (json['type']?.toString().toLowerCase().contains('creative') ?? false) ||
+        (json['resource_type']?.toString().toLowerCase() == 'creative');
+
     return PeerPostModel(
       id: id,
       authorName: authorName,
@@ -1277,6 +1285,7 @@ class PeerPostModel {
       likesCount: likesCount,
       commentsCount: commentsCount,
       isLiked: isLiked,
+      isCreative: isCreative,
       likes: likesList,
       comments: commentsList,
     );

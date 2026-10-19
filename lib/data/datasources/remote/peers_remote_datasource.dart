@@ -456,6 +456,55 @@ class PeersRemoteDataSource {
     );
   }
 
+  /// 2.4b Get Member Creatives (GET /leader/members/{member_id}/creatives)
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberCreatives(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _apiClient.get<List<Map<String, dynamic>>>(
+      ApiEndpoints.memberCreatives(memberId),
+      queryParameters: {
+        'page': page.toString(),
+        'limit': limit.toString(),
+      },
+      fromJsonT: (json) {
+        if (json is List) {
+          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        }
+        if (json is Map) {
+          final list = json['data'] ?? json['creatives'] ?? json['items'];
+          if (list is List) {
+            return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          }
+        }
+        return [];
+      },
+    );
+  }
+
+  /// 2.5 Delete Member Post (DELETE /leader/members/{member_id}/posts/{post_id})
+  Future<ApiResponse<Map<String, dynamic>>> deleteMemberPost(
+    String memberId,
+    String postId,
+  ) async {
+    return _apiClient.delete<Map<String, dynamic>>(
+      ApiEndpoints.memberPost(memberId, postId),
+      fromJsonT: (json) => json is Map<String, dynamic> ? json : {},
+    );
+  }
+
+  /// 2.6 Delete Member Creative (DELETE /leader/members/{member_id}/creatives/{creative_id})
+  Future<ApiResponse<Map<String, dynamic>>> deleteMemberCreative(
+    String memberId,
+    String creativeId,
+  ) async {
+    return _apiClient.delete<Map<String, dynamic>>(
+      ApiEndpoints.memberCreative(memberId, creativeId),
+      fromJsonT: (json) => json is Map<String, dynamic> ? json : {},
+    );
+  }
+
   /// 3.1 Get Platform Leaderboard by Coins (GET /leader/peers-by-coins)
   Future<ApiResponse<Map<String, dynamic>>> getPeersByCoins({int limit = 20}) async {
     return _apiClient.get<Map<String, dynamic>>(

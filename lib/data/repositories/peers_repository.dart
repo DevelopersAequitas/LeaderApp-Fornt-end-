@@ -68,6 +68,19 @@ abstract class PeersRepository {
     int page = 1,
     int limit = 20,
   });
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberCreatives(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+  });
+  Future<ApiResponse<Map<String, dynamic>>> deleteMemberPost(
+    String memberId,
+    String postId,
+  );
+  Future<ApiResponse<Map<String, dynamic>>> deleteMemberCreative(
+    String memberId,
+    String creativeId,
+  );
   Future<ApiResponse<Map<String, dynamic>>> getPeersByCoins({int limit = 20});
   Future<ApiResponse<List<Map<String, dynamic>>>> getMemberCoins(
     String memberId, {
@@ -425,6 +438,35 @@ class PeersRepositoryImpl implements PeersRepository {
       page: page,
       limit: limit,
     );
+  }
+
+  @override
+  Future<ApiResponse<List<Map<String, dynamic>>>> getMemberCreatives(
+    String memberId, {
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return _remoteDataSource.getMemberCreatives(
+      memberId,
+      page: page,
+      limit: limit,
+    );
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> deleteMemberPost(
+    String memberId,
+    String postId,
+  ) async {
+    return _remoteDataSource.deleteMemberPost(memberId, postId);
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> deleteMemberCreative(
+    String memberId,
+    String creativeId,
+  ) async {
+    return _remoteDataSource.deleteMemberCreative(memberId, creativeId);
   }
 
   @override

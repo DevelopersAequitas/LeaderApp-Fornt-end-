@@ -13,6 +13,92 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
         super(const PeerProfileState()) {
     on<LoadPeerProfile>(_onLoadPeerProfile);
     on<ChangeProfileSubTab>(_onChangeProfileSubTab);
+    on<DeletePeerPost>(_onDeletePeerPost);
+    on<DeletePeerCreative>(_onDeletePeerCreative);
+  }
+
+  Future<void> _onDeletePeerPost(
+    DeletePeerPost event,
+    Emitter<PeerProfileState> emit,
+  ) async {
+    emit(state.copyWith(isDeleting: true, errorMessage: '', successMessage: ''));
+    try {
+      var res = await _peersRepository.deleteMemberPost(event.memberId, event.postId);
+      if (!res.success) {
+        final creativeRes = await _peersRepository.deleteMemberCreative(event.memberId, event.postId);
+        if (creativeRes.success) {
+          res = creativeRes;
+        }
+      }
+
+      if (res.success) {
+        final currentPosts = state.details?.posts ?? [];
+        final updatedPosts = currentPosts.where((p) => p.id != event.postId).toList();
+        final updatedDetails = state.details?.copyWith(posts: updatedPosts);
+        emit(
+          state.copyWith(
+            isDeleting: false,
+            details: updatedDetails,
+            successMessage: (res.message != null && res.message!.isNotEmpty)
+                ? res.message!
+                : 'Item deleted successfully.',
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            isDeleting: false,
+            errorMessage: (res.message != null && res.message!.isNotEmpty)
+                ? res.message!
+                : 'Failed to delete item.',
+          ),
+        );
+      }
+    } catch (e) {
+      emit(state.copyWith(isDeleting: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onDeletePeerCreative(
+    DeletePeerCreative event,
+    Emitter<PeerProfileState> emit,
+  ) async {
+    emit(state.copyWith(isDeleting: true, errorMessage: '', successMessage: ''));
+    try {
+      var res = await _peersRepository.deleteMemberCreative(event.memberId, event.creativeId);
+      if (!res.success) {
+        final postRes = await _peersRepository.deleteMemberPost(event.memberId, event.creativeId);
+        if (postRes.success) {
+          res = postRes;
+        }
+      }
+
+      if (res.success) {
+        final currentPosts = state.details?.posts ?? [];
+        final updatedPosts = currentPosts.where((p) => p.id != event.creativeId).toList();
+        final updatedDetails = state.details?.copyWith(posts: updatedPosts);
+        emit(
+          state.copyWith(
+            isDeleting: false,
+            details: updatedDetails,
+            successMessage: (res.message != null && res.message!.isNotEmpty)
+                ? res.message!
+                : 'Item deleted successfully.',
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            isDeleting: false,
+            errorMessage: (res.message != null && res.message!.isNotEmpty)
+                ? res.message!
+                : 'Failed to delete item.',
+          ),
+        );
+      }
+    } catch (e) {
+      emit(state.copyWith(isDeleting: false, errorMessage: e.toString()));
+    }
   }
 
   Future<void> _onLoadPeerProfile(
@@ -86,16 +172,39 @@ class PeerProfileBloc extends Bloc<PeerProfileEvent, PeerProfileState> {
           }
         }
 
-        // Fetch member posts
+        // Fetch member posts & creatives
+        final allItems = <PeerPostModel>[];
         try {
           final postsRes = await _peersRepository.getMemberPosts(currentPeer.id.trim());
           if (postsRes.success && postsRes.data != null) {
             final parsedPosts = postsRes.data!
                 .map((m) => PeerPostModel.fromJson(m))
                 .toList();
-            details = details.copyWith(posts: parsedPosts);
+            allItems.addAll(parsedPosts);
           }
         } catch (_) {}
+
+        try {
+          final creativesRes = await _peersRepository.getMemberCreatives(currentPeer.id.trim());
+          if (creativesRes.success && creativesRes.data != null) {
+            final parsedCreatives = creativesRes.data!
+                .map((m) {
+                  final map = Map<String, dynamic>.from(m);
+                  map['is_creative'] = true;
+                  return PeerPostModel.fromJson(map);
+                })
+                .toList();
+            for (final c in parsedCreatives) {
+              if (!allItems.any((existing) => existing.id == c.id)) {
+                allItems.add(c);
+              }
+            }
+          }
+        } catch (_) {}
+
+        if (allItems.isNotEmpty) {
+          details = details.copyWith(posts: allItems);
+        }
       } catch (_) {}
     }
 

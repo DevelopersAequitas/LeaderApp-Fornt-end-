@@ -100,14 +100,24 @@ class _PeerProfileContent extends StatelessWidget {
 
     return BlocListener<PeerProfileBloc, PeerProfileState>(
       listenWhen: (prev, curr) =>
-          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+          (prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty) ||
+          (prev.successMessage != curr.successMessage && curr.successMessage.isNotEmpty),
       listener: (context, state) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.errorMessage),
-            backgroundColor: AppColors.danger,
-          ),
-        );
+        if (state.errorMessage.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
+              backgroundColor: AppColors.danger,
+            ),
+          );
+        } else if (state.successMessage.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.successMessage),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
       },
       child: BlocBuilder<PeerProfileBloc, PeerProfileState>(
         builder: (context, state) {
