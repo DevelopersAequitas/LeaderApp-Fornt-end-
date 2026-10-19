@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/routes/app_page_route.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/member_activities_bloc.dart';
@@ -25,7 +26,7 @@ class BusinessDealsView extends StatelessWidget {
     required String memberName,
   }) {
     return Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             BusinessDealsView(memberId: memberId, memberName: memberName),
       ),
@@ -64,7 +65,7 @@ class BusinessDealsView extends StatelessWidget {
                   unselectedLabelColor: AppColors.textSecondary,
                   labelStyle: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                   unselectedLabelStyle: const TextStyle(
                     fontSize: 13,

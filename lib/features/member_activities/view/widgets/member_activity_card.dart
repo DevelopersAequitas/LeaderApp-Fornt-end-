@@ -32,6 +32,10 @@ class MemberActivityCard extends StatelessWidget {
         activity.metadata['city'].toString(),
     ].join(' • ');
 
+    final isCoinType = activity.type == MemberActivityType.coins ||
+        activity.type == MemberActivityType.coinsEarned ||
+        activity.type == MemberActivityType.coinsRedeemed;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -75,26 +79,25 @@ class MemberActivityCard extends StatelessWidget {
                         style: const TextStyle(
                           color: AppColors.text,
                           fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                     if (activity.amount.isNotEmpty) ...[
                       const SizedBox(width: 6),
                       GradientText(
-                        (activity.type == MemberActivityType.coins &&
+                        (isCoinType &&
                                 !activity.amount.toLowerCase().contains('coin') &&
                                 !activity.amount.contains('₹'))
                             ? '${activity.amount} Coins'
                             : activity.amount,
                         style: const TextStyle(
                           fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
-                    if (activity.status.isNotEmpty &&
-                        !activity.status.toLowerCase().contains('earned')) ...[
+                    if (activity.status.isNotEmpty) ...[
                       const SizedBox(width: 6),
                       _buildStatusPill(activity.status),
                     ],
@@ -123,6 +126,18 @@ class MemberActivityCard extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 11,
+                    ),
+                  ),
+                ],
+                if (activity.metadata['balance_after'] != null &&
+                    activity.metadata['balance_after'].toString().isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Balance After: ${activity.metadata['balance_after']} Coins',
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
@@ -208,14 +223,16 @@ class MemberActivityCard extends StatelessWidget {
     }
     if (value.contains('pend') ||
         value.contains('schedul') ||
-        value.contains('late')) {
+        value.contains('late') ||
+        value.contains('redeem')) {
       return StatusPill.warning(label: status, fontSize: 9);
     }
     if (value.contains('complet') ||
         value.contains('confirm') ||
         value.contains('clos') ||
         value.contains('present') ||
-        value.contains('success')) {
+        value.contains('success') ||
+        value.contains('earn')) {
       return StatusPill.active(label: status, fontSize: 9);
     }
     return StatusPill.info(label: status, fontSize: 9);

@@ -177,6 +177,26 @@ class MemberActivitiesBloc
           .toList();
     }
 
+    if (type == MemberActivityType.coinsEarned) {
+      return items.where((a) {
+        final delta = int.tryParse(a.metadata['coins_delta']?.toString() ?? '') ?? 0;
+        final status = a.status.toLowerCase();
+        final amount = a.amount.trim();
+        return delta > 0 || status == 'earned' || amount.startsWith('+');
+      }).toList();
+    }
+    if (type == MemberActivityType.coinsRedeemed) {
+      return items.where((a) {
+        final delta = int.tryParse(a.metadata['coins_delta']?.toString() ?? '') ?? 0;
+        final status = a.status.toLowerCase();
+        final amount = a.amount.trim();
+        return delta < 0 || status == 'redeemed' || amount.startsWith('-');
+      }).toList();
+    }
+    if (type == MemberActivityType.coins) {
+      return items;
+    }
+
     return items.where((a) {
       if (a.type == type) return true;
       if (type.endpointPath == a.type.endpointPath) return true;

@@ -84,9 +84,23 @@ enum MemberActivityType {
   coins(
     apiValue: 'coins',
     endpointPath: 'coins',
-    title: 'Coins Earned',
+    title: 'Coins History',
     icon: Icons.stars_rounded,
     emptyMessage: 'No coin activity yet',
+  ),
+  coinsEarned(
+    apiValue: 'coins',
+    endpointPath: 'coins',
+    title: 'Coins Earned',
+    icon: Icons.arrow_downward_rounded,
+    emptyMessage: 'No earned coins yet',
+  ),
+  coinsRedeemed(
+    apiValue: 'coins',
+    endpointPath: 'coins',
+    title: 'Coins Redeemed',
+    icon: Icons.arrow_upward_rounded,
+    emptyMessage: 'No redeemed coins yet',
   ),
   other(
     apiValue: 'other',
@@ -290,29 +304,44 @@ class MemberActivityModel {
       amount: rawAmount.toString(),
       status: status,
       date: date,
-      metadata: _extractMetadata(sourceJson.isNotEmpty ? sourceJson : json),
+      metadata: _extractMetadata(sourceJson, json),
     );
   }
 
-  static Map<String, dynamic> _extractMetadata(Map<String, dynamic> json) {
+  static Map<String, dynamic> _extractMetadata(
+    Map<String, dynamic> sourceJson,
+    Map<String, dynamic> json,
+  ) {
     final meta = <String, dynamic>{};
 
-    for (final key in [
-      'phone',
-      'email',
-      'hot_value',
-      'referral_type',
-      'business_type',
-      'member_role',
-      'referral_id',
-      'comment',
-      'city',
-      'profile_photo_url',
-    ]) {
-      if (json[key] != null && json[key].toString().isNotEmpty) {
-        meta[key] = json[key];
+    void extractFrom(Map<String, dynamic> map) {
+      for (final key in [
+        'phone',
+        'email',
+        'hot_value',
+        'referral_type',
+        'business_type',
+        'member_role',
+        'referral_id',
+        'comment',
+        'city',
+        'profile_photo_url',
+        'balance_after',
+        'coins_delta',
+        'reference',
+        'remark',
+        'entry_type',
+        'bucket',
+        'transaction_id',
+      ]) {
+        if (map[key] != null && map[key].toString().isNotEmpty) {
+          meta[key] ??= map[key];
+        }
       }
     }
+
+    extractFrom(sourceJson);
+    extractFrom(json);
 
     final counterpart = json['counterpart'] ?? json['to_user'] ?? json['from_user'];
     if (counterpart is Map) {

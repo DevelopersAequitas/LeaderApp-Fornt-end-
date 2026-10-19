@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/routes/app_page_route.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_video_player.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -678,123 +679,23 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 topRight: Radius.circular(15),
               ),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const SquareRoundedGradientIcon(
+                SquareRoundedGradientIcon(
                   icon: Icons.insights_rounded,
                   boxSize: 24,
                   iconSize: 13,
                   borderRadius: 6,
                 ),
-                const SizedBox(width: 8),
-                const Text(
-                  'PEER PERFORMANCE & CONTRIBUTION',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const Spacer(),
-                Tooltip(
-                  message: 'Collaborations',
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => PeerCollaborationScreen(
-                            peer: peer,
-                            details: details,
-                          ),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 0.8,
-                        ),
-                      ),
-                      child: const SquareRoundedGradientIcon(
-                        icon: Icons.handshake_outlined,
-                        boxSize: 22,
-                        iconSize: 12,
-                        borderRadius: 5,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Tooltip(
-                  message: 'Need Help',
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => PeerHelpScreen(
-                            peer: peer,
-                            details: details,
-                          ),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 0.8,
-                        ),
-                      ),
-                      child: const SquareRoundedGradientIcon(
-                        icon: Icons.volunteer_activism_outlined,
-                        boxSize: 22,
-                        iconSize: 12,
-                        borderRadius: 5,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Tooltip(
-                  message: 'Referrals',
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => PeerReferralScreen(
-                            peer: peer,
-                            details: details,
-                          ),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 0.8,
-                        ),
-                      ),
-                      child: const SquareRoundedGradientIcon(
-                        icon: Icons.swap_horiz_rounded,
-                        boxSize: 22,
-                        iconSize: 12,
-                        borderRadius: 5,
-                      ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'PEER PERFORMANCE & CONTRIBUTION',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
@@ -815,7 +716,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                         icon: Icons.monetization_on_outlined,
                         onTap: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(
+                            AppPageRoute(
                               builder: (_) => PeerBusinessDealsScreen(
                                 peer: peer,
                                 details: details,
@@ -833,7 +734,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                         icon: Icons.campaign_outlined,
                         onTap: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(
+                            AppPageRoute(
                               builder: (_) => PeerBusinessReferralsScreen(
                                 peer: peer,
                                 details: details,
@@ -851,7 +752,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                         icon: Icons.stars_rounded,
                         onTap: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(
+                            AppPageRoute(
                               builder: (_) => PeerCoinsScreen(
                                 peer: peer,
                                 details: details,
@@ -929,7 +830,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 InkWell(
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      AppPageRoute(
                         builder: (_) => PeerCollaborationScreen(
                           peer: peer,
                           details: details,
@@ -993,7 +894,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 InkWell(
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      AppPageRoute(
                         builder: (_) => PeerHelpScreen(
                           peer: peer,
                           details: details,
@@ -1057,7 +958,7 @@ class PeerProfileOverviewSection extends StatelessWidget {
                 InkWell(
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      AppPageRoute(
                         builder: (_) => PeerReferralScreen(
                           peer: peer,
                           details: details,

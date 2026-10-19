@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../member_activities/model/member_activity_model.dart';
-import '../../member_activities/view/member_activities_view.dart';
+import '../../member_activities/view/coins_view.dart';
 import '../../peers/model/peer_model.dart';
 import '../model/peer_profile_model.dart';
 
@@ -17,10 +16,10 @@ class PeerCoinsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MemberActivitiesView(
+    return CoinsView(
       memberId: peer.id,
       memberName: peer.name,
-      type: MemberActivityType.coins,
+      coinBalance: details.coinsEarned,
     );
   }
 }
