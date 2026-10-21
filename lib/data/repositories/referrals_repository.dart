@@ -23,7 +23,7 @@ abstract class ReferralsRepository {
 class ReferralsRepositoryImpl implements ReferralsRepository {
   final ReferralsRemoteDataSource _remoteDataSource;
   final HiveCacheService _cacheService;
-
+  
   ReferralsRepositoryImpl({
     ReferralsRemoteDataSource? remoteDataSource,
     HiveCacheService? cacheService,
