@@ -15,13 +15,13 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
   ) async {
     emit(const SplashLoading());
     try {
-      // Smooth splash duration matching logo animation (1200ms) without blocking user.
-      await Future.delayed(const Duration(milliseconds: 1200));
+      // Smooth splash duration matching splash.json animation (~2.7s).
+      await Future.delayed(const Duration(milliseconds: 2700));
 
       const model = SplashModel(
         appVersion: '1.0.0',
-        brandingText: 'PEERS GLOBAL',
-        minDurationMs: 1200,
+        brandingText: 'PEERS LEADERS',
+        minDurationMs: 2700,
       );
 
       emit(const SplashLoadSuccess(model));

@@ -61,7 +61,7 @@ class ProfileSignOutBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Are you sure you want to log out? You will need to verify your credentials the next time you sign in.',
+            'Are you sure you want to sign out? You can sign back in anytime using your email or mobile number.',
             style: TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,

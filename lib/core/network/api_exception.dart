@@ -19,9 +19,10 @@ class ApiException implements Exception {
 /// Thrown when 401 Unauthorized / Token Expired is returned.
 class UnauthenticatedException extends ApiException {
   const UnauthenticatedException({
-    super.message = 'Session expired or unauthenticated. Please sign in again.',
+    super.message = 'Your session has expired. Please sign in again.',
     super.errorCode = 'UNAUTHENTICATED',
     super.statusCode = 401,
+    super.details,
   });
 }
 
@@ -31,22 +32,24 @@ class UnauthorizedException extends ApiException {
     super.message = 'You do not have permission to perform this action.',
     super.errorCode = 'UNAUTHORIZED_ACCESS',
     super.statusCode = 403,
+    super.details,
   });
 }
 
 /// Thrown when 404 Not Found is returned.
 class NotFoundException extends ApiException {
   const NotFoundException({
-    super.message = 'The requested resource was not found.',
+    super.message = 'We couldn\'t find what you were looking for.',
     super.errorCode = 'RESOURCE_NOT_FOUND',
     super.statusCode = 404,
+    super.details,
   });
 }
 
 /// Thrown when 422 Validation Error is returned.
 class ValidationException extends ApiException {
   const ValidationException({
-    super.message = 'Invalid request data.',
+    super.message = 'Please check your details and try again.',
     super.errorCode = 'VALIDATION_ERROR',
     super.statusCode = 422,
     super.details,
@@ -56,7 +59,8 @@ class ValidationException extends ApiException {
 /// Thrown when network connection fails or timeout occurs.
 class NetworkConnectionException extends ApiException {
   const NetworkConnectionException({
-    super.message = 'Unable to connect to server. Please check your internet connection.',
+    super.message = 'Unable to connect. Please check your internet connection.',
     super.errorCode = 'NETWORK_ERROR',
+    super.details,
   });
 }

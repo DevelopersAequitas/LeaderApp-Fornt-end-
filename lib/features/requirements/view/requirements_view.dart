@@ -22,10 +22,17 @@ class RequirementsView extends StatelessWidget {
   }
 }
 
-class _RequirementsContent extends StatelessWidget {
+class _RequirementsContent extends StatefulWidget {
   final String? circleId;
 
   const _RequirementsContent({this.circleId});
+
+  @override
+  State<_RequirementsContent> createState() => _RequirementsContentState();
+}
+
+class _RequirementsContentState extends State<_RequirementsContent> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -44,22 +51,34 @@ class _RequirementsContent extends StatelessWidget {
       },
       child: BlocBuilder<RequirementsBloc, RequirementsState>(
         builder: (context, state) {
-          final requirements = state.requirements;
+          final q = _searchQuery.trim().toLowerCase();
+          final requirements = q.isEmpty
+              ? state.requirements
+              : state.requirements.where((r) {
+                  return r.peerName.toLowerCase().contains(q) ||
+                      r.businessName.toLowerCase().contains(q) ||
+                      r.title.toLowerCase().contains(q) ||
+                      r.description.toLowerCase().contains(q) ||
+                      r.city.toLowerCase().contains(q);
+                }).toList();
 
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Peer Requirements',
-              subtitle: '${requirements.length} open requests',
               showBackButton: true,
+              showSearch: true,
+              searchHint: 'Search requirements...',
+              onSearchChanged: (val) => setState(() => _searchQuery = val),
+              onSearchClosed: () => setState(() => _searchQuery = ''),
             ),
             body: SafeArea(
               top: false,
-              child: state.isLoading && requirements.isEmpty
+              child: state.isLoading && state.requirements.isEmpty
                   ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
-                        bloc.add(LoadRequirements(circleId: circleId));
+                        bloc.add(LoadRequirements(circleId: widget.circleId));
                       },
                       child: requirements.isEmpty
                           ? ListView(

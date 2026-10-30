@@ -22,10 +22,17 @@ class P2PMeetingsView extends StatelessWidget {
   }
 }
 
-class _P2PMeetingsContent extends StatelessWidget {
+class _P2PMeetingsContent extends StatefulWidget {
   final String? circleId;
 
   const _P2PMeetingsContent({this.circleId});
+
+  @override
+  State<_P2PMeetingsContent> createState() => _P2PMeetingsContentState();
+}
+
+class _P2PMeetingsContentState extends State<_P2PMeetingsContent> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -52,32 +59,34 @@ class _P2PMeetingsContent extends StatelessWidget {
       },
       child: BlocBuilder<P2PMeetingsBloc, P2PMeetingsState>(
         builder: (context, state) {
-          final meetings = state.meetings;
+          final q = _searchQuery.trim().toLowerCase();
+          final meetings = q.isEmpty
+              ? state.meetings
+              : state.meetings.where((m) {
+                  return m.peerName.toLowerCase().contains(q) ||
+                      m.businessName.toLowerCase().contains(q) ||
+                      m.location.toLowerCase().contains(q) ||
+                      m.notes.toLowerCase().contains(q) ||
+                      m.city.toLowerCase().contains(q);
+                }).toList();
 
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'P2P Meetings',
-              subtitle: '${meetings.length} scheduled sessions',
               showBackButton: true,
-              // actions: [
-              //   IconButton(
-              //     icon: const Icon(
-              //       Icons.add_circle_outline_rounded,
-              //       color: AppColors.primary,
-              //     ),
-              //     onPressed: () => _openCreateSheet(context),
-              //     tooltip: 'Schedule Meeting',
-              //   ),
-              // ],
+              showSearch: true,
+              searchHint: 'Search P2P meetings...',
+              onSearchChanged: (val) => setState(() => _searchQuery = val),
+              onSearchClosed: () => setState(() => _searchQuery = ''),
             ),
             body: SafeArea(
               top: false,
-              child: state.isLoading && meetings.isEmpty
+              child: state.isLoading && state.meetings.isEmpty
                   ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
-                        bloc.add(LoadP2PMeetings(circleId: circleId));
+                        bloc.add(LoadP2PMeetings(circleId: widget.circleId));
                       },
                       child: meetings.isEmpty
                           ? ListView(
@@ -128,15 +137,6 @@ class _P2PMeetingsContent extends StatelessWidget {
                             ),
                     ),
             ),
-            // floatingActionButton: FloatingActionButton.extended(
-            //   onPressed: () => _openCreateSheet(context),
-            //   backgroundColor: AppColors.primary,
-            //   icon: const Icon(Icons.add_rounded, color: Colors.white),
-            //   label: const Text(
-            //     'Schedule Meeting',
-            //     style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-            //   ),
-            // ),
           );
         },
       ),

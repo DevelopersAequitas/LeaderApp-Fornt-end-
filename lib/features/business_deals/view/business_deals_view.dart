@@ -22,10 +22,17 @@ class BusinessDealsView extends StatelessWidget {
   }
 }
 
-class _BusinessDealsContent extends StatelessWidget {
+class _BusinessDealsContent extends StatefulWidget {
   final String? circleId;
 
   const _BusinessDealsContent({this.circleId});
+
+  @override
+  State<_BusinessDealsContent> createState() => _BusinessDealsContentState();
+}
+
+class _BusinessDealsContentState extends State<_BusinessDealsContent> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -52,32 +59,33 @@ class _BusinessDealsContent extends StatelessWidget {
       },
       child: BlocBuilder<BusinessDealsBloc, BusinessDealsState>(
         builder: (context, state) {
-          final deals = state.deals;
+          final q = _searchQuery.trim().toLowerCase();
+          final deals = q.isEmpty
+              ? state.deals
+              : state.deals.where((d) {
+                  return d.peerName.toLowerCase().contains(q) ||
+                      d.businessName.toLowerCase().contains(q) ||
+                      d.notes.toLowerCase().contains(q) ||
+                      d.city.toLowerCase().contains(q);
+                }).toList();
 
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Business Deals',
-              subtitle: '${deals.length} deals closed',
               showBackButton: true,
-              // actions: [
-              //   IconButton(
-              //     icon: const Icon(
-              //       Icons.add_circle_outline_rounded,
-              //       color: AppColors.primary,
-              //     ),
-              //     onPressed: () => _openCreateSheet(context),
-              //     tooltip: 'Record Deal',
-              //   ),
-              // ],
+              showSearch: true,
+              searchHint: 'Search business deals...',
+              onSearchChanged: (val) => setState(() => _searchQuery = val),
+              onSearchClosed: () => setState(() => _searchQuery = ''),
             ),
             body: SafeArea(
               top: false,
-              child: state.isLoading && deals.isEmpty
+              child: state.isLoading && state.deals.isEmpty
                   ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
-                        bloc.add(LoadBusinessDeals(circleId: circleId));
+                        bloc.add(LoadBusinessDeals(circleId: widget.circleId));
                       },
                       child: deals.isEmpty
                           ? ListView(
@@ -128,15 +136,6 @@ class _BusinessDealsContent extends StatelessWidget {
                             ),
                     ),
             ),
-            // floatingActionButton: FloatingActionButton.extended(
-            //   onPressed: () => _openCreateSheet(context),
-            //   backgroundColor: const Color(0xFF16A34A),
-            //   icon: const Icon(Icons.add_rounded, color: Colors.white),
-            //   label: const Text(
-            //     'Record Deal',
-            //     style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-            //   ),
-            // ),
           );
         },
       ),

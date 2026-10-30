@@ -1,12 +1,7 @@
 // ==============================================================================
 // File: lib/features/peers_by_coins/view/peers_by_coins_view.dart
 // Description: Executive Gamification & Peer Coin Balance Leaderboard
-// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
-// Features:
-//   - Tiered coin balance ranking (Gold, Silver, Bronze badges)
-//   - Filter bar with status counts (All, Active, At Risk)
-//   - Peer coin transactions, earned reward breakdowns, and profile deep linking
-//   - Pure BLoC reactive state rendering
+// Framework: Flutter | Architecture: MVP View Layer
 // ==============================================================================
 
 import 'package:flutter/material.dart';
@@ -21,8 +16,6 @@ import '../model/coin_balance_model.dart';
 import 'widgets/peer_coin_card.dart';
 import 'widgets/peers_by_coins_filter_bar.dart';
 
-/// Screen component rendering peers ranked by coin balances.
-/// Pure StatelessWidget powered 100% by BLoC state machine.
 class PeersByCoinsView extends StatelessWidget {
   const PeersByCoinsView({super.key});
 
@@ -36,13 +29,20 @@ class PeersByCoinsView extends StatelessWidget {
   }
 }
 
-class _PeersByCoinsContent extends StatelessWidget {
+class _PeersByCoinsContent extends StatefulWidget {
   const _PeersByCoinsContent();
+
+  @override
+  State<_PeersByCoinsContent> createState() => _PeersByCoinsContentState();
+}
+
+class _PeersByCoinsContentState extends State<_PeersByCoinsContent> {
+  String _searchQuery = '';
 
   void _onPeerTap(BuildContext context, CoinBalanceModel peer) {
     Navigator.of(context).pushNamed(
       AppRoutes.peerProfile,
-      arguments: peer,
+      arguments: peer.toPeerModel(),
     );
   }
 
@@ -63,18 +63,33 @@ class _PeersByCoinsContent extends StatelessWidget {
       },
       child: BlocBuilder<PeersByCoinsBloc, PeersByCoinsState>(
         builder: (context, state) {
-          final peers = state.filteredPeers;
+          final q = _searchQuery.trim().toLowerCase();
+          final peers = q.isEmpty
+              ? state.filteredPeers
+              : state.filteredPeers.where((p) {
+                  return p.name.toLowerCase().contains(q) ||
+                      p.company.toLowerCase().contains(q) ||
+                      p.city.toLowerCase().contains(q) ||
+                      p.category.toLowerCase().contains(q);
+                }).toList();
           final allPeers = state.allPeers;
 
-          final activeCount = allPeers.where((p) => p.status.toLowerCase() == 'active').length;
-          final atRiskCount = allPeers.where((p) => p.status.toLowerCase() == 'at risk').length;
+          final activeCount = allPeers
+              .where((p) => p.status.toLowerCase() == 'active')
+              .length;
+          final atRiskCount = allPeers
+              .where((p) => p.status.toLowerCase() == 'at risk')
+              .length;
 
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Peers by Coins',
-              subtitle: '${allPeers.length} peers ranked',
               showBackButton: true,
+              showSearch: true,
+              searchHint: 'Search peers by coins...',
+              onSearchChanged: (val) => setState(() => _searchQuery = val),
+              onSearchClosed: () => setState(() => _searchQuery = ''),
             ),
             body: SafeArea(
               top: false,

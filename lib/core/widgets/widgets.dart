@@ -13,3 +13,4 @@ export 'restricted_access_card.dart';
 export 'expandable_text.dart';
 export 'app_shimmer.dart';
 export 'gradient_widgets.dart';
+export 'three_d_number_display.dart';

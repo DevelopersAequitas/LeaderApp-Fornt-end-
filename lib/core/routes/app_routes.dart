@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_page_route.dart';
+import '../widgets/custom_app_bar.dart';
 import '../../features/splash/view/splash_view.dart';
 import '../../features/login/view/login_view.dart';
 import '../../features/otp/view/otp_view.dart';
@@ -23,8 +24,14 @@ import '../../features/business_deals/model/business_deal_model.dart';
 import '../../features/business_deals/view/business_deals_view.dart';
 import '../../features/requirements/model/requirement_model.dart';
 import '../../features/requirements/view/requirements_view.dart';
+import '../../features/leader_activities/model/leader_activity_item_model.dart';
+import '../../features/leader_activities/view/leader_activities_view.dart';
 import '../../features/teams/model/teams_model.dart';
 import '../../features/circle_details/view/circle_details_view.dart';
+import '../../features/circle_details/view/circle_events_screen.dart';
+import '../../features/circle_details/view/circle_overview_screen.dart';
+import '../../features/circle_details/view/circle_peers_screen.dart';
+import '../../features/circle_details/view/circle_sub_industries_screen.dart';
 import '../../features/role_management/view/role_management_view.dart';
 import '../../features/circulars/view/circulars_view.dart';
 import '../../features/maintenance/view/maintenance_view.dart';
@@ -79,8 +86,23 @@ abstract class AppRoutes {
   /// Requirements route
   static const String requirements = '/requirements';
 
+  /// Unified Leader User-Input Activities route
+  static const String leaderActivities = '/leader-activities';
+
   /// Circle Details route
   static const String circleDetails = '/circle-details';
+
+  /// Circle Peers route
+  static const String circlePeers = '/circle-peers';
+
+  /// Circle Sub-Industries route
+  static const String circleSubIndustries = '/circle-sub-industries';
+
+  /// Circle Events route
+  static const String circleEvents = '/circle-events';
+
+  /// Circle Overview route
+  static const String circleOverview = '/circle-overview';
 
   /// Role Management route
   static const String roleManagement = '/role-management';
@@ -123,27 +145,32 @@ abstract class AppRoutes {
           sort = settings.arguments as String;
         }
         return AppPageRoute(
-          builder: (_) => Scaffold(
-            appBar: AppBar(
-              title: Text(
-                sort != null ? 'Peers · $sort' : 'Peers Directory',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                ),
-              ),
-              backgroundColor: const Color(0xFF102640),
-              iconTheme: const IconThemeData(color: Colors.white),
-            ),
-            body: PeersView(selectedCircle: circle, initialSort: sort),
+          builder: (_) => _PeersRouteScreen(
+            selectedCircle: circle,
+            initialSort: sort,
           ),
           settings: settings,
         );
       case otp:
-        final emailOrPhone = settings.arguments as String? ?? '';
+        String emailOrPhone = '';
+        String channel = 'email';
+        int otpExpirySeconds = 300;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          emailOrPhone =
+              (map['emailOrPhone'] ?? map['email_or_phone'] ?? '').toString();
+          channel = (map['channel'] ?? 'email').toString();
+          otpExpirySeconds =
+              int.tryParse(map['otpExpirySeconds']?.toString() ?? '') ?? 300;
+        } else if (settings.arguments is String) {
+          emailOrPhone = settings.arguments as String;
+        }
         return AppPageRoute(
-          builder: (_) => OtpView(emailOrPhone: emailOrPhone),
+          builder: (_) => OtpView(
+            emailOrPhone: emailOrPhone,
+            channel: channel,
+            otpExpirySeconds: otpExpirySeconds,
+          ),
           settings: settings,
         );
       case profile:
@@ -169,6 +196,8 @@ abstract class AppRoutes {
           peer = (settings.arguments as CoinBalanceModel).toPeerModel();
         } else if (settings.arguments is TestimonialModel) {
           peer = (settings.arguments as TestimonialModel).toPeerModel();
+        } else if (settings.arguments is LeaderActivityItemModel) {
+          peer = (settings.arguments as LeaderActivityItemModel).toPeerModel();
         } else if (settings.arguments is Map<String, dynamic>) {
           peer = PeerModel.fromJson(settings.arguments as Map<String, dynamic>);
         } else if (settings.arguments is String) {
@@ -246,10 +275,65 @@ abstract class AppRoutes {
           builder: (_) => RequirementsView(circleId: circleId),
           settings: settings,
         );
+      case leaderActivities:
+        String activityType = 'visitor-registrations';
+        String? circleId;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          activityType =
+              (map['type'] ?? map['activityType'] ?? 'visitor-registrations')
+                  .toString();
+          circleId = map['circleId']?.toString() ?? map['circle_id']?.toString();
+        } else if (settings.arguments is String) {
+          activityType = settings.arguments as String;
+        }
+        return AppPageRoute(
+          builder: (_) => LeaderActivitiesView(
+            activityType: activityType,
+            circleId: circleId,
+          ),
+          settings: settings,
+        );
       case circleDetails:
         final circle = settings.arguments as CircleTeamModel;
         return AppPageRoute(
           builder: (_) => CircleDetailsView(circle: circle),
+          settings: settings,
+        );
+      case circlePeers:
+        final circle = settings.arguments as CircleTeamModel;
+        return AppPageRoute(
+          builder: (_) => CirclePeersScreen(circle: circle),
+          settings: settings,
+        );
+      case circleSubIndustries:
+        CircleTeamModel circle;
+        int initialTabIndex = 0;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          circle = map['circle'] as CircleTeamModel;
+          initialTabIndex =
+              int.tryParse(map['initialTabIndex']?.toString() ?? '0') ?? 0;
+        } else {
+          circle = settings.arguments as CircleTeamModel;
+        }
+        return AppPageRoute(
+          builder: (_) => CircleSubIndustriesScreen(
+            circle: circle,
+            initialTabIndex: initialTabIndex,
+          ),
+          settings: settings,
+        );
+      case circleEvents:
+        final circle = settings.arguments as CircleTeamModel;
+        return AppPageRoute(
+          builder: (_) => CircleEventsScreen(circle: circle),
+          settings: settings,
+        );
+      case circleOverview:
+        final circle = settings.arguments as CircleTeamModel;
+        return AppPageRoute(
+          builder: (_) => CircleOverviewScreen(circle: circle),
           settings: settings,
         );
       case roleManagement:
@@ -323,5 +407,64 @@ abstract class AppRoutes {
           ),
         );
     }
+  }
+}
+
+class _PeersRouteScreen extends StatefulWidget {
+  final String? selectedCircle;
+  final String? initialSort;
+
+  const _PeersRouteScreen({
+    this.selectedCircle,
+    this.initialSort,
+  });
+
+  @override
+  State<_PeersRouteScreen> createState() => _PeersRouteScreenState();
+}
+
+class _PeersRouteScreenState extends State<_PeersRouteScreen> {
+  late final TextEditingController _searchController;
+  bool _isSearching = false;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: 'Peers',
+        showBackButton: true,
+        showSearch: true,
+        isSearching: _isSearching,
+        searchController: _searchController,
+        searchHint: 'Search by name, company, circle...',
+        onSearchTap: () => setState(() => _isSearching = true),
+        onSearchChanged: (val) => setState(() => _searchQuery = val),
+        onSearchClose: () {
+          _searchController.clear();
+          setState(() {
+            _searchQuery = '';
+            _isSearching = false;
+          });
+        },
+      ),
+      body: PeersView(
+        selectedCircle: widget.selectedCircle,
+        initialSort: widget.initialSort,
+        externalSearchQuery: _searchQuery,
+      ),
+    );
   }
 }

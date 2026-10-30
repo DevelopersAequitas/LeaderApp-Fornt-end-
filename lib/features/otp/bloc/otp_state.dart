@@ -17,6 +17,9 @@ class OtpState {
   /// True if OTP is successfully verified.
   final bool isSuccess;
 
+  /// True when the account does not have an assigned leadership role.
+  final bool isNotLeader;
+
   /// Error message, if verification or resend fails.
   final String errorMessage;
 
@@ -41,6 +44,7 @@ class OtpState {
     this.isLoading = false,
     this.isResending = false,
     this.isSuccess = false,
+    this.isNotLeader = false,
     this.errorMessage = '',
     this.resendSuccessMessage = '',
     this.resendCountdown = 30,
@@ -56,6 +60,7 @@ class OtpState {
     bool? isLoading,
     bool? isResending,
     bool? isSuccess,
+    bool? isNotLeader,
     String? errorMessage,
     String? resendSuccessMessage,
     int? resendCountdown,
@@ -69,6 +74,7 @@ class OtpState {
       isLoading: isLoading ?? this.isLoading,
       isResending: isResending ?? this.isResending,
       isSuccess: isSuccess ?? this.isSuccess,
+      isNotLeader: isNotLeader ?? this.isNotLeader,
       errorMessage: errorMessage ?? this.errorMessage,
       resendSuccessMessage: resendSuccessMessage ?? this.resendSuccessMessage,
       resendCountdown: resendCountdown ?? this.resendCountdown,

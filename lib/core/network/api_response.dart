@@ -55,7 +55,9 @@ class ApiResponse<T> {
     Map<String, dynamic> json,
     T Function(dynamic json)? fromJsonT,
   ) {
-    final isSuccess = json['success'] as bool? ?? false;
+    final isSuccess = (json['success'] as bool?) ??
+        (json['status'] is bool ? json['status'] as bool : null) ??
+        json.containsKey('data');
     final rawData = json['data'];
     final message = json['message'] as String?;
     final errorCode = json['error_code'] as String?;

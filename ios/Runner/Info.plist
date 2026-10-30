@@ -68,6 +68,7 @@
 	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>peersunity</string>
 		<string>https</string>
 		<string>http</string>
 		<string>tel</string>

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_color.dart';
 
-/// Smooth, gentle character-by-character text reveal where each letter slides up from its baseline.
+/// Smooth, gentle character-by-character text reveal where each letter slides up from its baseline
+/// painted with the brand gradient (`AppColor.brandGradient`).
 class SplashAnimatedTitle extends StatefulWidget {
   final VoidCallback? onCompleted;
 
@@ -13,7 +14,7 @@ class SplashAnimatedTitle extends StatefulWidget {
 
 class _SplashAnimatedTitleState extends State<SplashAnimatedTitle>
     with SingleTickerProviderStateMixin {
-  static const String _fullText = 'PEERS GLOBAL';
+  static const String _fullText = 'PEERS LEADERS';
 
   late final AnimationController _controller;
   late final List<Animation<Offset>> _charSlideAnimations;
@@ -77,44 +78,51 @@ class _SplashAnimatedTitleState extends State<SplashAnimatedTitle>
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: List.generate(_fullText.length, (index) {
-        final char = _fullText[index];
+    return ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: (bounds) => AppColor.brandGradient.createShader(
+        Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: List.generate(_fullText.length, (index) {
+          final char = _fullText[index];
 
-        if (char == ' ') {
-          return const SizedBox(width: 10);
-        }
+          if (char == ' ') {
+            return const SizedBox(width: 8);
+          }
 
-        return ClipRect(
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return FractionalTranslation(
-                translation: _charSlideAnimations[index].value,
-                child: Opacity(
-                  opacity: _charFadeAnimations[index].value,
-                  child: child,
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 2.0),
-              child: Text(
-                char,
-                style: const TextStyle(
-                  color: AppColors.text, // Deep Navy / Dark (#102640)
-                  fontSize: 24,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 2.0,
-                ),
-              ),
+          return ClipRect(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                return FractionalTranslation(
+                  translation: _charSlideAnimations[index].value,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 2.0,
+                      vertical: 4.0,
+                    ),
+                    child: Text(
+                      char,
+                      style: TextStyle(
+                        color: AppColor.white.withValues(
+                          alpha: _charFadeAnimations[index].value,
+                        ),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 }

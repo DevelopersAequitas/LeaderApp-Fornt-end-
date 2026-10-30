@@ -34,7 +34,7 @@ class SplashLoadingIndicator extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Initializing Workspace...',
+            'Getting things ready...',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.5),
               fontSize: 11,

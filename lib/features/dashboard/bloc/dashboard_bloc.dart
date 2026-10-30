@@ -1,11 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/enums/user_role.dart';
-import '../../../core/helpers/session_manager.dart';
 import '../../../data/repositories/dashboard_repository.dart';
 import '../../../data/repositories/teams_repository.dart';
 import '../../../core/network/api_response.dart';
+import '../../../features/dashboard/model/dashboard_circle_option.dart';
 import '../../../features/dashboard/model/dashboard_metrics_model.dart';
 import '../../../features/dashboard/model/impacter_model.dart';
+import '../../../features/teams/model/teams_model.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';
 
@@ -26,6 +26,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<SelectCircle>(_onSelectCircle);
   }
 
+  static final RegExp _uuidRegex = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
   Future<void> _onLoadDashboardData(
     LoadDashboardData event,
     Emitter<DashboardState> emit,
@@ -34,22 +38,12 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
     }
 
-    final session = SessionManager().currentSession;
-
-    // Determine which circle or industry is currently active/selected
-    final activeCircle = state.selectedCircle ??
-        (session.role == UserRole.industryDirector ||
-                session.role == UserRole.districtExecDirector ||
-                session.role == UserRole.countryDirector ||
-                session.role == UserRole.superAdmin
-            ? (session.regionalScope.isNotEmpty
-                ? session.regionalScope
-                : (session.managedCircles.isNotEmpty
-                    ? session.managedCircles.first
-                    : null))
-            : (session.managedCircles.isNotEmpty
-                ? session.managedCircles.first
-                : null));
+    // Role-based scoping is enforced by the backend. The selected circle is only
+    // sent when the user explicitly switched to one specific circle (UUID);
+    // otherwise the request covers every circle inside the user's role scope.
+    final selected = state.selectedCircle?.trim();
+    final String? activeCircle =
+        (selected != null && _uuidRegex.hasMatch(selected)) ? selected : null;
 
     try {
       // Parallel fetch with individual error isolation
@@ -72,11 +66,18 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
                   success: false,
                   data: <String>[],
                 )),
+        _teamsRepository
+            .getCircles()
+            .catchError((e) => const ApiResponse<List<CircleTeamModel>>(
+                  success: false,
+                  data: <CircleTeamModel>[],
+                )),
       ]);
 
       final metricsRes = results[0] as ApiResponse<DashboardMetricsModel>;
       final impactersRes = results[1] as ApiResponse<List<ImpacterModel>>;
       final industriesRes = results[2] as ApiResponse<List<String>>;
+      final circlesRes = results[3] as ApiResponse<List<CircleTeamModel>>;
 
       List<String> industries = state.dynamicIndustries;
       if (industriesRes.success &&
@@ -85,13 +86,23 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         industries = List<String>.from(industriesRes.data!);
       }
 
+      var circles = state.availableCircles;
+      if (circlesRes.success && circlesRes.data != null) {
+        circles = circlesRes.data!
+            .where((c) => _uuidRegex.hasMatch(c.id.trim()))
+            .map((c) => DashboardCircleOption(id: c.id.trim(), name: c.name))
+            .toList();
+      }
+
       emit(
         state.copyWith(
           isLoading: false,
           metrics: metricsRes.data ?? state.metrics,
           impacters: impactersRes.data ?? state.impacters,
           selectedCircle: activeCircle,
+          clearSelectedCircle: activeCircle == null,
           dynamicIndustries: industries,
+          availableCircles: circles,
           errorMessage: metricsRes.success ? '' : (metricsRes.message ?? ''),
         ),
       );
@@ -101,7 +112,12 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   void _onSelectCircle(SelectCircle event, Emitter<DashboardState> emit) {
-    emit(state.copyWith(selectedCircle: event.circleName));
+    final name = (event.circleName ?? '').trim();
+    if (_uuidRegex.hasMatch(name)) {
+      emit(state.copyWith(selectedCircle: name));
+    } else {
+      emit(state.copyWith(clearSelectedCircle: true));
+    }
     add(const LoadDashboardData(isRefresh: true));
   }
 
@@ -109,4 +125,3 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(state.copyWith(activeTab: event.index));
   }
 }
-

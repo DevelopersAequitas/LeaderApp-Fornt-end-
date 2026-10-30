@@ -7,7 +7,11 @@ import '../datasources/remote/teams_remote_datasource.dart';
 
 abstract class TeamsRepository {
   Future<ApiResponse<TeamsSummaryModel>> getTeamsSummary();
-  Future<ApiResponse<List<CircleTeamModel>>> getCircles({String? industry, String? status, String? search});
+  Future<ApiResponse<List<CircleTeamModel>>> getCircles({
+    String? industry,
+    String? status,
+    String? search,
+  });
   Future<ApiResponse<CircleTeamModel>> getCircleDetails(String id);
   Future<ApiResponse<List<PeerModel>>> getCirclePeers(
     String circleId, {
@@ -17,8 +21,18 @@ abstract class TeamsRepository {
     int? page,
     int? perPage,
   });
-  Future<ApiResponse<CircleSubIndustriesResponse>> getSubIndustries(String circleId);
-  Future<ApiResponse<List<CircleEventModel>>> getCircleEvents(String circleId, {String? filter});
+  Future<ApiResponse<CircleSubIndustriesResponse>> getSubIndustries(
+    String circleId,
+  );
+  Future<ApiResponse<Map<String, dynamic>>> referCategory(
+    String circleId,
+    Map<String, dynamic> payload,
+  );
+  Future<ApiResponse<List<ReferralContactModel>>> getContacts({String? search});
+  Future<ApiResponse<List<CircleEventModel>>> getCircleEvents(
+    String circleId, {
+    String? filter,
+  });
   Future<ApiResponse<List<String>>> getIndustries();
   Future<ApiResponse<List<IndustryModel>>> getIndustriesList();
 }
@@ -73,8 +87,25 @@ class TeamsRepositoryImpl implements TeamsRepository {
   }
 
   @override
-  Future<ApiResponse<CircleSubIndustriesResponse>> getSubIndustries(String circleId) async {
+  Future<ApiResponse<CircleSubIndustriesResponse>> getSubIndustries(
+    String circleId,
+  ) async {
     return _remoteDataSource.getSubIndustries(circleId);
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> referCategory(
+    String circleId,
+    Map<String, dynamic> payload,
+  ) async {
+    return _remoteDataSource.referCategory(circleId, payload);
+  }
+
+  @override
+  Future<ApiResponse<List<ReferralContactModel>>> getContacts({
+    String? search,
+  }) async {
+    return _remoteDataSource.getContacts(search: search);
   }
 
   @override

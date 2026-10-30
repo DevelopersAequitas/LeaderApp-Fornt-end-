@@ -1,68 +1,31 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_color.dart';
 
-/// Top Navy Banner Header for OTP screen displaying back navigation, brand emblem and white title.
+/// Top header for the OTP screen with a left-aligned back button, matching Peers Global Unity.
 class OtpHeaderSection extends StatelessWidget {
-  const OtpHeaderSection({super.key});
+  final VoidCallback? onBack;
+
+  const OtpHeaderSection({super.key, this.onBack});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor =
+        isDark ? AppColor.darkTextPrimary : AppColor.lightTextPrimary;
+
     return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Back Button
-        Align(
+        IconButton(
+          onPressed: onBack ?? () => Navigator.of(context).pop(),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: iconColor,
+          ),
+          padding: EdgeInsets.zero,
           alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 8.0, top: 4.0),
-            child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-
-        // Rounded Logo Emblem Container
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 20,
-                spreadRadius: 0,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(12),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              'assets/icons/AppIcon.png',
-              fit: BoxFit.contain,
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // White Brand Title
-        const Text(
-          'PEERS GLOBAL',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-            letterSpacing: 1.2,
-          ),
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
         ),
       ],
     );

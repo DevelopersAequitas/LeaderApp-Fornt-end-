@@ -4,7 +4,7 @@
 // Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
 // Features:
 //   - Multi-tab navigation between Active Peers, At-Risk Members, and Peer Celebrations
-//   - Live search querying and status/metric sorting filters
+//   - Live search querying from the AppBar and status/metric sorting filters
 //   - Interactive peer card routing to PeerProfileView & P2P meeting logging
 //   - Quick wish messaging and birthday/anniversary celebration dispatches
 // ==============================================================================
@@ -21,7 +21,6 @@ import '../model/celebration_model.dart';
 import '../model/peer_model.dart';
 import 'widgets/celebration_card.dart';
 import 'widgets/peer_card.dart';
-// import 'widgets/peer_role_management_section.dart';
 import 'widgets/peers_empty_state.dart';
 import 'widgets/peers_filter_bar.dart';
 import 'widgets/peers_shimmer_skeleton.dart';
@@ -31,8 +30,14 @@ import 'widgets/peers_shimmer_skeleton.dart';
 class PeersView extends StatelessWidget {
   final String? selectedCircle;
   final String? initialSort;
+  final String externalSearchQuery;
 
-  const PeersView({super.key, this.selectedCircle, this.initialSort});
+  const PeersView({
+    super.key,
+    this.selectedCircle,
+    this.initialSort,
+    this.externalSearchQuery = '',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,43 +49,63 @@ class PeersView extends StatelessWidget {
         if (initialSort != null && initialSort!.isNotEmpty) {
           bloc.add(MetricSortChanged(initialSort!));
         }
+        if (externalSearchQuery.isNotEmpty) {
+          bloc.add(SearchQueryChanged(externalSearchQuery));
+        }
         return bloc;
       },
-      child: _PeersContent(selectedCircle: selectedCircle),
+      child: _PeersContent(
+        selectedCircle: selectedCircle,
+        externalSearchQuery: externalSearchQuery,
+      ),
     );
   }
 }
 
 class _PeersContent extends StatefulWidget {
   final String? selectedCircle;
+  final String externalSearchQuery;
 
-  const _PeersContent({this.selectedCircle});
+  const _PeersContent({
+    this.selectedCircle,
+    this.externalSearchQuery = '',
+  });
 
   @override
   State<_PeersContent> createState() => _PeersContentState();
 }
 
 class _PeersContentState extends State<_PeersContent> {
-  late final TextEditingController _searchController;
-
   @override
-  void initState() {
-    super.initState();
-    _searchController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  void didUpdateWidget(covariant _PeersContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.externalSearchQuery != oldWidget.externalSearchQuery) {
+      context.read<PeersBloc>().add(
+            SearchQueryChanged(widget.externalSearchQuery),
+          );
+    }
   }
 
   Widget _buildCelebrationsSubTab(
     BuildContext context,
     List<CelebrationModel> birthdays,
     List<CelebrationModel> anniversaries,
+    String searchQuery,
   ) {
-    final celebrations = [...birthdays, ...anniversaries];
+    final cleanQuery = searchQuery.trim().toLowerCase();
+    final allCelebrations = [...birthdays, ...anniversaries];
+    final celebrations = cleanQuery.isEmpty
+        ? allCelebrations
+        : allCelebrations.where((item) {
+            return item.peerName.toLowerCase().contains(cleanQuery) ||
+                item.company.toLowerCase().contains(cleanQuery) ||
+                (item.designation?.toLowerCase().contains(cleanQuery) ??
+                    false) ||
+                (item.circleName?.toLowerCase().contains(cleanQuery) ??
+                    false) ||
+                item.type.toLowerCase().contains(cleanQuery);
+          }).toList();
+
     if (celebrations.isEmpty) {
       return LayoutBuilder(
         builder: (context, constraints) {
@@ -272,13 +297,11 @@ class _PeersContentState extends State<_PeersContent> {
                 ),
               ),
 
-              // Filter Bar (Only on Peers sub-tab)
+              // Sort Bar (Only on Peers sub-tab)
               if (state.activeSubTab == 0)
                 PeersFilterBar(
-                  searchController: _searchController,
                   selectedStatus: state.selectedStatus,
                   selectedSort: state.selectedSort,
-                  onSearchChanged: (q) => bloc.add(SearchQueryChanged(q)),
                   onStatusSelected: (s) => bloc.add(StatusFilterChanged(s)),
                   onSortSelected: (m) => bloc.add(MetricSortChanged(m)),
                 ),
@@ -287,13 +310,16 @@ class _PeersContentState extends State<_PeersContent> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
-                    bloc.add(LoadPeersData(selectedCircle: widget.selectedCircle));
+                    bloc.add(
+                      LoadPeersData(selectedCircle: widget.selectedCircle),
+                    );
                   },
                   child: state.activeSubTab == 1
                       ? _buildCelebrationsSubTab(
                           context,
                           state.birthdays,
                           state.anniversaries,
+                          state.searchQuery,
                         )
                       : _buildPeersList(
                           context,

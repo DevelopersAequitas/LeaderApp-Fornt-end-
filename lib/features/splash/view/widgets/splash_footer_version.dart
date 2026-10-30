@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_typography.dart';
 
 /// Bottom footer displaying app version and system badge on white theme.
 class SplashFooterVersion extends StatelessWidget {
@@ -22,17 +24,14 @@ class SplashFooterVersion extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: AppColor.lightSurfaceSubtle,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+              border: Border.all(color: AppColor.lightBorder, width: 1.0),
             ),
             child: Text(
               appVersion.isNotEmpty ? 'v$appVersion' : '',
-              style: const TextStyle(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF64748B),
-                letterSpacing: 1.2,
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColor.lightTextSecondary,
               ),
             ),
           ),

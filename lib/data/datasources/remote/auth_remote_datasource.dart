@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/models/leader_permissions.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/helpers/session_manager.dart';
 
@@ -66,12 +67,36 @@ class AuthRemoteDataSource {
   AuthRemoteDataSource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
 
   /// Requests OTP to be sent to user's email or phone.
+  /// Handles structured 403 (`NOT_A_LEADER`) and 404 (`USER_NOT_FOUND`) responses
+  /// as valid `ApiResponse` payloads so the UI displays the persistent Become a Leader card.
   Future<ApiResponse<Map<String, dynamic>>> sendOtp(String emailOrPhone) async {
-    return _apiClient.post<Map<String, dynamic>>(
-      ApiEndpoints.sendOtp,
-      body: {'email_or_phone': emailOrPhone.trim()},
-      fromJsonT: (json) => json as Map<String, dynamic>,
-    );
+    try {
+      return await _apiClient.post<Map<String, dynamic>>(
+        ApiEndpoints.sendOtp,
+        body: {'email_or_phone': emailOrPhone.trim()},
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+    } on ApiException catch (e) {
+      final code = (e.errorCode ?? '').toUpperCase();
+      if (code == 'NOT_A_LEADER' ||
+          code == 'USER_NOT_FOUND' ||
+          e.statusCode == 403 ||
+          e.statusCode == 404) {
+        final dataMap = e.details is Map<String, dynamic>
+            ? e.details as Map<String, dynamic>
+            : <String, dynamic>{
+                'is_registered': code != 'USER_NOT_FOUND' && e.statusCode != 404,
+                'is_leader': false,
+              };
+        return ApiResponse<Map<String, dynamic>>(
+          success: false,
+          message: e.message,
+          errorCode: e.errorCode,
+          data: dataMap,
+        );
+      }
+      rethrow;
+    }
   }
 
   /// Verifies OTP and receives authentication token + session profile + permissions.

@@ -1,20 +1,33 @@
+// ==============================================================================
+// File: lib/features/circle_details/view/circle_details_view.dart
+// Description: Comprehensive Circle Details, Leadership, Peers & Meetings Suite
+// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
+// Features:
+//   - Category-tinted Hero Banner with overlapping Category Badge & Meta Row
+//   - Expandable About Circle card & Focus Areas / Sub-Industry Specialization tags
+//   - Interactive Category Availability (Open vs Closed Categories) breakdown
+//   - Circle Leaders & Regional Leaders cards rendered with standard PeerCard
+//   - Circle Peers preview directory and Meetings & Events summary card
+// ==============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_color.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../teams/model/teams_model.dart';
 import '../bloc/circle_details_bloc.dart';
 import '../bloc/circle_details_event.dart';
 import '../bloc/circle_details_state.dart';
-import 'circle_events_screen.dart';
-import 'circle_overview_screen.dart';
-import 'circle_peers_screen.dart';
-import 'circle_sub_industries_screen.dart';
+import 'widgets/circle_about_card.dart';
+import 'widgets/circle_category_status_card.dart';
 import 'widgets/circle_details_hero_card.dart';
+import 'widgets/circle_focus_areas_card.dart';
 import 'widgets/circle_leadership_card.dart';
+import 'widgets/circle_meeting_card.dart';
+import 'widgets/circle_peers_preview_section.dart';
 
 /// Screen displaying comprehensive details about a specific Circle.
-/// Pure StatelessWidget powered 100% by BLoC state machine.
+/// 100% Pure StatelessWidget powered by BLoC state machine.
 class CircleDetailsView extends StatelessWidget {
   final CircleTeamModel circle;
 
@@ -37,175 +50,96 @@ class _CircleDetailsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bloc = context.read<CircleDetailsBloc>();
+
     return BlocListener<CircleDetailsBloc, CircleDetailsState>(
       listenWhen: (prev, curr) =>
-          prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty,
+          prev.errorMessage != curr.errorMessage &&
+          curr.errorMessage.isNotEmpty,
       listener: (context, state) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(state.errorMessage),
-            backgroundColor: AppColors.danger,
+            backgroundColor: AppColor.danger,
           ),
         );
       },
       child: BlocBuilder<CircleDetailsBloc, CircleDetailsState>(
         builder: (context, state) {
           final activeCircle = state.circle ?? initialCircle;
-          final bloc = context.read<CircleDetailsBloc>();
 
           return Scaffold(
-            backgroundColor: AppColors.background,
+            backgroundColor: AppColor.background,
             appBar: CustomAppBar(
-              title: 'Circle Details',
-              subtitle: activeCircle.name,
+              title: activeCircle.name,
               showBackButton: true,
             ),
             body: SafeArea(
               top: false,
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  bloc.add(LoadCircleDetailsData(
-                    circleId: initialCircle.id,
-                    isRefresh: true,
-                  ));
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      CircleDetailsHeroCard(circle: activeCircle),
-                      CircleLeadershipCard(circle: activeCircle),
-                      _CircleModulesSection(circle: activeCircle),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              ),
+              child: state.isLoadingCircle && state.circle == null && activeCircle.id.isEmpty
+                  ? const CenteredLoadingIndicator()
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        bloc.add(
+                          LoadCircleDetailsData(
+                            circleId: initialCircle.id,
+                            isRefresh: true,
+                          ),
+                        );
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: 12),
+                            CircleDetailsHeroCard(
+                              circle: activeCircle,
+                              totalPeersCount: state.totalPeersCount > 0
+                                  ? state.totalPeersCount
+                                  : activeCircle.peersCount,
+                            ),
+                            const SizedBox(height: 14),
+                            CircleAboutCard(circle: activeCircle),
+                            const SizedBox(height: 14),
+                            CircleFocusAreasCard(
+                              circle: activeCircle,
+                              subIndustries: state.subIndustries,
+                            ),
+                            const SizedBox(height: 14),
+                            CircleCategoryStatusCard(
+                              circle: activeCircle,
+                              subIndustries: state.subIndustries,
+                              isLoading: state.isLoadingSubIndustries,
+                            ),
+                            const SizedBox(height: 14),
+                            CircleLeadershipCard(
+                              circle: activeCircle,
+                              circlePeers: state.circlePeers,
+                            ),
+                            const SizedBox(height: 14),
+                            CirclePeersPreviewSection(
+                              circle: activeCircle,
+                              peers: state.circlePeers,
+                              totalPeersCount: state.totalPeersCount > 0
+                                  ? state.totalPeersCount
+                                  : activeCircle.peersCount,
+                              isLoading: state.isLoadingPeers,
+                            ),
+                            const SizedBox(height: 14),
+                            CircleMeetingCard(
+                              circle: activeCircle,
+                              events: state.allEvents,
+                              isLoading: state.isLoadingEvents,
+                            ),
+                            const SizedBox(height: 32),
+                          ],
+                        ),
+                      ),
+                    ),
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _CircleModulesSection extends StatelessWidget {
-  final CircleTeamModel circle;
-
-  const _CircleModulesSection({required this.circle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Circle Directory & Modules',
-            style: TextStyle(
-              color: AppColors.text,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionTile(
-                  context,
-                  icon: Icons.info_outline_rounded,
-                  label: 'Overview',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CircleOverviewScreen(circle: circle),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Expanded(
-                child: _buildActionTile(
-                  context,
-                  icon: Icons.people_outline_rounded,
-                  label: 'Peers',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CirclePeersScreen(circle: circle),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Expanded(
-                child: _buildActionTile(
-                  context,
-                  icon: Icons.domain_rounded,
-                  label: 'Sub-Industries',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CircleSubIndustriesScreen(circle: circle),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Expanded(
-                child: _buildActionTile(
-                  context,
-                  icon: Icons.event_outlined,
-                  label: 'Events',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CircleEventsScreen(circle: circle),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionTile(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        children: [
-          SquareRoundedGradientIcon(
-            icon: icon,
-            iconSize: 22,
-            boxSize: 44,
-            showBorder: true,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.text,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
       ),
     );
   }

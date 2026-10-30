@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/utils/error_formatter.dart';
 import '../../../data/repositories/auth_repository.dart';
 import 'otp_event.dart';
@@ -55,13 +56,23 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
     SubmitOtpVerification event,
     Emitter<OtpState> emit,
   ) async {
-    if (!state.isFormValid || state.isLoading) return;
+    if (state.isLoading) return;
+    if (!state.isFormValid) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Please enter the 6-digit verification code.',
+          resendSuccessMessage: '',
+        ),
+      );
+      return;
+    }
     emit(
       state.copyWith(
         isLoading: true,
         errorMessage: '',
         resendSuccessMessage: '',
         isSuccess: false,
+        isNotLeader: false,
       ),
     );
 
@@ -70,11 +81,23 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
           await _authRepository.verifyOtp(emailOrPhone, state.otpCode);
       if (response.success) {
         _timer?.cancel();
-        emit(state.copyWith(isLoading: false, isSuccess: true));
+        emit(state.copyWith(isLoading: false, isSuccess: true, isNotLeader: false));
       } else {
+        final msg = response.message ?? '';
+        if (_isNotLeaderMessage(msg)) {
+          emit(
+            state.copyWith(
+              isLoading: false,
+              isNotLeader: true,
+              errorMessage: '',
+            ),
+          );
+          return;
+        }
         emit(
           state.copyWith(
             isLoading: false,
+            isNotLeader: false,
             errorMessage: response.message != null
                 ? ErrorFormatter.format(response.message)
                 : 'Invalid verification code. Please check and try again.',
@@ -82,8 +105,45 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
         );
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: ErrorFormatter.format(e)));
+      if (_isNotLeaderException(e)) {
+        emit(
+          state.copyWith(
+            isLoading: false,
+            isNotLeader: true,
+            errorMessage: '',
+          ),
+        );
+        return;
+      }
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isNotLeader: false,
+          errorMessage: ErrorFormatter.format(e),
+        ),
+      );
     }
+  }
+
+  bool _isNotLeaderException(Object error) {
+    if (error is ApiException) {
+      final code = (error.errorCode ?? '').toUpperCase();
+      if (code == 'NOT_A_LEADER' || error.statusCode == 403) {
+        return true;
+      }
+      if (_isNotLeaderMessage(error.message)) {
+        return true;
+      }
+    }
+    return _isNotLeaderMessage(error.toString());
+  }
+
+  bool _isNotLeaderMessage(String message) {
+    final lower = message.toLowerCase();
+    return lower.contains('not_a_leader') ||
+        lower.contains('leadership role') ||
+        lower.contains('not a leader') ||
+        lower.contains('assigned leadership');
   }
 
   Future<void> _onResendOtpRequested(
@@ -120,7 +180,7 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
             resendCountdown: nextDelay,
             totalCountdown: nextDelay,
             canResend: false,
-            resendSuccessMessage: 'New verification code sent successfully!',
+            resendSuccessMessage: 'New verification code sent!',
           ),
         );
 

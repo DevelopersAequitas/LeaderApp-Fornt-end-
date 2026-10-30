@@ -29,7 +29,7 @@ class ErrorFormatter {
     }
 
     if (error is FormatException) {
-      return 'Received an unexpected response from the server. Please try again.';
+      return 'Something went wrong on our end. Please try again.';
     }
 
     final rawString = error.toString();
@@ -45,7 +45,7 @@ class ErrorFormatter {
         return 'Connection timed out. Please check your internet connection and try again.';
 
       case DioExceptionType.connectionError:
-        return 'Unable to connect to server. Please check your internet connection.';
+        return 'Unable to connect. Please check your internet connection.';
 
       case DioExceptionType.badResponse:
         final response = dioError.response;
@@ -60,31 +60,31 @@ class ErrorFormatter {
 
         switch (statusCode) {
           case 400:
-            return 'Invalid request. Please verify the entered information.';
+            return 'Please check the details you entered and try again.';
           case 401:
             return 'Your session has expired. Please sign in again.';
           case 403:
             return 'You do not have permission to perform this action.';
           case 404:
-            return 'The requested information was not found.';
+            return 'We couldn\'t find what you were looking for.';
           case 422:
             return 'Please review the entered fields and correct any errors.';
           case 429:
-            return 'Too many requests. Please wait a moment before trying again.';
+            return 'Too many attempts. Please wait a moment before trying again.';
           case 500:
           case 502:
           case 503:
           case 504:
-            return 'Server is temporarily unavailable. Please try again later.';
+            return 'Our service is temporarily unavailable. Please try again in a moment.';
           default:
-            return 'Server returned an error ($statusCode). Please try again.';
+            return 'Something went wrong. Please try again in a moment.';
         }
 
       case DioExceptionType.cancel:
         return 'Request was cancelled.';
 
       case DioExceptionType.badCertificate:
-        return 'Security certificate verification failed. Please check your network.';
+        return 'Secure connection failed. Please check your internet connection.';
 
       case DioExceptionType.unknown:
       default:
@@ -161,14 +161,28 @@ class ErrorFormatter {
     }
 
     // Replace generic technical messages with friendly terms
-    if (cleaned.toLowerCase().contains('connection refused') ||
-        cleaned.toLowerCase().contains('network is unreachable') ||
-        cleaned.toLowerCase().contains('failed host lookup')) {
+    final lower = cleaned.toLowerCase();
+    if (lower.contains('connection refused') ||
+        lower.contains('network is unreachable') ||
+        lower.contains('failed host lookup')) {
       return 'No internet connection. Please check your network and try again.';
     }
 
-    if (cleaned.toLowerCase() == 'unauthenticated' || cleaned.toLowerCase() == 'unauthenticated.') {
+    if (lower == 'unauthenticated' ||
+        lower == 'unauthenticated.' ||
+        lower.contains('token expired') ||
+        lower.contains('invalid token')) {
       return 'Your session has expired. Please sign in again.';
+    }
+
+    if (lower.contains('invalid credentials') ||
+        lower.contains('authentication failed')) {
+      return 'The details you entered didn\'t match. Please check and try again.';
+    }
+
+    if (lower.startsWith('server returned http') ||
+        lower.startsWith('http status')) {
+      return 'Something went wrong. Please try again in a moment.';
     }
 
     return cleaned.isNotEmpty ? cleaned : 'An unexpected error occurred. Please try again.';

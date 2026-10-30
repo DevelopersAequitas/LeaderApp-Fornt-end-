@@ -89,12 +89,17 @@ class ApiClient {
   }
 
   static void _printErrorLog(DioException error) {
+    final statusCode = error.response?.statusCode ?? 'NO_STATUS';
+    final data = error.response?.data;
+    final serverMessage =
+        data is Map ? (data['message'] ?? error.message) : error.message;
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('❌ [DIO ERROR] 💥 [${error.response?.statusCode ?? 'NO_STATUS'}] ${error.requestOptions.method} ${error.requestOptions.uri}');
-    debugPrint('⚠️ Error Type: ${error.type}');
-    debugPrint('💬 Message: ${error.message}');
-    if (error.response?.data != null) {
-      debugPrint('🛑 Server Response: ${error.response?.data}');
+    debugPrint(
+      '⚠️ [API RESPONSE] [$statusCode] ${error.requestOptions.method} ${error.requestOptions.uri}',
+    );
+    debugPrint('💬 Message: $serverMessage');
+    if (data != null) {
+      debugPrint('📄 Body: $data');
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
@@ -223,7 +228,7 @@ class ApiClient {
       }
 
       throw ApiException(
-        message: 'Server returned HTTP status $statusCode',
+        message: 'Something went wrong. Please try again.',
         statusCode: statusCode,
       );
     } on DioException catch (e) {
@@ -247,7 +252,9 @@ class ApiClient {
 
     if (responseData is Map<String, dynamic>) {
       errorCode = responseData['error_code'] as String?;
-      details = responseData['details'] ?? responseData['errors'];
+      details = responseData['details'] ??
+          responseData['errors'] ??
+          responseData['data'];
     }
 
     if (e.type == DioExceptionType.connectionTimeout ||
@@ -258,11 +265,23 @@ class ApiClient {
     }
 
     if (statusCode == 401) {
-      return UnauthenticatedException(message: friendlyMessage, errorCode: errorCode);
+      return UnauthenticatedException(
+        message: friendlyMessage,
+        errorCode: errorCode,
+        details: details,
+      );
     } else if (statusCode == 403) {
-      return UnauthorizedException(message: friendlyMessage, errorCode: errorCode);
+      return UnauthorizedException(
+        message: friendlyMessage,
+        errorCode: errorCode,
+        details: details,
+      );
     } else if (statusCode == 404) {
-      return NotFoundException(message: friendlyMessage, errorCode: errorCode);
+      return NotFoundException(
+        message: friendlyMessage,
+        errorCode: errorCode,
+        details: details,
+      );
     } else if (statusCode == 422) {
       return ValidationException(
         message: friendlyMessage,

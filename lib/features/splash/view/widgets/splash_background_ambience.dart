@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_color.dart';
 
 /// Clean, crisp white background with subtle ambient depth.
 class SplashBackgroundAmbience extends StatelessWidget {
@@ -8,15 +9,8 @@ class SplashBackgroundAmbience extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.white,
-            Color(0xFFF8FAFC),
-          ],
-        ),
+        color: AppColor.white,
+        gradient: AppColor.lightBgGradient,
       ),
     );
   }

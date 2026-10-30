@@ -19,7 +19,10 @@ class ReferralsBloc extends Bloc<ReferralsEvent, ReferralsState> {
 
     try {
       final response = await _referralsRepository.getReferrals();
-      final allReferrals = response.data ?? const [];
+      final rawReferrals = response.data ?? const [];
+      final allReferrals = rawReferrals
+          .where((r) => r.referralCount > 0 || r.referralsCount > 0)
+          .toList();
 
       emit(state.copyWith(
         isLoading: false,

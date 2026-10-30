@@ -6,6 +6,7 @@ import '../../features/peers_by_coins/model/coin_balance_model.dart';
 import '../../features/referrals/model/referral_model.dart';
 import '../../features/requirements/model/requirement_model.dart';
 import '../../features/testimonials/model/testimonial_model.dart';
+import '../../features/leader_activities/model/leader_activity_item_model.dart';
 import '../datasources/remote/activities_remote_datasource.dart';
 
 abstract class ActivitiesRepository {
@@ -44,6 +45,29 @@ abstract class ActivitiesRepository {
   });
   Future<ApiResponse<List<CoinBalanceModel>>> getPeersByCoins({String? circleId});
   Future<ApiResponse<List<RequirementModel>>> getRequirements({String? circleId});
+  Future<ApiResponse<List<LeaderActivityItemModel>>> getActivitiesByType({
+    required String type,
+    String? circleId,
+    String? search,
+  });
+  Future<ApiResponse<LeaderActivitiesPayload>> getActivitiesPayloadByType({
+    required String type,
+    String? circleId,
+    String? search,
+  });
+  Future<List<LeaderActivityItemModel>> getExtendedActivitiesFallback({
+    required String normalizedType,
+    String? circleId,
+  });
+  Future<ApiResponse<Map<String, dynamic>>> approvePendingRequest({
+    required String id,
+    String? category,
+  });
+  Future<ApiResponse<Map<String, dynamic>>> rejectPendingRequest({
+    required String id,
+    String? category,
+    String? reason,
+  });
 }
 
 class ActivitiesRepositoryImpl implements ActivitiesRepository {
@@ -151,5 +175,66 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
   @override
   Future<ApiResponse<List<RequirementModel>>> getRequirements({String? circleId}) {
     return _remoteDataSource.getRequirements(circleId: circleId);
+  }
+
+  @override
+  Future<ApiResponse<List<LeaderActivityItemModel>>> getActivitiesByType({
+    required String type,
+    String? circleId,
+    String? search,
+  }) {
+    return _remoteDataSource.getActivitiesByType(
+      type: type,
+      circleId: circleId,
+      search: search,
+    );
+  }
+
+  @override
+  Future<ApiResponse<LeaderActivitiesPayload>> getActivitiesPayloadByType({
+    required String type,
+    String? circleId,
+    String? search,
+  }) {
+    return _remoteDataSource.getActivitiesPayloadByType(
+      type: type,
+      circleId: circleId,
+      search: search,
+    );
+  }
+
+  @override
+  Future<List<LeaderActivityItemModel>> getExtendedActivitiesFallback({
+    required String normalizedType,
+    String? circleId,
+  }) {
+    return _remoteDataSource.getExtendedActivitiesFallback(
+      normalizedType: normalizedType,
+      circleId: circleId,
+    );
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> approvePendingRequest({
+    required String id,
+    String? category,
+  }) {
+    return _remoteDataSource.approvePendingRequest(
+      id: id,
+      category: category,
+    );
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> rejectPendingRequest({
+    required String id,
+    String? category,
+    String? reason,
+  }) {
+    return _remoteDataSource.rejectPendingRequest(
+      id: id,
+      category: category,
+      reason: reason,
+    );
   }
 }

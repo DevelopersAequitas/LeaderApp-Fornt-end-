@@ -53,7 +53,7 @@ class TeamsRestrictedPlaceholder extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'REQUIRED CAPABILITIES',
+                  'INCLUDED IN THIS SECTION',
                   style: TextStyle(
                     color: Colors.grey.shade500,
                     fontSize: 10,

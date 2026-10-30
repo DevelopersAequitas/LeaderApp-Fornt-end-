@@ -108,16 +108,28 @@ class PeerModel {
         peerMap?['peer_user_id']?.toString() ??
         '';
 
-    final name = (json['name'] as String? ??
-            json['peer_name'] as String? ??
-            peerMap?['name'] as String? ??
-            peerMap?['peer_name'] as String? ??
+    final firstLast = [
+      json['first_name']?.toString() ?? peerMap?['first_name']?.toString() ?? '',
+      json['last_name']?.toString() ?? peerMap?['last_name']?.toString() ?? '',
+    ].where((s) => s.trim().isNotEmpty).join(' ').trim();
+
+    final name = (json['name']?.toString() ??
+            json['display_name']?.toString() ??
+            json['peer_name']?.toString() ??
+            json['user_name']?.toString() ??
+            (firstLast.isNotEmpty ? firstLast : null) ??
+            peerMap?['name']?.toString() ??
+            peerMap?['display_name']?.toString() ??
+            peerMap?['peer_name']?.toString() ??
             'Peer')
         .trim();
-    final nameParts = name.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+    final nameParts =
+        name.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
     final initials = nameParts.length > 1
         ? '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase()
-        : (name.length >= 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase());
+        : (name.length >= 2
+            ? name.substring(0, 2).toUpperCase()
+            : name.toUpperCase());
 
     String companyStr = '';
     final rawCompany = json['business_name'] ??
@@ -142,13 +154,15 @@ class PeerModel {
     String statusStr = 'Active';
     final rawStatus = json['status'];
     if (rawStatus is Map) {
-      statusStr = rawStatus['name']?.toString() ?? rawStatus['status']?.toString() ?? 'Active';
+      statusStr = rawStatus['name']?.toString() ??
+          rawStatus['status']?.toString() ??
+          'Active';
     } else if (rawStatus is String) {
       statusStr = rawStatus;
     }
 
     String? industryStr;
-    final rawInd = json['industry'];
+    final rawInd = json['industry'] ?? json['main_business_category'];
     if (rawInd is Map) {
       industryStr = rawInd['name']?.toString();
     } else if (rawInd is String) {
@@ -163,31 +177,36 @@ class PeerModel {
       designationStr = rawDesig;
     }
 
-    final avatar = json['profile_image'] as String? ??
-        json['profile_photo_url'] as String? ??
-        json['avatar_url'] as String? ??
-        peerMap?['profile_image'] as String? ??
-        json['avatar'] as String? ??
-        json['profile_picture'] as String? ??
-        json['image_url'] as String? ??
-        json['image'] as String?;
+    final avatar = json['profile_image']?.toString() ??
+        json['profile_photo_url']?.toString() ??
+        json['avatar_url']?.toString() ??
+        peerMap?['profile_image']?.toString() ??
+        peerMap?['profile_photo_url']?.toString() ??
+        json['avatar']?.toString() ??
+        json['profile_picture']?.toString() ??
+        json['image_url']?.toString() ??
+        json['image']?.toString();
 
-    final introVid = json['intro_video_url'] as String? ??
-        json['intro_video'] as String? ??
-        json['video_url'] as String? ??
-        json['video'] as String?;
+    final introVid = json['intro_video_url']?.toString() ??
+        json['intro_video']?.toString() ??
+        json['video_url']?.toString() ??
+        json['video']?.toString();
 
-    final level4 = json['category_level4'] as String? ??
-        json['level4_category'] as String? ??
-        json['sub_industry'] as String? ??
-        peerMap?['category_level4'] as String? ??
-        json['level_4_category'] as String? ??
-        json['category'] as String? ??
-        json['specialization'] as String?;
+    final level4 = json['category_level4']?.toString() ??
+        json['level4_category']?.toString() ??
+        json['business_sub_category']?.toString() ??
+        json['sub_industry']?.toString() ??
+        peerMap?['category_level4']?.toString() ??
+        peerMap?['level4_category']?.toString() ??
+        peerMap?['business_sub_category']?.toString() ??
+        json['level_4_category']?.toString() ??
+        json['category']?.toString() ??
+        json['specialization']?.toString();
 
     final verified = json['is_verified'] == true ||
         json['verified'] == true ||
-        json['is_verified'] == 1;
+        json['is_verified'] == 1 ||
+        json['is_pro'] == true;
 
     final hideP = json['hide_phone'] == true || json['hide_phone'] == 1;
     final hideE = json['hide_email'] == true || json['hide_email'] == 1;
@@ -197,8 +216,10 @@ class PeerModel {
 
     final phoneStr = contact?['phone']?.toString() ?? json['phone']?.toString();
     final emailStr = contact?['email']?.toString() ?? json['email']?.toString();
-    final waStr = contact?['whatsapp']?.toString() ?? json['whatsapp']?.toString();
-    final liStr = contact?['linkedin']?.toString() ?? json['linkedin']?.toString();
+    final waStr =
+        contact?['whatsapp']?.toString() ?? json['whatsapp']?.toString();
+    final liStr =
+        contact?['linkedin']?.toString() ?? json['linkedin']?.toString();
 
     int parsedImpact = 0;
     final rawImpact = json['life_impacted_count'] ??
@@ -231,11 +252,16 @@ class PeerModel {
     } else if (rawImpact is num) {
       parsedImpact = rawImpact.toInt();
     } else if (rawImpact != null) {
-      parsedImpact = int.tryParse(rawImpact.toString().replaceAll(',', '').trim()) ?? 0;
+      parsedImpact =
+          int.tryParse(rawImpact.toString().replaceAll(',', '').trim()) ?? 0;
     }
 
     int parsedCoins = 0;
-    final rawCoins = metrics?['coins_earned'] ?? metrics?['coins'] ?? json['coins'] ?? json['coins_count'];
+    final rawCoins = metrics?['coins_earned'] ??
+        metrics?['coins'] ??
+        json['coins'] ??
+        json['coins_count'] ??
+        json['coins_balance'];
     if (rawCoins is int) {
       parsedCoins = rawCoins;
     } else if (rawCoins is num) {
@@ -263,6 +289,17 @@ class PeerModel {
         json['role']?.toString() ??
         (statusStr.toLowerCase().contains('visitor') ? 'visitor' : 'member');
 
+    String locationStr = '';
+    final rawCity = json['city'] ??
+        json['location'] ??
+        json['city_of_residence'] ??
+        peerMap?['city'];
+    if (rawCity is Map) {
+      locationStr = rawCity['name']?.toString() ?? '';
+    } else if (rawCity != null) {
+      locationStr = rawCity.toString();
+    }
+
     return PeerModel(
       id: id,
       initials: initials.isNotEmpty ? initials : 'PR',
@@ -271,12 +308,18 @@ class PeerModel {
       company: companyStr,
       circle: circleStr,
       circleId: json['circle_id']?.toString(),
-      location: json['city'] as String? ?? json['location'] as String? ?? peerMap?['city'] as String? ?? '',
+      location: locationStr,
       tags: parsedTags,
       impactCount: parsedImpact,
-      dealsFormatted: metrics?['deals_closed']?.toString() ?? json['deals_formatted']?.toString() ?? json['deals']?.toString() ?? '₹0.0',
+      dealsFormatted: metrics?['deals_closed']?.toString() ??
+          json['deals_formatted']?.toString() ??
+          json['deals']?.toString() ??
+          '₹0.0',
       coins: parsedCoins,
-      attendance: metrics?['attendance_percentage']?.toString() ?? metrics?['attendance_rate']?.toString() ?? json['attendance']?.toString() ?? '',
+      attendance: metrics?['attendance_percentage']?.toString() ??
+          metrics?['attendance_rate']?.toString() ??
+          json['attendance']?.toString() ??
+          '',
       status: statusStr,
       registrationType: regType,
       industry: industryStr,
@@ -286,19 +329,27 @@ class PeerModel {
       hidePhone: hideP,
       hideEmail: hideE,
       designation: designationStr,
-      joinedDate: json['joined_date'] as String?,
+      joinedDate: json['joined_date']?.toString(),
       isVerified: verified,
       introVideoUrl: introVid,
-      bio: json['bio'] as String?,
-      birthday: json['birthday'] as String?,
-      anniversary: json['anniversary'] as String?,
+      bio: json['bio']?.toString(),
+      birthday: json['birthday']?.toString(),
+      anniversary: json['anniversary']?.toString(),
       whatsapp: waStr,
       linkedin: liStr,
       dealsGiven: metrics?['deals_given']?.toString(),
       dealsReceived: metrics?['deals_received']?.toString(),
-      referralsGiven: metrics?['referrals_given'] is int ? metrics!['referrals_given'] as int : int.tryParse(metrics?['referrals_given']?.toString() ?? ''),
-      referralsReceived: metrics?['referrals_received'] is int ? metrics!['referrals_received'] as int : int.tryParse(metrics?['referrals_received']?.toString() ?? ''),
-      p2pMeetings: metrics?['p2p_meetings'] is int ? metrics!['p2p_meetings'] as int : (metrics?['p2p_sessions'] is int ? metrics!['p2p_sessions'] as int : int.tryParse(metrics?['p2p_meetings']?.toString() ?? '')),
+      referralsGiven: metrics?['referrals_given'] is int
+          ? metrics!['referrals_given'] as int
+          : int.tryParse(metrics?['referrals_given']?.toString() ?? ''),
+      referralsReceived: metrics?['referrals_received'] is int
+          ? metrics!['referrals_received'] as int
+          : int.tryParse(metrics?['referrals_received']?.toString() ?? ''),
+      p2pMeetings: metrics?['p2p_meetings'] is int
+          ? metrics!['p2p_meetings'] as int
+          : (metrics?['p2p_sessions'] is int
+              ? metrics!['p2p_sessions'] as int
+              : int.tryParse(metrics?['p2p_meetings']?.toString() ?? '')),
     );
   }
 

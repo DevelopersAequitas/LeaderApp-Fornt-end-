@@ -22,10 +22,17 @@ class ImpactsView extends StatelessWidget {
   }
 }
 
-class _ImpactsContent extends StatelessWidget {
+class _ImpactsContent extends StatefulWidget {
   final String? circleId;
 
   const _ImpactsContent({this.circleId});
+
+  @override
+  State<_ImpactsContent> createState() => _ImpactsContentState();
+}
+
+class _ImpactsContentState extends State<_ImpactsContent> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -52,32 +59,34 @@ class _ImpactsContent extends StatelessWidget {
       },
       child: BlocBuilder<ImpactsBloc, ImpactsState>(
         builder: (context, state) {
-          final impacts = state.impacts;
+          final q = _searchQuery.trim().toLowerCase();
+          final impacts = q.isEmpty
+              ? state.impacts
+              : state.impacts.where((i) {
+                  return i.peerName.toLowerCase().contains(q) ||
+                      i.businessName.toLowerCase().contains(q) ||
+                      i.title.toLowerCase().contains(q) ||
+                      i.description.toLowerCase().contains(q) ||
+                      i.city.toLowerCase().contains(q);
+                }).toList();
 
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Life Impacts',
-              subtitle: '${impacts.length} impact stories',
               showBackButton: true,
-              // actions: [
-              //   IconButton(
-              //     icon: const Icon(
-              //       Icons.add_circle_outline_rounded,
-              //       color: AppColors.primary,
-              //     ),
-              //     onPressed: () => _openCreateSheet(context),
-              //     tooltip: 'Record Impact',
-              //   ),
-              // ],
+              showSearch: true,
+              searchHint: 'Search life impacts...',
+              onSearchChanged: (val) => setState(() => _searchQuery = val),
+              onSearchClosed: () => setState(() => _searchQuery = ''),
             ),
             body: SafeArea(
               top: false,
-              child: state.isLoading && impacts.isEmpty
+              child: state.isLoading && state.impacts.isEmpty
                   ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {
-                        bloc.add(LoadImpacts(circleId: circleId));
+                        bloc.add(LoadImpacts(circleId: widget.circleId));
                       },
                       child: impacts.isEmpty
                           ? ListView(
@@ -128,15 +137,6 @@ class _ImpactsContent extends StatelessWidget {
                             ),
                     ),
             ),
-            // floatingActionButton: FloatingActionButton.extended(
-            //   onPressed: () => _openCreateSheet(context),
-            //   backgroundColor: AppColors.primary,
-            //   icon: const Icon(Icons.add_rounded, color: Colors.white),
-            //   label: const Text(
-            //     'Record Impact',
-            //     style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-            //   ),
-            // ),
           );
         },
       ),

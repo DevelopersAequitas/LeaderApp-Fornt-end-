@@ -14,6 +14,7 @@ abstract class PeersRepository {
     String? search,
     int? page,
     int? perPage,
+    bool global = false,
   });
   Future<ApiResponse<PeerModel>> getPeerDetails(String id);
   Future<ApiResponse<PeerProfileDetailModel>> getPeerProfileDetail(String id);
@@ -145,6 +146,7 @@ class PeersRepositoryImpl implements PeersRepository {
     String? search,
     int? page,
     int? perPage,
+    bool global = false,
   }) async {
     final cacheKey = 'peers_list_${circleId ?? "all"}_${status ?? "all"}';
     try {
@@ -154,6 +156,7 @@ class PeersRepositoryImpl implements PeersRepository {
         search: search,
         page: page,
         perPage: perPage,
+        global: global,
       );
       if (response.success &&
           response.data != null &&

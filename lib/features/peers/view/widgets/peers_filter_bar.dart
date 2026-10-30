@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Renders a Material 3 compact search bar and streamlined sort filters.
+/// Renders streamlined sort metric chips for the Peers tab.
 class PeersFilterBar extends StatelessWidget {
-  final TextEditingController searchController;
+  final TextEditingController? searchController;
   final String? selectedStatus;
   final String selectedSort;
   final ValueChanged<String>? onStatusSelected;
@@ -12,7 +12,7 @@ class PeersFilterBar extends StatelessWidget {
 
   const PeersFilterBar({
     super.key,
-    required this.searchController,
+    this.searchController,
     this.selectedStatus,
     required this.selectedSort,
     this.onStatusSelected,
@@ -25,66 +25,6 @@ class PeersFilterBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Compact Material 3 Search Field
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-          child: Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.search_rounded,
-                  color: Color(0xFF8B9CB4),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: onSearchChanged,
-                    onSubmitted: onSearchChanged,
-                    textInputAction: TextInputAction.search,
-                    style: const TextStyle(fontSize: 13, color: AppColors.text),
-                    decoration: const InputDecoration(
-                      hintText: 'Search by name, company, circle...',
-                      hintStyle: TextStyle(
-                        color: Color(0xFF8B9CB4),
-                        fontSize: 12,
-                      ),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ),
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: searchController,
-                  builder: (context, value, _) {
-                    if (value.text.isEmpty) return const SizedBox.shrink();
-                    return GestureDetector(
-                      onTap: () {
-                        searchController.clear();
-                        onSearchChanged?.call('');
-                      },
-                      child: const Icon(
-                        Icons.close_rounded,
-                        color: Color(0xFF8B9CB4),
-                        size: 16,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-
         // Sort Metric Chips Row
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,

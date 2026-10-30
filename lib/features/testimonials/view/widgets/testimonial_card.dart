@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../model/testimonial_model.dart';
@@ -17,6 +18,13 @@ class TestimonialCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void openPeerProfile() {
+      Navigator.of(context).pushNamed(
+        AppRoutes.peerProfile,
+        arguments: testimonial.toPeerModel(),
+      );
+    }
+
     void openDetails() {
       TestimonialDetailBottomSheet.show(
         context,
@@ -42,7 +50,7 @@ class TestimonialCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap ?? openDetails,
+          onTap: onTap ?? openPeerProfile,
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(

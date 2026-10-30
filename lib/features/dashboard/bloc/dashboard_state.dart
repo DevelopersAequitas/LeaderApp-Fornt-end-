@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../model/dashboard_circle_option.dart';
 import '../model/dashboard_metrics_model.dart';
 import '../model/impacter_model.dart';
 
@@ -19,11 +20,14 @@ class DashboardState {
   /// Load error explanation if any.
   final String errorMessage;
 
-  /// The active filtered circle name.
+  /// The active filtered circle id (null = all circles in the user's scope).
   final String? selectedCircle;
 
   /// Dynamic industry categories for role filtering.
   final List<String> dynamicIndustries;
+
+  /// Circles within the user's role scope, used by the circle switcher.
+  final List<DashboardCircleOption> availableCircles;
 
   const DashboardState({
     this.isLoading = false,
@@ -33,9 +37,11 @@ class DashboardState {
     this.errorMessage = '',
     this.selectedCircle,
     this.dynamicIndustries = const [],
+    this.availableCircles = const [],
   });
 
   /// Helper to copy the state with updated parameters.
+  /// Pass [clearSelectedCircle] to reset the circle filter back to "all".
   DashboardState copyWith({
     bool? isLoading,
     DashboardMetricsModel? metrics,
@@ -43,7 +49,9 @@ class DashboardState {
     int? activeTab,
     String? errorMessage,
     String? selectedCircle,
+    bool clearSelectedCircle = false,
     List<String>? dynamicIndustries,
+    List<DashboardCircleOption>? availableCircles,
   }) {
     return DashboardState(
       isLoading: isLoading ?? this.isLoading,
@@ -51,8 +59,11 @@ class DashboardState {
       impacters: impacters ?? this.impacters,
       activeTab: activeTab ?? this.activeTab,
       errorMessage: errorMessage ?? this.errorMessage,
-      selectedCircle: selectedCircle ?? this.selectedCircle,
+      selectedCircle: clearSelectedCircle
+          ? null
+          : (selectedCircle ?? this.selectedCircle),
       dynamicIndustries: dynamicIndustries ?? this.dynamicIndustries,
+      availableCircles: availableCircles ?? this.availableCircles,
     );
   }
 }

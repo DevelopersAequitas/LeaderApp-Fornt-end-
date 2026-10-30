@@ -58,16 +58,21 @@ class _DashboardContent extends StatefulWidget {
 class _DashboardContentState extends State<_DashboardContent> {
   DateTime? _lastBackPress;
   late final PageController _pageController;
+  late final TextEditingController _peersSearchController;
+  bool _isPeersSearching = false;
+  String _peersSearchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _peersSearchController = TextEditingController();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _peersSearchController.dispose();
     super.dispose();
   }
 
@@ -93,19 +98,43 @@ class _DashboardContentState extends State<_DashboardContent> {
         DashboardHeroCard(
           metrics: metrics,
           selectedCircle: selectedCircle,
-          onImpactTap: () => Navigator.of(context).pushNamed(AppRoutes.impacts),
-          onDealsTap: () =>
-              Navigator.of(context).pushNamed(AppRoutes.businessDeals),
-          onP2PTap: () =>
-              Navigator.of(context).pushNamed(AppRoutes.p2pMeetings),
-          onRevenueTap: () => bloc.add(const TabChanged(2)),
+          onImpactTap: () => Navigator.of(context).pushNamed(
+            AppRoutes.leaderActivities,
+            arguments: {
+              'type': 'impacts',
+              'circleId': ?selectedCircle,
+            },
+          ),
+          onCoinsTap: () => Navigator.of(context).pushNamed(
+            AppRoutes.leaderActivities,
+            arguments: {
+              'type': 'coins',
+              'circleId': ?selectedCircle,
+            },
+          ),
+          onDealsTap: () => Navigator.of(context).pushNamed(
+            AppRoutes.leaderActivities,
+            arguments: {
+              'type': 'business-deals',
+              'circleId': ?selectedCircle,
+            },
+          ),
+          onP2PTap: () => Navigator.of(context).pushNamed(
+            AppRoutes.leaderActivities,
+            arguments: {
+              'type': 'p2p-meetings',
+              'circleId': ?selectedCircle,
+            },
+          ),
+          onRevenueTap: () => bloc.add(const TabChanged(3)),
         ),
         const SizedBox(height: 6),
         DashboardKeyMetricsGrid(
           metrics: metrics,
+          selectedCircle: selectedCircle,
           onPeersTap: () => bloc.add(const TabChanged(1)),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         DashboardTopImpacters(
           impacters: impacters,
           metrics: metrics,
@@ -117,7 +146,13 @@ class _DashboardContentState extends State<_DashboardContent> {
             session.role != UserRole.superAdmin)
           DashboardPendingPeersCard(
             count: pendingApprovalsCount,
-            onReviewTap: () => bloc.add(const TabChanged(1)),
+            onReviewTap: () => Navigator.of(context).pushNamed(
+              AppRoutes.leaderActivities,
+              arguments: {
+                'type': 'pending-requests',
+                'circleId': ?selectedCircle,
+              },
+            ),
           ),
         const SizedBox(height: 16),
       ],
@@ -185,12 +220,29 @@ class _DashboardContentState extends State<_DashboardContent> {
                     activeTab: state.activeTab,
                     selectedCircle: state.selectedCircle,
                     dynamicIndustries: state.dynamicIndustries,
+                    availableCircles: state.availableCircles,
                     onCircleSelected: (c) => bloc.add(SelectCircle(c)),
+                    isSearching: state.activeTab == 1 && _isPeersSearching,
+                    searchController: _peersSearchController,
+                    onSearchTap: () =>
+                        setState(() => _isPeersSearching = true),
+                    onSearchChanged: (val) =>
+                        setState(() => _peersSearchQuery = val),
+                    onSearchClose: () {
+                      _peersSearchController.clear();
+                      setState(() {
+                        _peersSearchQuery = '';
+                        _isPeersSearching = false;
+                      });
+                    },
                   ),
                   Expanded(
                     child: PageView(
                       controller: _pageController,
                       onPageChanged: (idx) {
+                        if (idx != 1 && _isPeersSearching) {
+                          setState(() => _isPeersSearching = false);
+                        }
                         if (state.activeTab != idx) {
                           bloc.add(TabChanged(idx));
                         }
@@ -219,6 +271,7 @@ class _DashboardContentState extends State<_DashboardContent> {
                         _KeepAlivePage(
                           child: PeersView(
                             selectedCircle: state.selectedCircle,
+                            externalSearchQuery: _peersSearchQuery,
                           ),
                         ),
                         _KeepAlivePage(

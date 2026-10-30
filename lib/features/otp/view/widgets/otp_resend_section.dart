@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_typography.dart';
 
-/// Countdown timer or active resend button for OTP with loading state.
+/// Countdown timer or active resend button for OTP, matching Peers Global Unity's VerifyOtpResendSection.
 class OtpResendSection extends StatelessWidget {
   final int countdown;
   final bool canResend;
@@ -16,75 +17,47 @@ class OtpResendSection extends StatelessWidget {
     required this.onResend,
   });
 
+  String _formatTime(int totalSecs) {
+    final mins = totalSecs ~/ 60;
+    final secs = totalSecs % 60;
+    return '${mins.toString().padLeft(1, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (isResending) {
-      return const Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.primary,
-              ),
-            ),
-            SizedBox(width: 8),
-            Text(
-              'Sending code...',
-              style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w500,
-                color: AppColors.primary,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secondaryTextColor =
+        isDark ? AppColor.darkTextSecondary : AppColor.lightTextSecondary;
 
-    if (canResend) {
-      return Center(
-        child: TextButton.icon(
-          onPressed: onResend,
-          icon: const Icon(
-            Icons.refresh_rounded,
-            size: 18,
-            color: AppColors.primary,
-          ),
-          label: const Text(
-            'Resend Code',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-      );
-    }
-
-    final minutes = (countdown ~/ 60).toString().padLeft(2, '0');
-    final seconds = (countdown % 60).toString().padLeft(2, '0');
+    final isActionEnabled = canResend && !isResending;
 
     return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Column(
         children: [
-          const Icon(
-            Icons.timer_outlined,
-            size: 16,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(width: 6),
           Text(
-            'Resend code in $minutes:${seconds}s',
-            style: const TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
+            "Didn't receive the code?",
+            style: AppTypography.bodySmall.copyWith(color: secondaryTextColor),
+          ),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: isActionEnabled ? onResend : null,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              child: Text(
+                isResending
+                    ? 'Sending code...'
+                    : (isActionEnabled
+                        ? 'Resend OTP'
+                        : 'Resend code in ${_formatTime(countdown)}'),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: isActionEnabled
+                      ? AppColor.primaryBlue
+                      : secondaryTextColor.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w500,
+                  decoration: TextDecoration.none,
+                ),
+              ),
             ),
           ),
         ],

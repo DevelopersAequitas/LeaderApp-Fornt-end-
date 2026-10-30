@@ -1,11 +1,7 @@
 // ==============================================================================
 // File: lib/features/testimonials/view/testimonials_view.dart
 // Description: Peer Testimonials & Recommendations Feed
-// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
-// Features:
-//   - Clean testimonial feed with Given By, Received By, Circle, and date
-//   - Tapping or clicking "Read more" opens the Testimonial Detail Bottom Sheet
-//   - Pure BLoC reactive state rendering
+// Framework: Flutter | Architecture: MVP View Layer
 // ==============================================================================
 
 import 'package:flutter/material.dart';
@@ -17,8 +13,6 @@ import '../bloc/testimonials_event.dart';
 import '../bloc/testimonials_state.dart';
 import 'widgets/testimonial_card.dart';
 
-/// Screen component rendering peer testimonials.
-/// 100% Pure StatelessWidget powered by BLoC state machine.
 class TestimonialsView extends StatelessWidget {
   const TestimonialsView({super.key});
 
@@ -32,8 +26,15 @@ class TestimonialsView extends StatelessWidget {
   }
 }
 
-class _TestimonialsContent extends StatelessWidget {
+class _TestimonialsContent extends StatefulWidget {
   const _TestimonialsContent();
+
+  @override
+  State<_TestimonialsContent> createState() => _TestimonialsContentState();
+}
+
+class _TestimonialsContentState extends State<_TestimonialsContent> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -52,18 +53,29 @@ class _TestimonialsContent extends StatelessWidget {
       },
       child: BlocBuilder<TestimonialsBloc, TestimonialsState>(
         builder: (context, state) {
-          final testimonials = state.filteredTestimonials;
+          final q = _searchQuery.trim().toLowerCase();
+          final testimonials = q.isEmpty
+              ? state.filteredTestimonials
+              : state.filteredTestimonials.where((t) {
+                  return t.authorName.toLowerCase().contains(q) ||
+                      t.targetPeerName.toLowerCase().contains(q) ||
+                      t.content.toLowerCase().contains(q) ||
+                      t.authorRole.toLowerCase().contains(q);
+                }).toList();
 
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Testimonials',
-              subtitle: '${testimonials.length} testimonials',
               showBackButton: true,
+              showSearch: true,
+              searchHint: 'Search testimonials...',
+              onSearchChanged: (val) => setState(() => _searchQuery = val),
+              onSearchClosed: () => setState(() => _searchQuery = ''),
             ),
             body: SafeArea(
               top: false,
-              child: state.isLoading && testimonials.isEmpty
+              child: state.isLoading && state.filteredTestimonials.isEmpty
                   ? const ListShimmerSkeleton()
                   : RefreshIndicator(
                       onRefresh: () async {

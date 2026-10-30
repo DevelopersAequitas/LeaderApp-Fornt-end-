@@ -46,19 +46,51 @@ abstract class ApiEndpoints {
   static String get verifyOtp => '$baseUrl/leader/auth/verify-otp';
   static String get profile => '$baseUrl/leader/profile';
   static String get updateProfile => '$baseUrl/leader/profile';
-  static String get uploadAvatar => '$baseUrl/auth/profile/avatar';
+  static String get uploadAvatar => '$baseUrl/leader/auth/profile/avatar';
 
   // --- 2. Dashboard ---
-  static String get dashboardMetrics => '$baseUrl/dashboard/metrics';
-  static String get dashboardTopImpacters => '$baseUrl/dashboard/top-impacters';
+  static String get dashboardMetrics => '$baseUrl/leader/dashboard/metrics';
+  static String get dashboardTopImpacters =>
+      '$baseUrl/leader/dashboard/top-impacters';
+  static String get leaderAsksSummary => '$baseUrl/leader/asks/summary';
+  static String leaderAsksGlobal(String flow) =>
+      '$baseUrl/leader/asks/$flow/global';
+  static String get adminLeadsCounts => '$baseUrl/admin/leads/counts';
+  static String adminLeadsByType(String type) => '$baseUrl/admin/leads/$type';
+  static String get adminPendingRequests => '$baseUrl/admin/pending-requests';
+  static String get adminPendingRequestsSummary =>
+      '$baseUrl/admin/pending-requests/summary';
+  static String adminApprovePendingRequest(String id, {String? category}) =>
+      category != null && category.isNotEmpty && category != 'all'
+          ? '$baseUrl/admin/pending-requests/$category/$id/approve'
+          : '$baseUrl/admin/pending-requests/$id/approve';
+  static String adminRejectPendingRequest(String id, {String? category}) =>
+      category != null && category.isNotEmpty && category != 'all'
+          ? '$baseUrl/admin/pending-requests/$category/$id/reject'
+          : '$baseUrl/admin/pending-requests/$id/reject';
+  static String get leaderPendingRequestsSummary =>
+      '$baseUrl/leader/pending-requests/summary';
+  static String leaderApprovePendingRequest(String id, {String? category}) =>
+      category != null && category.isNotEmpty && category != 'all'
+          ? '$baseUrl/leader/pending-requests/$category/$id/approve'
+          : '$baseUrl/leader/pending-requests/$id/approve';
+  static String leaderRejectPendingRequest(String id, {String? category}) =>
+      category != null && category.isNotEmpty && category != 'all'
+          ? '$baseUrl/leader/pending-requests/$category/$id/reject'
+          : '$baseUrl/leader/pending-requests/$id/reject';
+  static String get adminPosts => '$baseUrl/admin/posts';
+  static String get adminActivitiesStats => '$baseUrl/admin/activities/stats';
 
   // --- 3. Peers, Meetings, Activities & Celebrations ---
-  static String get peers => '$baseUrl/peers';
-  static String peerDetails(String id) => '$baseUrl/peers/$id';
-  static String get peerCelebrations => '$baseUrl/peers/celebrations';
-  static String peerSendWish(String id) => '$baseUrl/peers/$id/send-wish';
-  static String peerMeetings(String id) => '$baseUrl/peers/$id/meetings';
-  static String peerActivities(String id) => '$baseUrl/peers/$id/activities';
+  static String get peers => '$baseUrl/leader/peers';
+  static String get membersLimited => '$baseUrl/members/limited';
+  static String peerDetails(String id) => '$baseUrl/leader/peers/$id';
+  static String get peerCelebrations => '$baseUrl/leader/peers/celebrations';
+  static String peerSendWish(String id) =>
+      '$baseUrl/leader/peers/$id/send-wish';
+  static String peerMeetings(String id) => '$baseUrl/leader/peers/$id/meetings';
+  static String peerActivities(String id) =>
+      '$baseUrl/leader/peers/$id/activities';
   static String memberProfile(String memberId) =>
       '$baseUrl/leader/members/$memberId';
   static String memberActivities(String memberId) =>
@@ -66,21 +98,29 @@ abstract class ApiEndpoints {
   static String memberSpecificActivity(String memberId, String path) =>
       '$baseUrl/leader/members/$memberId/$path';
   static String get impacts => '$baseUrl/leader/impacts';
-  static String get p2pMeetings => '$baseUrl/p2p-meetings';
-  static String get logP2pMeeting => '$baseUrl/p2p-meetings';
-  static String get businessDeals => '$baseUrl/business-deals';
-  static String get requirements => '$baseUrl/requirements';
+  static String get p2pMeetings => '$baseUrl/leader/p2p-meetings';
+  static String get logP2pMeeting => '$baseUrl/leader/p2p-meetings';
+  static String get businessDeals => '$baseUrl/leader/business-deals';
+  static String get requirements => '$baseUrl/leader/requirements';
+  static String leaderActivitiesByType(String type) =>
+      '$baseUrl/leader/activities/$type';
 
   // --- 4. Teams & Circles ---
-  static String get teamsSummary => '$baseUrl/teams/summary';
-  static String get teamsCircles => '$baseUrl/teams/circles';
-  static String get teamsIndustries => '$baseUrl/teams/industries';
-  static String circleDetails(String id) => '$baseUrl/teams/circles/$id';
-  static String circlePeers(String id) => '$baseUrl/teams/circles/$id/peers';
+  static String get teamsSummary => '$baseUrl/leader/teams/summary';
+  static String get teamsCircles => '$baseUrl/leader/teams/circles';
+  static String get teamsIndustries => '$baseUrl/leader/teams/industries';
+  static String circleDetails(String id) => '$baseUrl/leader/teams/circles/$id';
+  static String circlePeers(String id) =>
+      '$baseUrl/leader/teams/circles/$id/peers';
   static String circleSubIndustries(String id) =>
-      '$baseUrl/teams/circles/$id/sub-industries';
+      '$baseUrl/leader/teams/circles/$id/sub-industries';
+  static String circleReferCategory(String id) =>
+      '$baseUrl/leader/teams/circles/$id/refer-category';
   static String circleEvents(String id) =>
       '$baseUrl/leader/teams/circles/$id/events';
+  static String get leaderContacts => '$baseUrl/leader/contacts';
+  static String get contactPosts => '$baseUrl/contact-posts';
+  static String get recommendPeerForm => '$baseUrl/forms/recommend-peer';
 
   // --- 4b. Member 360° Events, Passes & Attendance ---
   static String memberEvents(String memberId) =>
@@ -91,12 +131,13 @@ abstract class ApiEndpoints {
       '$baseUrl/leader/members/$memberId/attendance';
 
   // --- 5. Finance ---
-  static String get financeMetrics => '$baseUrl/finance/metrics';
-  static String get financeTransactions => '$baseUrl/finance/transactions';
+  static String get financeMetrics => '$baseUrl/leader/finance/metrics';
+  static String get financeTransactions =>
+      '$baseUrl/leader/finance/transactions';
   static String get updateCommissionRates =>
-      '$baseUrl/finance/commission-rates';
+      '$baseUrl/leader/finance/commission-rates';
   static String get recordOfflineTransaction =>
-      '$baseUrl/finance/transactions/record-offline';
+      '$baseUrl/leader/finance/transactions/record-offline';
 
   // --- 6. Reports & Analytics ---
   static String get reports => '$baseUrl/leader/reports';
@@ -108,12 +149,12 @@ abstract class ApiEndpoints {
       '$baseUrl/leader/reports/$id/download';
 
   // --- 7. Referrals, Testimonials & Coins ---
-  static String get referrals => '$baseUrl/referrals';
+  static String get referrals => '$baseUrl/leader/referrals';
   static String get testimonials => '$baseUrl/leader/testimonials';
   static String get leaderTestimonials => '$baseUrl/leader/testimonials';
   static String memberTestimonials(String memberId) =>
       '$baseUrl/leader/members/$memberId/testimonials';
-  static String get peersByCoins => '$baseUrl/peers-by-coins';
+  static String get peersByCoins => '$baseUrl/leader/peers-by-coins';
   static String get leaderPeersByCoins => '$baseUrl/leader/peers-by-coins';
   static String memberCoins(String memberId) =>
       '$baseUrl/leader/members/$memberId/coins';
@@ -141,26 +182,23 @@ abstract class ApiEndpoints {
       '$baseUrl/leader/asks/collaboration/user/$userId';
 
   // --- 7d. Leader Referral Asks ---
-  static String get leaderReferralAsksMy =>
-      '$baseUrl/leader/asks/referral/my';
+  static String get leaderReferralAsksMy => '$baseUrl/leader/asks/referral/my';
   static String leaderReferralAsksUser(String userId) =>
       '$baseUrl/leader/asks/referral/user/$userId';
 
   // --- 7e. Leader Help Asks ---
-  static String get leaderHelpAsksMy =>
-      '$baseUrl/leader/asks/help/my';
+  static String get leaderHelpAsksMy => '$baseUrl/leader/asks/help/my';
   static String leaderHelpAsksUser(String userId) =>
       '$baseUrl/leader/asks/help/user/$userId';
 
   // --- 8. Role Management Matrix ---
-  static String get roleMatrix => '$baseUrl/roles/matrix';
-  static String get roles => '$baseUrl/roles';
-  static String roleById(String id) => '$baseUrl/roles/$id';
+  static String get roleMatrix => '$baseUrl/leader/roles/matrix';
+  static String get roles => '$baseUrl/leader/roles';
+  static String roleById(String id) => '$baseUrl/leader/roles/$id';
 
   // --- 10. System Configuration & Circulars ---
-  static String get appConfig => '$baseUrl/system/app-config';
+  static String get appConfig => '$baseUrl/leader/system/app-config';
   static String get circulars => '$baseUrl/circulars';
   static String circularById(String id) => '$baseUrl/circulars/$id';
   static String get circularPublish => '$baseUrl/circulars/publish';
 }
-

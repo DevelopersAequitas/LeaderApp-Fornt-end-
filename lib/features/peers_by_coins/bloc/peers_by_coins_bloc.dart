@@ -19,7 +19,10 @@ class PeersByCoinsBloc extends Bloc<PeersByCoinsEvent, PeersByCoinsState> {
 
     try {
       final response = await _referralsRepository.getPeersByCoins();
-      final allPeers = response.data ?? const [];
+      final rawPeers = response.data ?? const [];
+      final allPeers = rawPeers
+          .where((p) => p.coins > 0 || p.coinsCount > 0)
+          .toList();
 
       emit(state.copyWith(
         isLoading: false,

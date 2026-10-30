@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/repositories/peers_repository.dart';
-import '../../../core/helpers/session_manager.dart';
 import '../model/peer_model.dart';
 import 'peers_event.dart';
 import 'peers_state.dart';
@@ -29,7 +28,6 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
     }
 
-    final session = SessionManager().currentSession;
     final uuidRegex = RegExp(
       r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
     );
@@ -37,12 +35,6 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     String? activeCircle = event.selectedCircle ?? state.selectedCircle;
     if (activeCircle != null && !uuidRegex.hasMatch(activeCircle.trim())) {
       activeCircle = null;
-    }
-    if (activeCircle == null && session.managedCircles.isNotEmpty) {
-      final first = session.managedCircles.first.trim();
-      if (uuidRegex.hasMatch(first)) {
-        activeCircle = first;
-      }
     }
 
     final cleanQuery = state.searchQuery.toLowerCase().trim();
@@ -378,12 +370,10 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
     final sortLower = sort.toLowerCase().trim();
 
     if (sortLower == 'impact') {
-      // Top to bottom by highest Impact Count; preserve natural arrival order for equals
       result.sort((a, b) {
         return b.impactCount.compareTo(a.impactCount);
       });
     } else if (sortLower == 'deals') {
-      // Top to bottom by highest Closed Deals value
       result.sort((a, b) {
         final cmp = _parseDeals(
           b.dealsFormatted,
@@ -392,14 +382,12 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
         return b.impactCount.compareTo(a.impactCount);
       });
     } else if (sortLower == 'coins') {
-      // Top to bottom by highest Coins earned
       result.sort((a, b) {
         final cmp = b.coins.compareTo(a.coins);
         if (cmp != 0) return cmp;
         return b.impactCount.compareTo(a.impactCount);
       });
     } else if (sortLower == 'attendance') {
-      // Top to bottom by highest Attendance percentage
       result.sort((a, b) {
         final cmp = _parseAttendance(
           b.attendance,
@@ -408,12 +396,10 @@ class PeersBloc extends Bloc<PeersEvent, PeersState> {
         return b.impactCount.compareTo(a.impactCount);
       });
     } else if (sortLower == 'name') {
-      // Alphabetical A to Z
       result.sort(
         (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
     } else {
-      // Default: Top to bottom by Impact without alphabetical reshuffle
       result.sort((a, b) => b.impactCount.compareTo(a.impactCount));
     }
 

@@ -1,152 +1,106 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_color.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../bloc/login_bloc.dart';
-import '../../bloc/login_event.dart';
-import '../../bloc/login_state.dart';
 import 'country_picker_bottom_sheet.dart';
 import 'login_footer_section.dart';
 import 'login_input_field.dart';
+import 'not_a_leader_card.dart';
+import 'otp_channel_selector.dart';
 
-/// Clean Sign In form coordinating input field, submit action, and trust footer.
-class LoginFormSection extends StatefulWidget {
-  final TextEditingController inputController;
-  final VoidCallback onSubmit;
+/// Login form section matching Peers Global Unity (Email / WhatsApp toggle + Send OTP button),
+/// without account registration links since Leader App is login-only.
+class LoginFormSection extends StatelessWidget {
+  final TextEditingController emailController;
+  final TextEditingController phoneController;
+  final String selectedChannel;
+  final String dialCode;
+  final String flag;
+  final Country selectedCountry;
+  final bool isLoading;
+  final bool isNotLeader;
+  final bool isAccountUnregistered;
+  final ValueChanged<String> onInputChanged;
+  final ValueChanged<String> onChannelChanged;
+  final ValueChanged<Country> onCountryChanged;
+  final VoidCallback onSendOtp;
+  final VoidCallback? onDismissNotLeader;
 
   const LoginFormSection({
     super.key,
-    required this.inputController,
-    required this.onSubmit,
+    required this.emailController,
+    required this.phoneController,
+    required this.selectedChannel,
+    required this.dialCode,
+    required this.flag,
+    required this.selectedCountry,
+    required this.isLoading,
+    this.isNotLeader = false,
+    this.isAccountUnregistered = false,
+    required this.onInputChanged,
+    required this.onChannelChanged,
+    required this.onCountryChanged,
+    required this.onSendOtp,
+    this.onDismissNotLeader,
   });
-
-  @override
-  State<LoginFormSection> createState() => _LoginFormSectionState();
-}
-
-class _LoginFormSectionState extends State<LoginFormSection> {
-  bool _hasText = false;
-  Country _selectedCountry = Country.parse('IN');
-
-  @override
-  void initState() {
-    super.initState();
-    _hasText = widget.inputController.text.isNotEmpty;
-    widget.inputController.addListener(_onInputChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.inputController.removeListener(_onInputChanged);
-    super.dispose();
-  }
-
-  bool _isNumericPhoneInput(String input) {
-    final clean = input.trim();
-    if (clean.isEmpty) return false;
-    final hasLetterOrAt = RegExp(r'[a-zA-Z@]').hasMatch(clean);
-    final hasDigits = RegExp(r'[0-9]').hasMatch(clean);
-    return !hasLetterOrAt && hasDigits;
-  }
-
-  void _syncWithBloc() {
-    final raw = widget.inputController.text.trim();
-    final bloc = context.read<LoginBloc>();
-
-    if (raw.isEmpty) {
-      bloc.add(const EmailOrPhoneChanged(''));
-      return;
-    }
-
-    if (_isNumericPhoneInput(raw)) {
-      if (raw.startsWith('+')) {
-        bloc.add(EmailOrPhoneChanged(raw));
-      } else {
-        bloc.add(EmailOrPhoneChanged('+${_selectedCountry.phoneCode}$raw'));
-      }
-    } else {
-      bloc.add(EmailOrPhoneChanged(raw));
-    }
-  }
-
-  void _onInputChanged() {
-    final hasText = widget.inputController.text.isNotEmpty;
-    if (hasText != _hasText) {
-      setState(() => _hasText = hasText);
-    }
-    _syncWithBloc();
-  }
 
   void _openCountryPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColor.transparent,
       builder: (_) => CountryPickerBottomSheet(
-        selectedCountry: _selectedCountry,
-        onCountrySelected: (Country country) {
-          setState(() => _selectedCountry = country);
-          _syncWithBloc();
-        },
+        selectedCountry: selectedCountry,
+        onCountrySelected: onCountryChanged,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isPhone = _isNumericPhoneInput(widget.inputController.text);
+    final isWhatsapp = selectedChannel == 'whatsapp';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
-          'Sign In',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w500,
-            color: AppColors.text,
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Enter your email address or phone number to continue.',
-          style: TextStyle(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w400,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 24),
         LoginInputField(
-          controller: widget.inputController,
-          isPhone: isPhone,
-          selectedCountry: _selectedCountry,
-          hasText: _hasText,
+          controller: isWhatsapp ? phoneController : emailController,
+          isWhatsapp: isWhatsapp,
+          dialCode: dialCode,
+          flag: flag,
+          onChanged: onInputChanged,
           onCountryTap: () => _openCountryPicker(context),
-          onClear: () => widget.inputController.clear(),
-          onSubmit: widget.onSubmit,
+          onSubmit: onSendOtp,
+        ),
+        const SizedBox(height: 16),
+        OtpChannelSelector(
+          selectedChannel: selectedChannel,
+          onChannelChanged: onChannelChanged,
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          child: isNotLeader
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: NotALeaderCard(
+                    isAccountUnregistered: isAccountUnregistered,
+                    onDismiss: onDismissNotLeader,
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
         const SizedBox(height: 24),
-        BlocBuilder<LoginBloc, LoginState>(
-          builder: (context, state) {
-            final isEnabled = state.isFormValid && !state.isLoading;
-
-            return PrimaryButton(
-              label: 'Send OTP',
-              trailingIcon: Icons.arrow_forward_rounded,
-              isLoading: state.isLoading,
-              height: 48,
-              borderRadius: 24,
-              gradient: AppColors.brandGradient,
-              onPressed: isEnabled ? widget.onSubmit : null,
-            );
-          },
+        PrimaryButton(
+          label: 'Send OTP',
+          trailingIcon: Icons.arrow_forward_rounded,
+          isLoading: isLoading,
+          height: 48,
+          borderRadius: 24,
+          gradient: AppColor.brandGradient,
+          onPressed: isLoading ? null : onSendOtp,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
         const LoginFooterSection(),
       ],
     );

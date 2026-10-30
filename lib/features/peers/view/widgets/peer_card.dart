@@ -1,113 +1,89 @@
 import 'package:flutter/material.dart';
 import '../../../../core/routes/app_routes.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_color.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../model/peer_model.dart';
 
-/// Standard Material 3 Peer Card used across all peer listings in the app.
-/// Prominently displays the 6 key peer information points:
-/// 1. Peer Profile Name (Uppercase, max w500 font weight)
-/// 2. City / Location
-/// 3. Designation
-/// 4. Company Name
-/// 5. Category (Level 4 Category / Specialization)
-/// 6. Lives Impacted Count
+/// Standard Peer Card matching the Peers Global Unity app design and theme:
+/// - Clean white surface (`AppColor.lightSurface`) with `AppColor.lightBorder`
+/// - Left: 38px Avatar (`AppColor.primaryBlue`)
+/// - Center:
+///   1. Peer Profile Name (Uppercase, `FontWeight.w500`) + Verified Badge
+///   2. City / Location with `Icons.location_on_rounded`
+///   3. Designation · Company with `Icons.business_center_rounded`
+///   4. Category (Level 4 Specialization) rendered in `AppColor.brandGradient` via `ShaderMask`
+/// - Right: Main count badge (`impactCount` + optional active sort count) in theme colors only.
+///   Full detailed breakdowns are shown when tapping into `PeerProfileView`.
 class PeerCard extends StatelessWidget {
   final PeerModel peer;
   final String? selectedSort;
   final VoidCallback? onTap;
+  final EdgeInsetsGeometry? margin;
+  final bool showBorder;
 
   const PeerCard({
     super.key,
     required this.peer,
     this.selectedSort,
     this.onTap,
+    this.margin,
+    this.showBorder = true,
   });
-
-  Color _getStatusBg(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('active')) return const Color(0xFFDCFCE7);
-    if (s.contains('risk')) return const Color(0xFFFEE2E2);
-    if (s.contains('attention') || s.contains('pending')) {
-      return const Color(0xFFFEF3C7);
-    }
-    return const Color(0xFFF3F4F6);
-  }
-
-  Color _getStatusText(String status) {
-    final s = status.toLowerCase();
-    if (s.contains('active')) return const Color(0xFF16A34A);
-    if (s.contains('risk')) return const Color(0xFFDC2626);
-    if (s.contains('attention') || s.contains('pending')) {
-      return const Color(0xFFD97706);
-    }
-    return const Color(0xFF4B5563);
-  }
 
   @override
   Widget build(BuildContext context) {
-    final statusBg = _getStatusBg(peer.status);
-    final statusText = _getStatusText(peer.status);
-
-    // 1. Designation & Company Name
     final displayDesignation = peer.designation != null &&
             peer.designation!.trim().isNotEmpty
         ? peer.designation!.trim()
         : '';
     final displayCompany = peer.company.trim();
 
-    String subtitle = '';
+    String designationAndCompany = '';
     if (displayDesignation.isNotEmpty && displayCompany.isNotEmpty) {
-      subtitle = '$displayDesignation · $displayCompany';
+      designationAndCompany = '$displayDesignation · $displayCompany';
     } else if (displayDesignation.isNotEmpty) {
-      subtitle = displayDesignation;
+      designationAndCompany = displayDesignation;
     } else {
-      subtitle = displayCompany;
+      designationAndCompany = displayCompany;
     }
 
-    // 2. Category / Level 4
     final displayCategory = peer.level4Category != null &&
             peer.level4Category!.trim().isNotEmpty
         ? peer.level4Category!.trim()
         : (peer.tags.isNotEmpty ? peer.tags : (peer.industry ?? ''));
 
-    // Optional Sort Specific Metric Tag
-    String? sortMetricText;
-    Color sortMetricBg = const Color(0xFFEFF6FF);
-    Color sortMetricTextCol = const Color(0xFF1D4ED8);
-
-    if (selectedSort == 'Deals' && peer.dealsFormatted.isNotEmpty) {
-      sortMetricText = 'Deals: ${peer.dealsFormatted}';
-      sortMetricBg = const Color(0xFFDCFCE7);
-      sortMetricTextCol = const Color(0xFF15803D);
+    String? secondaryMainCount;
+    if (selectedSort == 'Deals' &&
+        peer.dealsFormatted.isNotEmpty &&
+        peer.dealsFormatted != '₹0') {
+      secondaryMainCount = peer.dealsFormatted;
     } else if (selectedSort == 'Coins' && peer.coins > 0) {
-      sortMetricText = '${peer.coins} Coins';
-      sortMetricBg = const Color(0xFFFEF3C7);
-      sortMetricTextCol = const Color(0xFFB45309);
+      secondaryMainCount = '${peer.coins} Coins';
     } else if (selectedSort == 'Attendance' && peer.attendance.isNotEmpty) {
-      sortMetricText = 'Attend: ${peer.attendance}';
-      sortMetricBg = const Color(0xFFFAF5FF);
-      sortMetricTextCol = const Color(0xFF7E22CE);
+      secondaryMainCount = peer.attendance;
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin:
+          margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4.5),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: showBorder ? AppColor.lightSurface : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        border: showBorder ? Border.all(color: AppColor.lightBorder) : null,
+        boxShadow: showBorder
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(10),
           onTap: onTap ??
               () {
                 Navigator.of(context).pushNamed(
@@ -116,173 +92,69 @@ class PeerCard extends StatelessWidget {
                 );
               },
           child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Avatar + Uppercase Name & Designation/Company + Status Pill + Chevron
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // 1. Avatar
-                    InitialsAvatar(
-                      name: peer.name.toUpperCase(),
-                      imageUrl: peer.avatarUrl,
-                      radius: 22,
-                      backgroundColor: AppColors.primary,
-                      fontSize: 13,
-                    ),
-                    const SizedBox(width: 10),
-                    // 2. Name (Uppercase, max w500), Verified Badge & Designation/Company
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                // 1. Avatar (38px matching Peers Global Unity)
+                InitialsAvatar(
+                  name: peer.name.toUpperCase(),
+                  imageUrl: peer.avatarUrl,
+                  radius: 19,
+                  backgroundColor: AppColor.primaryBlue,
+                  fontSize: 12,
+                ),
+                const SizedBox(width: 9),
+                // 2. Center Details Column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Row 1: Uppercase Name + Verified Badge
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  peer.name.toUpperCase(),
-                                  style: const TextStyle(
-                                    color: AppColors.text,
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w500,
-                                    letterSpacing: 0.2,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (peer.isVerified) ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.verified_rounded,
-                                  color: Color(0xFF2563EB),
-                                  size: 14,
-                                ),
-                              ],
-                            ],
-                          ),
-                          if (subtitle.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              subtitle,
+                          Flexible(
+                            child: Text(
+                              peer.name.toUpperCase(),
                               style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w400,
+                                color: AppColor.lightTextPrimary,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w500,
+                                height: 1.2,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                          if (peer.isVerified) ...[
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.verified_rounded,
+                              color: AppColor.primaryBlue,
+                              size: 13,
+                            ),
                           ],
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Status Pill
-                    if (peer.status.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusBg,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          peer.status,
-                          style: TextStyle(
-                            color: statusText,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppColors.textSecondary,
-                      size: 18,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                const Divider(height: 1, color: AppColors.border),
-                const SizedBox(height: 8),
-                // Badges Row
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    // 1. Lives Impacted Count
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFFFDE68A),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.favorite_rounded,
-                            size: 11,
-                            color: Color(0xFFD97706),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${peer.impactCount} Lives Impacted',
-                            style: const TextStyle(
-                              color: Color(0xFFB45309),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // 2. Category / Level 4
-                    if (displayCategory.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.border,
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                      // Row 2: City / Location
+                      if (peer.location.trim().isNotEmpty) ...[
+                        const SizedBox(height: 1.5),
+                        Row(
                           children: [
                             const Icon(
-                              Icons.category_outlined,
-                              size: 11,
-                              color: AppColors.textSecondary,
+                              Icons.location_on_rounded,
+                              size: 10,
+                              color: AppColor.lightTextSecondary,
                             ),
-                            const SizedBox(width: 4),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 140),
+                            const SizedBox(width: 3),
+                            Expanded(
                               child: Text(
-                                displayCategory,
+                                peer.location.trim(),
                                 style: const TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
+                                  color: AppColor.lightTextSecondary,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.2,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -290,62 +162,132 @@ class PeerCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ),
-                    // 3. City / Location
-                    if (peer.location.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.border,
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                      ],
+                      // Row 3: Designation · Company
+                      if (designationAndCompany.isNotEmpty) ...[
+                        const SizedBox(height: 1.5),
+                        Row(
                           children: [
                             const Icon(
-                              Icons.location_on_outlined,
-                              size: 11,
-                              color: AppColors.textSecondary,
+                              Icons.business_center_rounded,
+                              size: 10,
+                              color: AppColor.lightTextSecondary,
                             ),
                             const SizedBox(width: 3),
-                            Text(
-                              peer.location,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w400,
+                            Expanded(
+                              child: Text(
+                                designationAndCompany,
+                                style: const TextStyle(
+                                  color: AppColor.lightTextSecondary,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
+                      ],
+                      // Row 4: Brand Gradient Category Text (No box, matching Peers Global Unity)
+                      if (displayCategory.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        ShaderMask(
+                          shaderCallback: (bounds) =>
+                              AppColor.brandGradient.createShader(
+                            Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                          ),
+                          blendMode: BlendMode.srcIn,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.sell_outlined,
+                                size: 9.0,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 3),
+                              Flexible(
+                                child: Text(
+                                  displayCategory,
+                                  style: const TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                    height: 1.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // 3. Right Column: Main Counts Only (Theme-aligned)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3.5,
                       ),
-                    // 4. Optional Sort-specific metric badge
-                    if (sortMetricText != null)
+                      decoration: BoxDecoration(
+                        color: AppColor.lightSurfaceMuted,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColor.lightBorder.withValues(alpha: 0.8),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.person_rounded,
+                            size: 13,
+                            color: AppColor.primaryBlue,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${peer.impactCount}',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: AppColor.primaryBlue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (secondaryMainCount != null) ...[
+                      const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
+                          horizontal: 6,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: sortMetricBg,
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColor.badgeBlueBg,
+                          borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
-                          sortMetricText,
-                          style: TextStyle(
-                            color: sortMetricTextCol,
-                            fontSize: 10,
+                          secondaryMainCount,
+                          style: const TextStyle(
+                            fontSize: 9.5,
                             fontWeight: FontWeight.w500,
+                            color: AppColor.primaryBlue,
                           ),
                         ),
                       ),
+                    ],
                   ],
                 ),
               ],

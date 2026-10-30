@@ -35,31 +35,65 @@ class CelebrationsResponse {
       }
     }
 
-    return CelebrationsResponse(birthdays: birthdaysList, anniversaries: anniversariesList);
+    return CelebrationsResponse(
+      birthdays: birthdaysList,
+      anniversaries: anniversariesList,
+    );
   }
 }
 
 class PeersRemoteDataSource {
   final ApiClient _apiClient;
+  static bool _useGlobalMembersFallback = false;
 
-  PeersRemoteDataSource({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  PeersRemoteDataSource({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient();
 
   static bool _isValidId(String? str) {
     if (str == null || str.trim().isEmpty) return false;
-    final uuidRegex = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+    final uuidRegex = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    );
     return uuidRegex.hasMatch(str.trim());
   }
 
+  static List<PeerModel> _parsePeersList(dynamic json) {
+    if (json is List) {
+      return json
+          .whereType<Map>()
+          .map((item) => PeerModel.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
+    }
+    if (json is Map) {
+      final nested = json['peers'] ?? json['data'] ?? json['items'];
+      if (nested is List) {
+        return nested
+            .whereType<Map>()
+            .map((item) => PeerModel.fromJson(Map<String, dynamic>.from(item)))
+            .toList();
+      }
+    }
+    return <PeerModel>[];
+  }
+
   /// Fetches peers list with pagination (sorting is handled client-side).
+  /// Pass [global] = true to request the full Peers Global directory (e.g. for referrals);
+  /// otherwise the backend scopes results to the user's role and circles.
   Future<ApiResponse<List<PeerModel>>> getPeers({
     String? circleId,
     String? status,
     String? search,
     int? page,
     int? perPage,
+    bool global = false,
   }) async {
+    final hasValidCircle = _isValidId(circleId);
     final params = <String, String>{};
-    if (_isValidId(circleId)) params['circle_id'] = circleId!.trim();
+    if (hasValidCircle) {
+      params['circle_id'] = circleId!.trim();
+    } else if (global) {
+      params['scope'] = 'all';
+    }
     if (status != null && status != 'All') params['status'] = status;
     if (search != null && search.trim().isNotEmpty) {
       params['search'] = search.trim().toLowerCase();
@@ -67,16 +101,49 @@ class PeersRemoteDataSource {
     if (page != null) params['page'] = page.toString();
     if (perPage != null) params['per_page'] = perPage.toString();
 
-    return _apiClient.get<List<PeerModel>>(
+    if (global && !hasValidCircle && _useGlobalMembersFallback) {
+      final fallbackDirect = await _apiClient.get<List<PeerModel>>(
+        ApiEndpoints.membersLimited,
+        queryParameters: {
+          if (page != null) 'page': page.toString(),
+          if (perPage != null) 'per_page': perPage.toString(),
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim().toLowerCase(),
+        },
+        fromJsonT: _parsePeersList,
+      );
+      if (fallbackDirect.success && fallbackDirect.data != null) {
+        return fallbackDirect;
+      }
+    }
+
+    final primaryRes = await _apiClient.get<List<PeerModel>>(
       ApiEndpoints.peers,
       queryParameters: params.isNotEmpty ? params : null,
-      fromJsonT: (json) {
-        if (json is List) {
-          return json.map((item) => PeerModel.fromJson(item as Map<String, dynamic>)).toList();
-        }
-        return <PeerModel>[];
-      },
+      fromJsonT: _parsePeersList,
     );
+
+    if (global &&
+        !hasValidCircle &&
+        (!primaryRes.success || (primaryRes.data?.length ?? 0) <= 2)) {
+      final fallbackRes = await _apiClient.get<List<PeerModel>>(
+        ApiEndpoints.membersLimited,
+        queryParameters: {
+          if (page != null) 'page': page.toString(),
+          if (perPage != null) 'per_page': perPage.toString(),
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim().toLowerCase(),
+        },
+        fromJsonT: _parsePeersList,
+      );
+      if (fallbackRes.success &&
+          (fallbackRes.data?.length ?? 0) > (primaryRes.data?.length ?? 0)) {
+        _useGlobalMembersFallback = true;
+        return fallbackRes;
+      }
+    }
+
+    return primaryRes;
   }
 
   /// Fetches single peer profile details.
@@ -94,8 +161,13 @@ class PeersRemoteDataSource {
   }
 
   /// Fetches peers introduced by a specific member.
-  Future<ApiResponse<List<PeerModel>>> getIntroducedPeers(String memberId) async {
-    final endpoint = ApiEndpoints.memberSpecificActivity(memberId.trim(),'introduced-peers');
+  Future<ApiResponse<List<PeerModel>>> getIntroducedPeers(
+    String memberId,
+  ) async {
+    final endpoint = ApiEndpoints.memberSpecificActivity(
+      memberId.trim(),
+      'introduced-peers',
+    );
     return _apiClient.get<List<PeerModel>>(
       endpoint,
       fromJsonT: (json) {
@@ -148,7 +220,9 @@ class PeersRemoteDataSource {
   }
 
   /// Fetches full peer profile details model including metrics, milestones, bio, contact, meetings, and subscriptions.
-  Future<ApiResponse<PeerProfileDetailModel>> getPeerProfileDetail(String id) async {
+  Future<ApiResponse<PeerProfileDetailModel>> getPeerProfileDetail(
+    String id,
+  ) async {
     if (!_isValidId(id)) {
       return const ApiResponse<PeerProfileDetailModel>(
         success: false,
@@ -156,14 +230,15 @@ class PeersRemoteDataSource {
       );
     }
     final cleanId = id.trim();
-    // 1. Primary: GET /leader/members/{id} (includes subscriptions, metrics, activities, testimonials)
     final memberRes = await _apiClient.get<PeerProfileDetailModel>(
       ApiEndpoints.memberProfile(cleanId),
       fromJsonT: (json) {
         if (json is Map<String, dynamic>) {
           return PeerProfileDetailModel.fromJson(json);
         } else if (json is Map) {
-          return PeerProfileDetailModel.fromJson(Map<String, dynamic>.from(json));
+          return PeerProfileDetailModel.fromJson(
+            Map<String, dynamic>.from(json),
+          );
         }
         return const PeerProfileDetailModel();
       },
@@ -172,14 +247,15 @@ class PeersRemoteDataSource {
       return memberRes;
     }
 
-    // 2. Fallback: GET /peers/{id}
     return _apiClient.get<PeerProfileDetailModel>(
       ApiEndpoints.peerDetails(cleanId),
       fromJsonT: (json) {
         if (json is Map<String, dynamic>) {
           return PeerProfileDetailModel.fromJson(json);
         } else if (json is Map) {
-          return PeerProfileDetailModel.fromJson(Map<String, dynamic>.from(json));
+          return PeerProfileDetailModel.fromJson(
+            Map<String, dynamic>.from(json),
+          );
         }
         return const PeerProfileDetailModel();
       },
@@ -187,14 +263,17 @@ class PeersRemoteDataSource {
   }
 
   /// Fetches celebrations for the active circle.
-  Future<ApiResponse<CelebrationsResponse>> getCelebrations({String? circleId}) async {
+  Future<ApiResponse<CelebrationsResponse>> getCelebrations({
+    String? circleId,
+  }) async {
     final params = <String, String>{};
     if (_isValidId(circleId)) params['circle_id'] = circleId!.trim();
 
     return _apiClient.get<CelebrationsResponse>(
       ApiEndpoints.peerCelebrations,
       queryParameters: params.isNotEmpty ? params : null,
-      fromJsonT: (json) => CelebrationsResponse.fromJson(json is Map ? json : const {}),
+      fromJsonT: (json) =>
+          CelebrationsResponse.fromJson(json is Map ? json : const {}),
     );
   }
 
@@ -204,7 +283,8 @@ class PeersRemoteDataSource {
     required String type,
     String? message,
   }) async {
-    final cleanId = peerId.trim().replaceAll('cel_b_', '').replaceAll('cel_a_', '');
+    final cleanId =
+        peerId.trim().replaceAll('cel_b_', '').replaceAll('cel_a_', '');
     if (!_isValidId(cleanId)) {
       return const ApiResponse<Map<String, dynamic>>(
         success: false,
@@ -226,7 +306,9 @@ class PeersRemoteDataSource {
   }
 
   /// Fetches peer meetings history.
-  Future<ApiResponse<List<PeerMeetingModel>>> getPeerMeetings(String peerId) async {
+  Future<ApiResponse<List<PeerMeetingModel>>> getPeerMeetings(
+    String peerId,
+  ) async {
     if (!_isValidId(peerId)) {
       return const ApiResponse<List<PeerMeetingModel>>(
         success: true,
@@ -238,7 +320,12 @@ class PeersRemoteDataSource {
       ApiEndpoints.peerMeetings(peerId.trim()),
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => PeerMeetingModel.fromJson(item as Map<String, dynamic>)).toList();
+          return json
+              .map(
+                (item) =>
+                    PeerMeetingModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
         }
         return <PeerMeetingModel>[];
       },
@@ -263,7 +350,12 @@ class PeersRemoteDataSource {
       queryParameters: {'page': page.toString(), 'limit': limit.toString()},
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => PeerActivityModel.fromJson(item as Map<String, dynamic>)).toList();
+          return json
+              .map(
+                (item) =>
+                    PeerActivityModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
         }
         return <PeerActivityModel>[];
       },
@@ -342,7 +434,8 @@ class PeersRemoteDataSource {
     return _apiClient.post<Map<String, dynamic>>(
       ApiEndpoints.leaderBusinessDeals,
       body: body,
-      fromJsonT: (json) => json is Map<String, dynamic> ? json : {'success': true},
+      fromJsonT: (json) =>
+          json is Map<String, dynamic> ? json : {'success': true},
     );
   }
 
@@ -364,12 +457,16 @@ class PeersRemoteDataSource {
       queryParameters: params,
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          return json
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
         }
         if (json is Map) {
           final list = json['data'] ?? json['items'] ?? json['deals'];
           if (list is List) {
-            return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+            return list
+                .map((item) => Map<String, dynamic>.from(item as Map))
+                .toList();
           }
         }
         return [];
@@ -394,13 +491,16 @@ class PeersRemoteDataSource {
     if (prospectPhone != null) body['prospect_phone'] = prospectPhone;
     if (prospectEmail != null) body['prospect_email'] = prospectEmail;
     if (prospectCompany != null) body['prospect_company'] = prospectCompany;
-    if (estimatedDealValue != null) body['estimated_deal_value'] = estimatedDealValue;
+    if (estimatedDealValue != null) {
+      body['estimated_deal_value'] = estimatedDealValue;
+    }
     if (notes != null) body['notes'] = notes;
 
     return _apiClient.post<Map<String, dynamic>>(
       ApiEndpoints.leaderReferrals,
       body: body,
-      fromJsonT: (json) => json is Map<String, dynamic> ? json : {'success': true},
+      fromJsonT: (json) =>
+          json is Map<String, dynamic> ? json : {'success': true},
     );
   }
 
@@ -422,7 +522,9 @@ class PeersRemoteDataSource {
       queryParameters: params,
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          return json
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
         }
         return [];
       },
@@ -443,12 +545,16 @@ class PeersRemoteDataSource {
       },
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          return json
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
         }
         if (json is Map) {
           final list = json['data'] ?? json['posts'] ?? json['items'];
           if (list is List) {
-            return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+            return list
+                .map((item) => Map<String, dynamic>.from(item as Map))
+                .toList();
           }
         }
         return [];
@@ -470,12 +576,16 @@ class PeersRemoteDataSource {
       },
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          return json
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
         }
         if (json is Map) {
           final list = json['data'] ?? json['creatives'] ?? json['items'];
           if (list is List) {
-            return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+            return list
+                .map((item) => Map<String, dynamic>.from(item as Map))
+                .toList();
           }
         }
         return [];
@@ -506,7 +616,9 @@ class PeersRemoteDataSource {
   }
 
   /// 3.1 Get Platform Leaderboard by Coins (GET /leader/peers-by-coins)
-  Future<ApiResponse<Map<String, dynamic>>> getPeersByCoins({int limit = 20}) async {
+  Future<ApiResponse<Map<String, dynamic>>> getPeersByCoins({
+    int limit = 20,
+  }) async {
     return _apiClient.get<Map<String, dynamic>>(
       ApiEndpoints.leaderPeersByCoins,
       queryParameters: {'limit': limit.toString()},
@@ -530,12 +642,16 @@ class PeersRemoteDataSource {
       },
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+          return json
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
         }
         if (json is Map) {
           final list = json['data'] ?? json['activities'] ?? json['items'];
           if (list is List) {
-            return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+            return list
+                .map((item) => Map<String, dynamic>.from(item as Map))
+                .toList();
           }
         }
         return [];
@@ -560,7 +676,8 @@ class PeersRemoteDataSource {
     return _apiClient.post<Map<String, dynamic>>(
       ApiEndpoints.leaderTestimonials,
       body: body,
-      fromJsonT: (json) => json is Map<String, dynamic> ? json : {'success': true},
+      fromJsonT: (json) =>
+          json is Map<String, dynamic> ? json : {'success': true},
     );
   }
 
@@ -582,7 +699,13 @@ class PeersRemoteDataSource {
       queryParameters: params,
       fromJsonT: (json) {
         if (json is List) {
-          return json.map((item) => PeerTestimonialModel.fromJson(item as Map<String, dynamic>)).toList();
+          return json
+              .map(
+                (item) => PeerTestimonialModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
+              .toList();
         }
         return <PeerTestimonialModel>[];
       },
@@ -616,11 +739,19 @@ class PeersRemoteDataSource {
       fromJsonT: (json) {
         if (json is List) {
           return json
-              .map((item) => MemberEventItemModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => MemberEventItemModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
               .toList();
         } else if (json is Map && json['data'] is List) {
           return (json['data'] as List)
-              .map((item) => MemberEventItemModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => MemberEventItemModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
               .toList();
         }
         return <MemberEventItemModel>[];
@@ -629,7 +760,8 @@ class PeersRemoteDataSource {
   }
 
   /// 6.2 Member 360° — Event Registrations & Passes API (GET /api/v1/leader/members/{member_id}/event-registrations)
-  Future<ApiResponse<List<MemberEventRegistrationModel>>> getMemberEventRegistrations(
+  Future<ApiResponse<List<MemberEventRegistrationModel>>>
+      getMemberEventRegistrations(
     String memberId, {
     int page = 1,
     int perPage = 20,
@@ -653,11 +785,19 @@ class PeersRemoteDataSource {
       fromJsonT: (json) {
         if (json is List) {
           return json
-              .map((item) => MemberEventRegistrationModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => MemberEventRegistrationModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
               .toList();
         } else if (json is Map && json['data'] is List) {
           return (json['data'] as List)
-              .map((item) => MemberEventRegistrationModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => MemberEventRegistrationModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
               .toList();
         }
         return <MemberEventRegistrationModel>[];
@@ -687,11 +827,19 @@ class PeersRemoteDataSource {
       fromJsonT: (json) {
         if (json is List) {
           return json
-              .map((item) => MemberAttendanceRecordModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => MemberAttendanceRecordModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
               .toList();
         } else if (json is Map && json['data'] is List) {
           return (json['data'] as List)
-              .map((item) => MemberAttendanceRecordModel.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) => MemberAttendanceRecordModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
               .toList();
         }
         return <MemberAttendanceRecordModel>[];
@@ -743,7 +891,11 @@ class PeersRemoteDataSource {
             if (item is Map<String, dynamic>) {
               list.add(PeerCollaborationItemModel.fromJson(item));
             } else if (item is Map) {
-              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+              list.add(
+                PeerCollaborationItemModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              );
             }
           }
         }
@@ -785,7 +937,11 @@ class PeersRemoteDataSource {
             if (item is Map<String, dynamic>) {
               list.add(PeerCollaborationItemModel.fromJson(item));
             } else if (item is Map) {
-              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+              list.add(
+                PeerCollaborationItemModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              );
             }
           }
         }
@@ -838,7 +994,11 @@ class PeersRemoteDataSource {
             if (item is Map<String, dynamic>) {
               list.add(PeerCollaborationItemModel.fromJson(item));
             } else if (item is Map) {
-              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+              list.add(
+                PeerCollaborationItemModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              );
             }
           }
         }
@@ -880,7 +1040,11 @@ class PeersRemoteDataSource {
             if (item is Map<String, dynamic>) {
               list.add(PeerCollaborationItemModel.fromJson(item));
             } else if (item is Map) {
-              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+              list.add(
+                PeerCollaborationItemModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              );
             }
           }
         }
@@ -933,7 +1097,11 @@ class PeersRemoteDataSource {
             if (item is Map<String, dynamic>) {
               list.add(PeerCollaborationItemModel.fromJson(item));
             } else if (item is Map) {
-              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+              list.add(
+                PeerCollaborationItemModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              );
             }
           }
         }
@@ -975,7 +1143,11 @@ class PeersRemoteDataSource {
             if (item is Map<String, dynamic>) {
               list.add(PeerCollaborationItemModel.fromJson(item));
             } else if (item is Map) {
-              list.add(PeerCollaborationItemModel.fromJson(Map<String, dynamic>.from(item)));
+              list.add(
+                PeerCollaborationItemModel.fromJson(
+                  Map<String, dynamic>.from(item),
+                ),
+              );
             }
           }
         }

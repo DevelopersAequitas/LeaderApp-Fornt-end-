@@ -1,12 +1,7 @@
 // ==============================================================================
 // File: lib/features/referrals/view/referrals_view.dart
 // Description: Member Referral Exchange, Conversion Ranks & Deals Network
-// Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
-// Features:
-//   - Tiered member referral conversion tracking (Gold, Silver, Bronze badges)
-//   - Filter bar with status counts (All, Active, At Risk)
-//   - Referral card details: Given referrals, Received referrals, and Closed business volume
-//   - Pure BLoC reactive state rendering
+// Framework: Flutter | Architecture: MVP View Layer
 // ==============================================================================
 
 import 'package:flutter/material.dart';
@@ -21,8 +16,6 @@ import '../model/referral_model.dart';
 import 'widgets/referral_card.dart';
 import 'widgets/referrals_filter_bar.dart';
 
-/// Screen component rendering peers ranked by referrals.
-/// Pure StatelessWidget powered 100% by BLoC state machine.
 class ReferralsView extends StatelessWidget {
   const ReferralsView({super.key});
 
@@ -35,13 +28,20 @@ class ReferralsView extends StatelessWidget {
   }
 }
 
-class _ReferralsContent extends StatelessWidget {
+class _ReferralsContent extends StatefulWidget {
   const _ReferralsContent();
+
+  @override
+  State<_ReferralsContent> createState() => _ReferralsContentState();
+}
+
+class _ReferralsContentState extends State<_ReferralsContent> {
+  String _searchQuery = '';
 
   void _onPeerTap(BuildContext context, ReferralModel referral) {
     Navigator.of(context).pushNamed(
       AppRoutes.peerProfile,
-      arguments: referral,
+      arguments: referral.toPeerModel(),
     );
   }
 
@@ -62,18 +62,33 @@ class _ReferralsContent extends StatelessWidget {
       },
       child: BlocBuilder<ReferralsBloc, ReferralsState>(
         builder: (context, state) {
-          final referrals = state.filteredReferrals;
+          final q = _searchQuery.trim().toLowerCase();
+          final referrals = q.isEmpty
+              ? state.filteredReferrals
+              : state.filteredReferrals.where((r) {
+                  return r.name.toLowerCase().contains(q) ||
+                      r.company.toLowerCase().contains(q) ||
+                      r.city.toLowerCase().contains(q) ||
+                      r.category.toLowerCase().contains(q);
+                }).toList();
           final allReferrals = state.allReferrals;
 
-          final activeCount = allReferrals.where((r) => r.status.toLowerCase() == 'active').length;
-          final atRiskCount = allReferrals.where((r) => r.status.toLowerCase() == 'at risk').length;
+          final activeCount = allReferrals
+              .where((r) => r.status.toLowerCase() == 'active')
+              .length;
+          final atRiskCount = allReferrals
+              .where((r) => r.status.toLowerCase() == 'at risk')
+              .length;
 
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: CustomAppBar(
               title: 'Peers by Referrals',
-              subtitle: '${allReferrals.length} peers ranked',
               showBackButton: true,
+              showSearch: true,
+              searchHint: 'Search referrals...',
+              onSearchChanged: (val) => setState(() => _searchQuery = val),
+              onSearchClosed: () => setState(() => _searchQuery = ''),
             ),
             body: SafeArea(
               top: false,

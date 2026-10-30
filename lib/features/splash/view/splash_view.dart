@@ -1,19 +1,11 @@
-// ==============================================================================
-// File: lib/features/splash/view/splash_view.dart
-// Description: Application Launch Splash & Dynamic Lifecycle Orchestrator
-// Framework: Flutter | Architecture: MVP View Layer (BLoC State Driven)
-// Features:
-//   - Official Peers emblem entrance animation with 12px border radius
-//   - Fluid staggered character-by-character cascade for "PEERS GLOBAL"
-//   - Remote maintenance mode checks and dynamic force-update verification
-//   - Seamless authentication session evaluation and conditional route dispatching
-// ==============================================================================
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/app_config_service.dart';
+import '../../../core/theme/app_color.dart';
 import '../bloc/splash_bloc.dart';
 import '../bloc/splash_event.dart';
 import '../bloc/splash_state.dart';
@@ -22,7 +14,8 @@ import 'widgets/splash_brand_logo.dart';
 import 'widgets/splash_footer_version.dart';
 
 /// The View component of the Splash Screen feature.
-/// Clean white theme with centered emblem, animated "PEERS GLOBAL" typewriter, and pure BLoC state routing.
+/// Plays the pre-loaded `assets/animations/splash.json` Lottie animation (same as Peers Global app)
+/// with the animated "PEERS LEADERS" text below it.
 class SplashView extends StatelessWidget {
   const SplashView({super.key});
 
@@ -44,37 +37,70 @@ class _SplashContent extends StatefulWidget {
 
 class _SplashContentState extends State<_SplashContent>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _entranceController;
+  late final AnimationController _animController;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
+  Timer? _safetyTimer;
+  bool _animationFinished = false;
+  bool _blocFinished = false;
+  bool _isNavigated = false;
 
   @override
   void initState() {
     super.initState();
 
-    _entranceController = AnimationController(
+    _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
+      duration: const Duration(milliseconds: 2400),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _animationFinished = true;
+          _tryNavigate();
+        }
+      });
 
-    _scaleAnimation = Tween<double>(begin: 0.88, end: 1.0).animate(
-      CurvedAnimation(parent: _entranceController, curve: Curves.easeOutBack),
+    _scaleAnimation = Tween<double>(begin: 0.94, end: 1.0).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _entranceController,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
+        parent: _animController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
       ),
     );
 
-    _entranceController.forward();
+    _animController.forward();
+
+    // Safety fallback timer ensuring screen advances even if animation finishes late
+    _safetyTimer = Timer(const Duration(milliseconds: 2800), () {
+      _animationFinished = true;
+      _tryNavigate();
+    });
+  }
+
+  void _onAnimationLoaded(LottieComposition composition) {
+    if (mounted) {
+      _animController.duration = composition.duration;
+      if (!_animController.isAnimating && !_animController.isCompleted) {
+        _animController.forward();
+      }
+    }
   }
 
   @override
   void dispose() {
-    _entranceController.dispose();
+    _safetyTimer?.cancel();
+    _animController.dispose();
     super.dispose();
+  }
+
+  void _tryNavigate() {
+    if (!mounted || _isNavigated) return;
+    if (!_animationFinished || !_blocFinished) return;
+    _isNavigated = true;
+    _safetyTimer?.cancel();
+    _handleNavigation();
   }
 
   Future<void> _handleNavigation() async {
@@ -113,27 +139,28 @@ class _SplashContentState extends State<_SplashContent>
     return BlocListener<SplashBloc, SplashState>(
       listener: (context, state) {
         if (state is SplashLoadSuccess) {
-          _handleNavigation();
+          _blocFinished = true;
+          _tryNavigate();
         } else if (state is SplashLoadFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Initialization Error: ${state.errorMessage}'),
-              backgroundColor: Colors.redAccent,
+              content: Text(state.errorMessage.isNotEmpty
+                  ? state.errorMessage
+                  : 'Something went wrong while starting the app. Please try again.'),
+              backgroundColor: AppColor.error,
             ),
           );
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColor.lightBackground,
         body: SizedBox.expand(
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Clean White Ambience
               const Positioned.fill(
                 child: SplashBackgroundAmbience(),
               ),
-              // Perfectly Centered Brand Logo & Animated "PEERS GLOBAL"
               SafeArea(
                 child: Center(
                   child: SizedBox(
@@ -144,11 +171,12 @@ class _SplashContentState extends State<_SplashContent>
                       children: [
                         const Spacer(flex: 3),
                         SplashBrandLogo(
+                          animController: _animController,
+                          onLoaded: _onAnimationLoaded,
                           entranceScale: _scaleAnimation,
                           fadeAnimation: _fadeAnimation,
                         ),
                         const Spacer(flex: 3),
-                        // Bottom Version & Enterprise Badge
                         BlocBuilder<SplashBloc, SplashState>(
                           builder: (context, state) {
                             final version = state is SplashLoadSuccess
@@ -160,7 +188,7 @@ class _SplashContentState extends State<_SplashContent>
                             );
                           },
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),

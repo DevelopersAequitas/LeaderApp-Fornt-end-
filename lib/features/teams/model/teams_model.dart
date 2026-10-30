@@ -95,6 +95,10 @@ class CircleLeaderModel {
   final String? designation;
   final String? phone;
   final String? email;
+  final String? city;
+  final String? category;
+  final int impactCount;
+  final bool isVerified;
 
   const CircleLeaderModel({
     this.id = '',
@@ -105,18 +109,46 @@ class CircleLeaderModel {
     this.designation,
     this.phone,
     this.email,
+    this.city,
+    this.category,
+    this.impactCount = 0,
+    this.isVerified = false,
   });
 
-  factory CircleLeaderModel.fromJson(Map<String, dynamic> json, {String defaultRole = 'Leader'}) {
+  factory CircleLeaderModel.fromJson(
+    Map<String, dynamic> json, {
+    String defaultRole = 'Leader',
+  }) {
+    final rawImpacts = json['life_impacted_count'] ?? json['impact_count'] ?? 0;
+    final parsedImpacts = rawImpacts is int
+        ? rawImpacts
+        : (rawImpacts is num
+            ? rawImpacts.toInt()
+            : (int.tryParse(rawImpacts.toString()) ?? 0));
+
     return CircleLeaderModel(
-      id: json['id']?.toString() ?? json['peer_id']?.toString() ?? json['user_id']?.toString() ?? '',
+      id: json['id']?.toString() ??
+          json['peer_id']?.toString() ??
+          json['user_id']?.toString() ??
+          '',
       name: json['name'] as String? ?? json['full_name'] as String? ?? '',
       role: json['role'] as String? ?? json['title'] as String? ?? defaultRole,
-      avatarUrl: json['avatar_url'] as String? ?? json['profile_photo_url'] as String? ?? json['avatar'] as String?,
-      company: json['company'] as String? ?? json['company_name'] as String?,
+      avatarUrl: json['avatar_url'] as String? ??
+          json['profile_photo_url'] as String? ??
+          json['profile_image'] as String? ??
+          json['avatar'] as String?,
+      company: json['company'] as String? ??
+          json['company_name'] as String? ??
+          json['business_name'] as String?,
       designation: json['designation'] as String?,
       phone: json['phone'] as String? ?? json['mobile'] as String?,
       email: json['email'] as String?,
+      city: json['city'] as String? ?? json['location'] as String?,
+      category: json['category_level4'] as String? ??
+          json['level_4_category'] as String? ??
+          json['category'] as String?,
+      impactCount: parsedImpacts,
+      isVerified: json['is_verified'] == true || json['is_pro'] == true,
     );
   }
 
@@ -129,6 +161,10 @@ class CircleLeaderModel {
         'designation': designation,
         'phone': phone,
         'email': email,
+        'city': city,
+        'category': category,
+        'life_impacted_count': impactCount,
+        'is_verified': isVerified,
       };
 }
 
@@ -151,6 +187,10 @@ class CircleTeamModel {
   final String status;
   final String? launchDate;
   final String? circleImageUrl;
+  final String? description;
+  final String? stage;
+  final String meetingFrequency;
+  final String meetingMode;
 
   const CircleTeamModel({
     this.id = '',
@@ -170,6 +210,10 @@ class CircleTeamModel {
     required this.status,
     this.launchDate,
     this.circleImageUrl,
+    this.description,
+    this.stage,
+    this.meetingFrequency = 'Monthly',
+    this.meetingMode = 'Offline',
   });
 
   factory CircleTeamModel.fromJson(Map<String, dynamic> json) {
@@ -185,7 +229,8 @@ class CircleTeamModel {
       if (loc != null && loc.isNotEmpty) tagsList.add(loc);
     }
 
-    final leadership = json['leadership'] is Map ? (json['leadership'] as Map<String, dynamic>) : null;
+    final leadership =
+        json['leadership'] is Map ? (json['leadership'] as Map<String, dynamic>) : null;
 
     // Parse Chairs (Supports up to 3 Chairs)
     final chairsList = <CircleLeaderModel>[];
@@ -193,16 +238,23 @@ class CircleTeamModel {
     if (rawChairs is List) {
       for (final c in rawChairs) {
         if (c is Map<String, dynamic>) {
-          chairsList.add(CircleLeaderModel.fromJson(c, defaultRole: 'Circle Chair'));
+          chairsList.add(
+            CircleLeaderModel.fromJson(c, defaultRole: 'Circle Chair'),
+          );
         } else if (c is String && c.trim().isNotEmpty) {
-          chairsList.add(CircleLeaderModel(name: c.trim(), role: 'Circle Chair'));
+          chairsList.add(
+            CircleLeaderModel(name: c.trim(), role: 'Circle Chair'),
+          );
         }
       }
-    } else if (json['chair_name'] != null && json['chair_name'].toString().trim().isNotEmpty) {
-      chairsList.add(CircleLeaderModel(
-        name: json['chair_name'].toString().trim(),
-        role: 'Circle Chair',
-      ));
+    } else if (json['chair_name'] != null &&
+        json['chair_name'].toString().trim().isNotEmpty) {
+      chairsList.add(
+        CircleLeaderModel(
+          name: json['chair_name'].toString().trim(),
+          role: 'Circle Chair',
+        ),
+      );
     }
 
     // Parse Founders
@@ -211,16 +263,23 @@ class CircleTeamModel {
     if (rawFounders is List) {
       for (final f in rawFounders) {
         if (f is Map<String, dynamic>) {
-          foundersList.add(CircleLeaderModel.fromJson(f, defaultRole: 'Circle Founder'));
+          foundersList.add(
+            CircleLeaderModel.fromJson(f, defaultRole: 'Circle Founder'),
+          );
         } else if (f is String && f.trim().isNotEmpty) {
-          foundersList.add(CircleLeaderModel(name: f.trim(), role: 'Circle Founder'));
+          foundersList.add(
+            CircleLeaderModel(name: f.trim(), role: 'Circle Founder'),
+          );
         }
       }
-    } else if (json['founder_name'] != null && json['founder_name'].toString().trim().isNotEmpty) {
-      foundersList.add(CircleLeaderModel(
-        name: json['founder_name'].toString().trim(),
-        role: 'Circle Founder',
-      ));
+    } else if (json['founder_name'] != null &&
+        json['founder_name'].toString().trim().isNotEmpty) {
+      foundersList.add(
+        CircleLeaderModel(
+          name: json['founder_name'].toString().trim(),
+          role: 'Circle Founder',
+        ),
+      );
     }
 
     // Parse Directors
@@ -229,23 +288,36 @@ class CircleTeamModel {
     if (rawDirectors is List) {
       for (final d in rawDirectors) {
         if (d is Map<String, dynamic>) {
-          directorsList.add(CircleLeaderModel.fromJson(d, defaultRole: 'Circle Director'));
+          directorsList.add(
+            CircleLeaderModel.fromJson(d, defaultRole: 'Circle Director'),
+          );
         } else if (d is String && d.trim().isNotEmpty) {
-          directorsList.add(CircleLeaderModel(name: d.trim(), role: 'Circle Director'));
+          directorsList.add(
+            CircleLeaderModel(name: d.trim(), role: 'Circle Director'),
+          );
         }
       }
-    } else if (json['director_name'] != null && json['director_name'].toString().trim().isNotEmpty) {
-      directorsList.add(CircleLeaderModel(
-        name: json['director_name'].toString().trim(),
-        role: 'Circle Director',
-      ));
+    } else if (json['director_name'] != null &&
+        json['director_name'].toString().trim().isNotEmpty) {
+      directorsList.add(
+        CircleLeaderModel(
+          name: json['director_name'].toString().trim(),
+          role: 'Circle Director',
+        ),
+      );
     }
 
-    final rawChair = chairsList.isNotEmpty ? chairsList.map((c) => c.name).join(', ') : (json['chair_name'] as String? ?? '');
+    final rawChair = chairsList.isNotEmpty
+        ? chairsList.map((c) => c.name).join(', ')
+        : (json['chair_name'] as String? ?? '');
     final rawFounder = foundersList.isNotEmpty
         ? foundersList.map((f) => f.name).join(', ')
-        : (json['founders_count'] != null ? '${json['founders_count']} Founders' : (json['founder_name'] as String? ?? ''));
-    final rawDirector = directorsList.isNotEmpty ? directorsList.map((d) => d.name).join(', ') : (json['director_name'] as String? ?? '');
+        : (json['founders_count'] != null
+            ? '${json['founders_count']} Founders'
+            : (json['founder_name'] as String? ?? ''));
+    final rawDirector = directorsList.isNotEmpty
+        ? directorsList.map((d) => d.name).join(', ')
+        : (json['director_name'] as String? ?? '');
 
     // Parse Circle Image
     final dynamic rawImage = json['circle_image'];
@@ -278,6 +350,10 @@ class CircleTeamModel {
       status: json['status'] as String? ?? 'Active',
       launchDate: json['launch_date'] as String?,
       circleImageUrl: circleImg,
+      description: json['description'] as String?,
+      stage: json['stage'] as String? ?? 'Active Circle',
+      meetingFrequency: json['meeting_frequency'] as String? ?? 'Monthly',
+      meetingMode: json['meeting_mode'] as String? ?? 'Offline',
     );
   }
 
@@ -300,5 +376,9 @@ class CircleTeamModel {
         'launch_date': launchDate,
         'circle_image': circleImageUrl != null ? {'url': circleImageUrl} : null,
         'circle_image_url': circleImageUrl,
+        'description': description,
+        'stage': stage,
+        'meeting_frequency': meetingFrequency,
+        'meeting_mode': meetingMode,
       };
 }
