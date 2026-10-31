@@ -13,6 +13,7 @@ class ProfileRoleManagementTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: AppColors.primaryBlue.withValues(alpha: 0.04),
@@ -28,19 +29,19 @@ class ProfileRoleManagementTile extends StatelessWidget {
           onTap: () {
             Navigator.of(context).pushNamed(AppRoutes.roleManagement);
           },
-          child: Padding(
-            padding: const EdgeInsets.all(14),
+          child: const Padding(
+            padding: EdgeInsets.all(14),
             child: Row(
               children: [
-                const SquareRoundedGradientIcon(
+                SquareRoundedGradientIcon(
                   icon: Icons.admin_panel_settings_rounded,
                   iconSize: 20,
                   boxSize: 38,
                   borderRadius: 10,
                   gradient: AppColors.brandGradient,
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
+                SizedBox(width: 12),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -64,7 +65,7 @@ class ProfileRoleManagementTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                const GradientIcon(
+                GradientIcon(
                   icon: Icons.chevron_right_rounded,
                   size: 20,
                   gradient: AppColors.brandGradient,

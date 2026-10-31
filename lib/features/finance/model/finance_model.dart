@@ -240,10 +240,10 @@ class FinanceMetricsModel {
     }
 
     return FinanceMetricsModel(
-      totalRevenue: json['projected_annual_revenue']?.toString() ?? json['total_revenue']?.toString() ?? '₹0.0',
-      circleRevenue: json['total_collections']?.toString() ?? json['circle_revenue']?.toString() ?? '₹0.0',
+      totalRevenue: json['total_revenue']?.toString() ?? json['projected_annual_revenue']?.toString() ?? '₹0.0',
+      circleRevenue: json['circle_revenue']?.toString() ?? json['total_collections']?.toString() ?? '₹0.0',
       dealsClosed: json['deals_closed'] as int? ?? 0,
-      commissionDue: json['total_dues']?.toString() ?? json['commission_due']?.toString() ?? '₹0.0',
+      commissionDue: json['commission_due']?.toString() ?? json['total_dues']?.toString() ?? '₹0.0',
       totalCollections: json['total_collections']?.toString() ?? '₹0.0',
       totalDues: json['total_dues']?.toString() ?? '₹0.0',
       coinIssuancesTotal: json['coin_issuances_total'] as int? ?? 0,

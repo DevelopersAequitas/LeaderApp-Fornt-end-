@@ -7,6 +7,7 @@ class FinanceState {
   final FinancePermissionModel? permission;
   final String errorMessage;
   final FinanceMetricsModel? metrics;
+  final List<FinanceTransactionModel> transactions;
   final String? selectedCircle;
 
   const FinanceState({
@@ -14,6 +15,7 @@ class FinanceState {
     this.permission,
     this.errorMessage = '',
     this.metrics,
+    this.transactions = const [],
     this.selectedCircle,
   });
 
@@ -22,6 +24,7 @@ class FinanceState {
     FinancePermissionModel? permission,
     String? errorMessage,
     FinanceMetricsModel? metrics,
+    List<FinanceTransactionModel>? transactions,
     String? selectedCircle,
   }) {
     return FinanceState(
@@ -29,6 +32,7 @@ class FinanceState {
       permission: permission ?? this.permission,
       errorMessage: errorMessage ?? this.errorMessage,
       metrics: metrics ?? this.metrics,
+      transactions: transactions ?? this.transactions,
       selectedCircle: selectedCircle ?? this.selectedCircle,
     );
   }

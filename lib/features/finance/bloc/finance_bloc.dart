@@ -47,13 +47,18 @@ class FinanceBloc extends Bloc<FinanceEvent, FinanceState> {
     final activeCircle = event.selectedCircle ?? state.selectedCircle ?? '';
 
     try {
-      final metricsResponse = await _financeRepository.getFinanceMetrics(circleId: activeCircle);
+      final metricsFuture = _financeRepository.getFinanceMetrics(circleId: activeCircle);
+      final transactionsFuture = _financeRepository.getTransactions(circleId: activeCircle);
+
+      final metricsResponse = await metricsFuture;
+      final transactionsResponse = await transactionsFuture;
 
       emit(
         state.copyWith(
           isLoading: false,
           permission: permissionModel,
           metrics: metricsResponse.data,
+          transactions: transactionsResponse.data ?? const [],
           selectedCircle: activeCircle,
         ),
       );

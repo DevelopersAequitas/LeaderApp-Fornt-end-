@@ -276,7 +276,16 @@ class _SplineChartPainter extends CustomPainter {
         );
       }
 
-      final labelText = label >= 1000 ? '${(label / 1000).toStringAsFixed(1)}k' : '${label.toInt()}';
+      final String labelText;
+      if (label >= 10000000) {
+        labelText = '${(label / 10000000).toStringAsFixed(1)}Cr';
+      } else if (label >= 100000) {
+        labelText = '${(label / 100000).toStringAsFixed(1)}L';
+      } else if (label >= 1000) {
+        labelText = '${(label / 1000).toStringAsFixed(1)}k';
+      } else {
+        labelText = '${label.toInt()}';
+      }
       textPainter.text = TextSpan(
         text: labelText,
         style: const TextStyle(

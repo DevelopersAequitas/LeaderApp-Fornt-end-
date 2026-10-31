@@ -24,6 +24,7 @@ class LeaderActivitiesBloc
         _presenter = presenter ?? const LeaderActivitiesPresenter(),
         super(const LeaderActivitiesState()) {
     on<LoadLeaderActivities>(_onLoadLeaderActivities);
+    on<LoadMoreLeaderActivities>(_onLoadMoreLeaderActivities);
     on<SearchLeaderActivities>(_onSearchLeaderActivities);
     on<SwitchLeaderActivitiesTab>(_onSwitchLeaderActivitiesTab);
     on<ApproveLeaderActivityItem>(_onApproveLeaderActivityItem);
@@ -44,6 +45,7 @@ class LeaderActivitiesBloc
     try {
       List<LeaderRankedPeerModel> rankedPeers = [];
       List<LeaderActivityItemModel> activityItems = [];
+      LeaderActivitiesPayload? payload;
 
       // 1. Primary call to unified endpoint `/leader/activities/{type}`
       try {
@@ -52,10 +54,13 @@ class LeaderActivitiesBloc
           type: event.type,
           circleId: event.circleId,
           search: event.search,
+          page: 1,
+          limit: 25,
         );
         if (response.success && response.data != null) {
-          rankedPeers = response.data!.peers;
-          activityItems = response.data!.items;
+          payload = response.data;
+          rankedPeers = payload!.peers;
+          activityItems = payload.items;
         }
       } catch (_) {
         // Fallback handled below if the server hasn't deployed the unified route yet
@@ -187,18 +192,90 @@ class LeaderActivitiesBloc
       final filteredItems =
           _presenter.filterItems(activityItems, state.searchQuery);
 
+      final totalActivities = payload?.totalActivities ??
+          (activityItems.isNotEmpty
+              ? activityItems.length
+              : rankedPeers.fold<int>(0, (sum, p) => sum + p.metricCount));
+      final totalPeers = payload?.totalPeers ?? rankedPeers.length;
+      final total = payload?.total ?? activityItems.length;
+      final unitLabel = payload?.unitLabel ?? config.unitLabel;
+      final hasMore = payload?.hasMore ?? false;
+      final page = payload?.page ?? 1;
+
       emit(state.copyWith(
         isLoading: false,
+        isLoadingMore: false,
         allPeers: rankedPeers,
         filteredPeers: filteredPeers,
         allItems: activityItems,
         filteredItems: filteredItems,
+        totalActivities: totalActivities,
+        totalPeers: totalPeers,
+        total: total,
+        unitLabel: unitLabel,
+        hasMore: hasMore,
+        page: page,
       ));
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
+        isLoadingMore: false,
         errorMessage: ErrorFormatter.format(e),
       ));
+    }
+  }
+
+  Future<void> _onLoadMoreLeaderActivities(
+    LoadMoreLeaderActivities event,
+    Emitter<LeaderActivitiesState> emit,
+  ) async {
+    if (state.isLoadingMore || !state.hasMore || state.isLoading) {
+      return;
+    }
+
+    emit(state.copyWith(isLoadingMore: true));
+
+    try {
+      final nextPage = state.page + 1;
+      final response = await _activitiesRepository.getActivitiesPayloadByType(
+        type: state.type,
+        circleId: state.circleId,
+        search: state.searchQuery,
+        page: nextPage,
+        limit: 25,
+      );
+
+      if (response.success && response.data != null) {
+        final newPayload = response.data!;
+        final newItems = newPayload.items;
+
+        final combinedItems =
+            List<LeaderActivityItemModel>.from(state.allItems)..addAll(newItems);
+
+        final filteredItems = _presenter.filterItems(
+          combinedItems,
+          state.searchQuery,
+        );
+
+        emit(state.copyWith(
+          isLoadingMore: false,
+          allItems: combinedItems,
+          filteredItems: filteredItems,
+          page: newPayload.page > 0 ? newPayload.page : nextPage,
+          hasMore: newPayload.hasMore,
+          total: newPayload.total > 0 ? newPayload.total : state.total,
+          totalActivities: newPayload.totalActivities > 0
+              ? newPayload.totalActivities
+              : state.totalActivities,
+          totalPeers: newPayload.totalPeers > 0
+              ? newPayload.totalPeers
+              : state.totalPeers,
+        ));
+      } else {
+        emit(state.copyWith(isLoadingMore: false, hasMore: false));
+      }
+    } catch (_) {
+      emit(state.copyWith(isLoadingMore: false));
     }
   }
 

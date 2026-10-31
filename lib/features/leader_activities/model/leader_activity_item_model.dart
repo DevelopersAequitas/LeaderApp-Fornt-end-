@@ -537,10 +537,24 @@ class LeaderRankedPeerModel {
 class LeaderActivitiesPayload {
   final List<LeaderRankedPeerModel> peers;
   final List<LeaderActivityItemModel> items;
+  final int totalActivities;
+  final int totalPeers;
+  final int total;
+  final int page;
+  final int perPage;
+  final bool hasMore;
+  final String unitLabel;
 
   const LeaderActivitiesPayload({
     required this.peers,
     required this.items,
+    this.totalActivities = 0,
+    this.totalPeers = 0,
+    this.total = 0,
+    this.page = 1,
+    this.perPage = 50,
+    this.hasMore = false,
+    this.unitLabel = 'Activities',
   });
 }
 

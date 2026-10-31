@@ -2,11 +2,16 @@
 // File: lib/features/profile/view/profile_view.dart
 // Description: Executive Profile Settings, Identity Hub & Account Governance
 // Framework: Flutter | Architecture: MVP View Layer (100% Pure StatelessWidget + BLoC)
+// Matches Peers Global Unity Profile Screen layout & visual design system.
 // Features:
-//   - Luxury profile hero card with avatar, role badge, regional scope, and member tenure
-//   - Contact information & executive bio card with copy-to-clipboard actions
-//   - Role-gated administration tiles: Role Management Matrix, Official Circulars, and System Diagnostics
-//   - Profile editing bottom sheet (Bio, Phone, Avatar upload) & Secure Sign-Out modal
+//   - Modern white surface header card with cover banner, overlapping avatar (68px),
+//     full name (uppercase), role pill, designation & company, category gradient mask,
+//     and regional scope.
+//   - Contact & executive bio card with unified border styling.
+//   - Assigned circles & territory assignment card.
+//   - Role-gated administration tiles: Role Management Matrix and Official Circulars.
+//   - Outlined secure sign-out action button.
+//   - Note: Edit buttons and role metrics are commented out per user request.
 // ==============================================================================
 
 import 'package:flutter/material.dart';
@@ -21,9 +26,7 @@ import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
 import '../model/profile_model.dart';
 import 'widgets/edit_profile_bottom_sheet.dart';
-// import 'widgets/profile_app_version_tile.dart';
-// import 'widgets/profile_assigned_circles_card.dart';
-// import 'widgets/profile_capabilities_card.dart';
+import 'widgets/profile_assigned_circles_card.dart';
 import 'widgets/profile_circulars_tile.dart';
 import 'widgets/profile_contact_card.dart';
 import 'widgets/profile_hero_card.dart';
@@ -48,6 +51,8 @@ class ProfileView extends StatelessWidget {
 class _ProfileContent extends StatelessWidget {
   const _ProfileContent();
 
+  // Preserved for future profile editing invocation:
+  // ignore: unused_element
   void _showEditProfileModal(BuildContext context, UserProfileModel profile) {
     final bloc = context.read<ProfileBloc>();
     EditProfileBottomSheet.show(
@@ -108,21 +113,23 @@ class _ProfileContent extends StatelessWidget {
 
           return Scaffold(
             backgroundColor: AppColors.background,
-            appBar: CustomAppBar(
-              title: 'Executive Profile',
-              subtitle: 'Account Settings & Security',
+            appBar: const CustomAppBar(
+              title: 'My Profile',
               showBackButton: true,
-              actions: [
-                if (profile != null)
-                  IconButton(
-                    icon: const GradientIcon(
-                      icon: Icons.edit_outlined,
-                      size: 20,
-                      gradient: AppColors.brandGradient,
-                    ),
-                    onPressed: () => _showEditProfileModal(context, profile),
-                  ),
-              ],
+              // =========================================================================
+              // Edit button in AppBar - Commented out per user request
+              // =========================================================================
+              // actions: [
+              //   if (profile != null)
+              //     IconButton(
+              //       icon: const GradientIcon(
+              //         icon: Icons.edit_outlined,
+              //         size: 20,
+              //         gradient: AppColors.brandGradient,
+              //       ),
+              //       onPressed: () => _showEditProfileModal(context, profile),
+              //     ),
+              // ],
             ),
             body: SafeArea(
               top: false,
@@ -138,23 +145,45 @@ class _ProfileContent extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             if (profile != null) ...[
+                              // 1. Header Card (Cover banner + Avatar + Info)
                               ProfileHeroCard(profile: profile),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 4),
+
+                              // =========================================================================
+                              // 2. Role Metrics Section - Commented out per user request
+                              // =========================================================================
+                              // Padding(
+                              //   padding: const EdgeInsets.symmetric(horizontal: 16),
+                              //   child: ProfileRoleMetricsCard(profile: profile),
+                              // ),
+                              // const SizedBox(height: 10),
+
+                              // 3. Contact & Executive Bio Card
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                 ),
                                 child: ProfileContactCard(
                                   profile: profile,
-                                  onEditTap: () =>
-                                      _showEditProfileModal(context, profile),
-                                  canEdit: true,
+                                  onEditTap: () => {},
+                                  canEdit: false, // Edit button disabled per user request
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+
+                              // 4. Assigned Circles & Territory Card
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: ProfileAssignedCirclesCard(
+                                  profile: profile,
                                 ),
                               ),
                             ],
                             const SizedBox(height: 12),
 
-                            // Administrative Tiles
+                            // 5. Governance & Administrative Tiles
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16),
                               child: Column(
@@ -165,6 +194,7 @@ class _ProfileContent extends StatelessWidget {
                                   ],
                                   const ProfileCircularsTile(),
                                   const SizedBox(height: 16),
+
                                   // Sign Out Button
                                   Padding(
                                     padding: const EdgeInsets.symmetric(

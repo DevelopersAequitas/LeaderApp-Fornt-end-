@@ -19,6 +19,24 @@ enum UserRole {
   /// Helper to get a role from its label or key (case-insensitive).
   static UserRole? fromLabel(String label) {
     final clean = label.trim().toLowerCase().replaceAll('_', '').replaceAll('-', '').replaceAll(' ', '');
+    if (clean == 'ded' || clean.contains('districtexec') || clean.contains('district')) {
+      return UserRole.districtExecDirector;
+    }
+    if (clean == 'id' || clean == 'ied' || clean.contains('industrydirector') || clean.contains('industry')) {
+      return UserRole.industryDirector;
+    }
+    if (clean == 'cd' || clean == 'director' || clean.contains('circledirector')) {
+      return UserRole.circleDirector;
+    }
+    if (clean == 'cf' || clean == 'founder' || clean.contains('circlefounder')) {
+      return UserRole.circleFounder;
+    }
+    if (clean == 'superadmin' || clean == 'globaladmin' || clean == 'admin') {
+      return UserRole.superAdmin;
+    }
+    if (clean == 'countrydirector' || clean == 'eed') {
+      return UserRole.countryDirector;
+    }
     for (final role in UserRole.values) {
       final normLabel = role.label.toLowerCase().replaceAll('_', '').replaceAll('-', '').replaceAll(' ', '');
       final normName = role.name.toLowerCase().replaceAll('_', '').replaceAll('-', '').replaceAll(' ', '');

@@ -297,8 +297,13 @@ class ActivitiesRemoteDataSource {
     required String type,
     String? circleId,
     String? search,
+    int page = 1,
+    int limit = 50,
   }) async {
-    final params = <String, String>{};
+    final params = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
     if (_isValidUuid(circleId)) params['circle_id'] = circleId!;
     if (search != null && search.trim().isNotEmpty) {
       params['search'] = search.trim();
@@ -306,7 +311,7 @@ class ActivitiesRemoteDataSource {
 
     final config = LeaderActivityCategoryConfig.fromType(type);
 
-    return _apiClient.get<LeaderActivitiesPayload>(
+    final res = await _apiClient.get<LeaderActivitiesPayload>(
       ApiEndpoints.leaderActivitiesByType(type),
       queryParameters: params.isNotEmpty ? params : null,
       fromJsonT: (json) {
@@ -370,6 +375,48 @@ class ActivitiesRemoteDataSource {
         return LeaderActivitiesPayload(peers: peers, items: items);
       },
     );
+
+    final meta = res.meta;
+    if (res.data != null) {
+      final peers = res.data!.peers;
+      final items = res.data!.items;
+      final sumPeerMetrics = peers.fold<int>(0, (sum, p) => sum + p.metricCount);
+      final totalActivities = meta != null && meta.totalActivities > 0
+          ? meta.totalActivities
+          : (sumPeerMetrics > 0 ? sumPeerMetrics : (meta?.total ?? items.length));
+      final totalPeers = meta != null && meta.totalPeers > 0
+          ? meta.totalPeers
+          : peers.length;
+      final total = meta != null && meta.total > 0
+          ? meta.total
+          : items.length;
+      final unitLabel = meta != null && meta.unitLabel.isNotEmpty
+          ? meta.unitLabel
+          : config.unitLabel;
+      final hasMore = meta?.hasMore ?? (items.length >= limit);
+
+      final populatedPayload = LeaderActivitiesPayload(
+        peers: peers,
+        items: items,
+        totalActivities: totalActivities,
+        totalPeers: totalPeers,
+        total: total,
+        page: page,
+        perPage: limit,
+        hasMore: hasMore,
+        unitLabel: unitLabel,
+      );
+
+      return ApiResponse<LeaderActivitiesPayload>(
+        success: res.success,
+        message: res.message,
+        errorCode: res.errorCode,
+        meta: res.meta,
+        data: populatedPayload,
+      );
+    }
+
+    return res;
   }
 
   /// Live fallback fetcher for extended user-input activities when `/leader/activities/{type}`

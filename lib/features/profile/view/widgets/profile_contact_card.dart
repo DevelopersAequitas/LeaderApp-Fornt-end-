@@ -4,6 +4,7 @@ import '../../../../core/widgets/gradient_widgets.dart';
 import '../../model/profile_model.dart';
 
 /// Clean contact details and executive bio card for the leader profile without duplicate fields or copy buttons.
+/// Note: Edit button is commented out per user request.
 class ProfileContactCard extends StatelessWidget {
   final UserProfileModel profile;
   final VoidCallback onEditTap;
@@ -22,6 +23,7 @@ class ProfileContactCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: AppColors.primaryBlue.withValues(alpha: 0.04),
@@ -34,16 +36,16 @@ class ProfileContactCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row: Title & Edit Button
-          Row(
+          // Header Row: Title & Optional Action
+          const Row(
             children: [
-              const GradientIcon(
+              GradientIcon(
                 icon: Icons.contact_mail_outlined,
                 size: 18,
                 gradient: AppColors.brandGradient,
               ),
-              const SizedBox(width: 8),
-              const Expanded(
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'Contact & Details',
                   style: TextStyle(
@@ -53,38 +55,40 @@ class ProfileContactCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (canEdit)
-                InkWell(
-                  onTap: onEditTap,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.selectionBg,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GradientIcon(
-                          icon: Icons.edit_outlined,
-                          size: 12,
-                          gradient: AppColors.brandGradient,
-                        ),
-                        SizedBox(width: 4),
-                        GradientText(
-                          'Edit',
-                          gradient: AppColors.brandGradient,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              // =====================================================================
+              // Edit Button - Commented out per user request
+              // =====================================================================
+              // if (canEdit)
+              //   InkWell(
+              //     onTap: onEditTap,
+              //     borderRadius: BorderRadius.circular(8),
+              //     child: Container(
+              //       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              //       decoration: BoxDecoration(
+              //         color: AppColors.selectionBg,
+              //         borderRadius: BorderRadius.circular(8),
+              //       ),
+              //       child: const Row(
+              //         mainAxisSize: MainAxisSize.min,
+              //         children: [
+              //           GradientIcon(
+              //             icon: Icons.edit_outlined,
+              //             size: 12,
+              //             gradient: AppColors.brandGradient,
+              //           ),
+              //           SizedBox(width: 4),
+              //           GradientText(
+              //             'Edit',
+              //             gradient: AppColors.brandGradient,
+              //             style: TextStyle(
+              //               fontSize: 11,
+              //               fontWeight: FontWeight.w500,
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
           const SizedBox(height: 12),

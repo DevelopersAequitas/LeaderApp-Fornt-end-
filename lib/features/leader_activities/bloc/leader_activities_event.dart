@@ -22,6 +22,10 @@ class SearchLeaderActivities extends LeaderActivitiesEvent {
   const SearchLeaderActivities(this.query);
 }
 
+class LoadMoreLeaderActivities extends LeaderActivitiesEvent {
+  const LoadMoreLeaderActivities();
+}
+
 class SwitchLeaderActivitiesTab extends LeaderActivitiesEvent {
   final int tabIndex;
 

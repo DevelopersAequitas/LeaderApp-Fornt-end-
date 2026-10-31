@@ -54,6 +54,8 @@ abstract class ActivitiesRepository {
     required String type,
     String? circleId,
     String? search,
+    int page = 1,
+    int limit = 50,
   });
   Future<List<LeaderActivityItemModel>> getExtendedActivitiesFallback({
     required String normalizedType,
@@ -195,11 +197,15 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
     required String type,
     String? circleId,
     String? search,
+    int page = 1,
+    int limit = 50,
   }) {
     return _remoteDataSource.getActivitiesPayloadByType(
       type: type,
       circleId: circleId,
       search: search,
+      page: page,
+      limit: limit,
     );
   }
 

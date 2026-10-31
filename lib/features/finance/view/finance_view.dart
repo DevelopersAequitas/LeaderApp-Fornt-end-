@@ -12,19 +12,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/enums/user_role.dart';
-import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../bloc/finance_bloc.dart';
 import '../bloc/finance_event.dart';
 import '../bloc/finance_state.dart';
 import '../model/finance_model.dart';
+import 'widgets/commission_settings_bottom_sheet.dart';
+import 'widgets/finance_action_buttons.dart';
 import 'widgets/finance_chart_section.dart';
 import 'widgets/finance_commission_rates.dart';
 import 'widgets/finance_commission_structure.dart';
 import 'widgets/finance_metrics_grid.dart';
 import 'widgets/finance_restricted_view.dart';
 import 'widgets/finance_shimmer_skeleton.dart';
+import 'widgets/finance_transactions_list.dart';
+import 'widgets/record_payment_bottom_sheet.dart';
 
 /// The View component of the Finance tab feature.
 /// Pure StatelessWidget powered 100% by BLoC state machine.
@@ -52,18 +54,54 @@ class _FinanceContent extends StatelessWidget {
   Widget _buildFounderFinanceView(
     BuildContext context,
     FinanceMetricsModel metrics,
+    List<FinanceTransactionModel> transactions,
   ) {
-    final role = SessionManager().currentRole;
-    final hideCommissionRates = role == UserRole.industryDirector ||
-        role == UserRole.countryDirector ||
-        role == UserRole.superAdmin;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FinanceMetricsGrid(metrics: metrics),
+        FinanceActionButtons(
+          onRecordPaymentTap: () {
+            RecordPaymentBottomSheet.show(
+              context,
+              selectedCircle: selectedCircle,
+              onPaymentRecorded: () {
+                context.read<FinanceBloc>().add(
+                  LoadFinanceData(selectedCircle: selectedCircle),
+                );
+              },
+              onError: (msg) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(msg),
+                    backgroundColor: AppColors.danger,
+                  ),
+                );
+              },
+            );
+          },
+          onCommissionSetupTap: () {
+            CommissionSettingsBottomSheet.show(
+              context,
+              currentStructure: metrics.commissionStructure,
+              onRatesUpdated: () {
+                context.read<FinanceBloc>().add(
+                  LoadFinanceData(selectedCircle: selectedCircle),
+                );
+              },
+              onError: (msg) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(msg),
+                    backgroundColor: AppColors.danger,
+                  ),
+                );
+              },
+            );
+          },
+        ),
         FinanceChartSection(metrics: metrics),
-        if (!hideCommissionRates)
+        if (metrics.commissionRates.isNotEmpty)
           FinanceCommissionRates(rates: metrics.commissionRates),
         FinanceCommissionStructure(
           structure: metrics.commissionStructure,
@@ -73,6 +111,8 @@ class _FinanceContent extends StatelessWidget {
             );
           },
         ),
+        if (transactions.isNotEmpty)
+          FinanceTransactionsList(transactions: transactions),
         const SizedBox(
           height: 48,
         ), // Generous bottom spacing for navigation bar clearance
@@ -113,7 +153,11 @@ class _FinanceContent extends StatelessWidget {
               child: state.permission!.isRestricted
                   ? FinanceRestrictedView(permission: state.permission!)
                   : (state.metrics != null
-                      ? _buildFounderFinanceView(context, state.metrics!)
+                      ? _buildFounderFinanceView(
+                          context,
+                          state.metrics!,
+                          state.transactions,
+                        )
                       : const SizedBox()),
             ),
           );

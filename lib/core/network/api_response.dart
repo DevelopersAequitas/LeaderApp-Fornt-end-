@@ -4,12 +4,20 @@ class PaginationMeta {
   final int lastPage;
   final int perPage;
   final int total;
+  final int totalActivities;
+  final int totalPeers;
+  final bool hasMore;
+  final String unitLabel;
 
   const PaginationMeta({
     this.currentPage = 1,
     this.lastPage = 1,
     this.perPage = 20,
     this.total = 0,
+    this.totalActivities = 0,
+    this.totalPeers = 0,
+    this.hasMore = false,
+    this.unitLabel = 'Activities',
   });
 
   factory PaginationMeta.fromJson(Map<String, dynamic> json) {
@@ -18,6 +26,10 @@ class PaginationMeta {
       lastPage: int.tryParse(json['last_page']?.toString() ?? json['total_pages']?.toString() ?? '') ?? 1,
       perPage: int.tryParse(json['per_page']?.toString() ?? '') ?? 20,
       total: int.tryParse(json['total']?.toString() ?? json['total_count']?.toString() ?? '') ?? 0,
+      totalActivities: int.tryParse(json['total_activities']?.toString() ?? '') ?? 0,
+      totalPeers: int.tryParse(json['total_peers']?.toString() ?? '') ?? 0,
+      hasMore: json['has_more'] == true || (json['has_more']?.toString() == 'true'),
+      unitLabel: json['unit_label']?.toString() ?? 'Activities',
     );
   }
 
@@ -26,6 +38,10 @@ class PaginationMeta {
         'last_page': lastPage,
         'per_page': perPage,
         'total': total,
+        'total_activities': totalActivities,
+        'total_peers': totalPeers,
+        'has_more': hasMore,
+        'unit_label': unitLabel,
       };
 }
 

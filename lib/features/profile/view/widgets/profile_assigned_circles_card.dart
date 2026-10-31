@@ -3,7 +3,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../model/profile_model.dart';
 
-/// Renders the Assigned Circles and Territory card for the leader.
+/// Renders the Assigned Circles and Territory card for the leader matching Peers Global card design.
 class ProfileAssignedCirclesCard extends StatelessWidget {
   final UserProfileModel profile;
 
@@ -17,6 +17,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: AppColors.primaryBlue.withValues(alpha: 0.04),
@@ -49,7 +50,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F4F9),
+                  color: AppColors.secondaryBg,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -65,9 +66,9 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           if (circles.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: const Text(
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
                 'National Scope – All circles accessible.',
                 style: TextStyle(
                   color: AppColors.textSecondary,
@@ -85,6 +86,7 @@ class ProfileAssignedCirclesCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: Row(
                     children: [

@@ -57,27 +57,8 @@ class UserSession {
 
   factory UserSession.fromJson(Map<String, dynamic> json) {
     final rawRole = json['role'] as String? ?? 'circleChair';
-    final normalizedRaw = rawRole
-        .toLowerCase()
-        .replaceAll('_', '')
-        .replaceAll(' ', '');
-    UserRole resolvedRole = UserRole.circleChair;
-    for (final r in UserRole.values) {
-      final normName = r.name
-          .toLowerCase()
-          .replaceAll('_', '')
-          .replaceAll(' ', '');
-      final normLabel = r.label
-          .toLowerCase()
-          .replaceAll('_', '')
-          .replaceAll(' ', '');
-      if (normName == normalizedRaw ||
-          normLabel == normalizedRaw ||
-          normalizedRaw.contains(normName)) {
-        resolvedRole = r;
-        break;
-      }
-    }
+    final customRole = json['custom_role_label'] as String? ?? '';
+    final UserRole resolvedRole = UserRole.fromLabel(customRole.isNotEmpty ? customRole : rawRole) ?? UserRole.fromLabel(rawRole) ?? UserRole.circleChair;
 
     final managedList = <String>[];
     if (json['managed_circles'] is List) {
