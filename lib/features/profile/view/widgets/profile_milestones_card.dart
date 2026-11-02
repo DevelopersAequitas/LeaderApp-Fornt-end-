@@ -19,9 +19,14 @@ class ProfileMilestonesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final role = SessionManager().currentRole;
+    final session = SessionManager().currentSession;
+    final role = session.role;
     final isSuperAdmin = role == UserRole.superAdmin;
+    final roleLabel = session.customRoleLabel?.isNotEmpty == true
+        ? session.customRoleLabel!
+        : role.label;
 
+    // Super Admin: Informational banner about milestone governance
     if (isSuperAdmin) {
       return Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -69,7 +74,7 @@ class ProfileMilestonesCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'As Super Admin, you define milestone targets and cash bonuses in the Web Admin Console. Super Admin does not earn personal performance bonuses.',
+                    'As Super Admin, you configure milestone targets, cash rewards, and role visibility in the Web Admin Console. Super Admin does not earn personal performance bonuses.',
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 12,
@@ -84,8 +89,36 @@ class ProfileMilestonesCard extends StatelessWidget {
       );
     }
 
-    if (!isApplicable && milestones.isEmpty) {
-      return const SizedBox.shrink();
+    // If Super Admin disabled milestones for this specific role
+    if (!isApplicable) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.shield_outlined,
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Milestone tracking is currently disabled for $roleLabel by Super Admin.',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return Container(
@@ -116,10 +149,10 @@ class ProfileMilestonesCard extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
+                      gradient: const LinearGradient(
                         colors: [
-                          const Color(0xFFF59E0B).withValues(alpha: 0.18),
-                          const Color(0xFF10B981).withValues(alpha: 0.18),
+                          Color(0xFFFEF3C7),
+                          Color(0xFFD1FAE5),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -143,7 +176,7 @@ class ProfileMilestonesCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Performance & cash bonus tracking',
+                        '$roleLabel Performance Targets',
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 11,
@@ -153,24 +186,26 @@ class ProfileMilestonesCard extends StatelessWidget {
                   ),
                 ],
               ),
-              if (totalEarnedBonuses != '₹0' && totalEarnedBonuses.isNotEmpty)
+              if (totalEarnedBonuses.isNotEmpty && totalEarnedBonuses != '₹0')
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppColors.success.withValues(alpha: 0.25),
+                      color: AppColors.success.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
-                        Icons.check_circle_rounded,
-                        color: AppColors.success,
+                        Icons.payments_outlined,
                         size: 13,
+                        color: AppColors.success,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -192,7 +227,7 @@ class ProfileMilestonesCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'No active milestones currently assigned to your leadership role.',
+                'No active milestones currently assigned to $roleLabel.',
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 12,
