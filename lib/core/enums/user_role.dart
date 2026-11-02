@@ -16,9 +16,25 @@ enum UserRole {
 
   const UserRole(this.label);
 
+  /// Returns true if this role is a committee chair or circle chair.
+  bool get isChair =>
+      this == UserRole.chairBusinessGrowth ||
+      this == UserRole.chairMembership ||
+      this == UserRole.chairEvents ||
+      this == UserRole.circleChair;
+
   /// Helper to get a role from its label or key (case-insensitive).
   static UserRole? fromLabel(String label) {
     final clean = label.trim().toLowerCase().replaceAll('_', '').replaceAll('-', '').replaceAll(' ', '');
+    if (clean.contains('membershipgrowth') || clean.contains('chairmembership') || clean.contains('membershipcommittee')) {
+      return UserRole.chairMembership;
+    }
+    if (clean.contains('businessgrowth') || clean.contains('chairbusinessgrowth') || clean.contains('businesscommittee')) {
+      return UserRole.chairBusinessGrowth;
+    }
+    if (clean.contains('eventsimpacts') || clean.contains('chairevents') || clean.contains('eventsprograms')) {
+      return UserRole.chairEvents;
+    }
     if (clean == 'ded' || clean.contains('districtexec') || clean.contains('district')) {
       return UserRole.districtExecDirector;
     }

@@ -20,6 +20,12 @@ class FinanceCommissionStructure extends StatelessWidget {
   Widget build(BuildContext context) {
     if (structure.isEmpty) return const SizedBox.shrink();
     final isSuperAdmin = SessionManager().currentRole == UserRole.superAdmin;
+    final displayedStructure = structure
+        .where((item) =>
+            !item.role.toLowerCase().contains('super') &&
+            item.roleId?.toLowerCase() != 'superadmin')
+        .toList();
+    if (displayedStructure.isEmpty) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -55,7 +61,7 @@ class FinanceCommissionStructure extends StatelessWidget {
                   onTap: () {
                     CommissionSettingsBottomSheet.show(
                       context,
-                      currentStructure: structure,
+                      currentStructure: displayedStructure,
                       onRatesUpdated: onRatesUpdated ??
                           () {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -188,7 +194,7 @@ class FinanceCommissionStructure extends StatelessWidget {
             child: Divider(height: 1, color: AppColors.border),
           ),
           // Table Rows
-          ...structure.map((item) {
+          ...displayedStructure.map((item) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 6.0),
               child: Row(

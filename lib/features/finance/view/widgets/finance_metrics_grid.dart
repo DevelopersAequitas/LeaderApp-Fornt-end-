@@ -6,8 +6,13 @@ import '../../model/finance_model.dart';
 /// Renders a single-row 4-metric banner for the Finance dashboard.
 class FinanceMetricsGrid extends StatelessWidget {
   final FinanceMetricsModel metrics;
+  final bool isSuperAdmin;
 
-  const FinanceMetricsGrid({super.key, required this.metrics});
+  const FinanceMetricsGrid({
+    super.key,
+    required this.metrics,
+    this.isSuperAdmin = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +48,19 @@ class FinanceMetricsGrid extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildMetricCard(
-              icon: Icons.percent_rounded,
-              value: metrics.commissionDue,
-              label: 'Commission Due',
-              valueColor: const Color(0xFF2563EB),
-            ),
+            child: isSuperAdmin
+                ? _buildMetricCard(
+                    icon: Icons.workspace_premium_outlined,
+                    value: '${metrics.activeTenures ?? 42} Active',
+                    label: 'Leadership Tenures',
+                    valueColor: const Color(0xFFEC4899),
+                  )
+                : _buildMetricCard(
+                    icon: Icons.percent_rounded,
+                    value: metrics.commissionDue,
+                    label: 'Commission Due',
+                    valueColor: const Color(0xFF2563EB),
+                  ),
           ),
         ],
       ),
@@ -62,7 +74,7 @@ class FinanceMetricsGrid extends StatelessWidget {
     required Color valueColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -76,6 +88,7 @@ class FinanceMetricsGrid extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           SquareRoundedGradientIcon(
             icon: icon,
@@ -83,7 +96,7 @@ class FinanceMetricsGrid extends StatelessWidget {
             boxSize: 34,
             showBorder: true,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -91,21 +104,27 @@ class FinanceMetricsGrid extends StatelessWidget {
               style: TextStyle(
                 color: valueColor,
                 fontSize: 13.5,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 9.5,
-              fontWeight: FontWeight.w500,
+          const SizedBox(height: 3),
+          SizedBox(
+            height: 25,
+            child: Center(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                  height: 1.15,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

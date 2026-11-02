@@ -138,6 +138,7 @@ abstract class ApiEndpoints {
       '$baseUrl/leader/finance/commission-rates';
   static String get recordOfflineTransaction =>
       '$baseUrl/leader/finance/transactions/record-offline';
+  static String get leaderMilestones => '$baseUrl/leader/finance/milestones';
 
   // --- 6. Reports & Analytics ---
   static String get reports => '$baseUrl/leader/reports';

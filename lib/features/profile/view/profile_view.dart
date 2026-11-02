@@ -27,6 +27,7 @@ import '../bloc/profile_state.dart';
 import '../model/profile_model.dart';
 import 'widgets/edit_profile_bottom_sheet.dart';
 import 'widgets/profile_assigned_circles_card.dart';
+import 'widgets/profile_milestones_card.dart';
 import 'widgets/profile_circulars_tile.dart';
 import 'widgets/profile_contact_card.dart';
 import 'widgets/profile_hero_card.dart';
@@ -178,6 +179,19 @@ class _ProfileContent extends StatelessWidget {
                                 ),
                                 child: ProfileAssignedCirclesCard(
                                   profile: profile,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+
+                              // 5. Leadership Milestones & Performance Rewards (Role-wise)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: ProfileMilestonesCard(
+                                  milestones: state.milestones,
+                                  isApplicable: state.isApplicableForMilestones,
+                                  totalEarnedBonuses: state.totalEarnedBonuses,
                                 ),
                               ),
                             ],

@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/repositories/teams_repository.dart';
-import '../../../core/enums/user_role.dart';
+
 import '../../../core/helpers/session_manager.dart';
 import '../model/teams_model.dart';
 import 'teams_event.dart';
@@ -26,7 +26,7 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
 
     final session = SessionManager().currentSession;
     final permissions = SessionManager().permissions;
-    final isRestricted = !permissions.canAccessTeamsTab && session.role == UserRole.circleChair;
+    final isRestricted = !permissions.canAccessTeamsTab && !session.role.isChair;
 
     final permissionModel = TeamsPermissionModel(
       role: session.customRoleLabel ?? session.role.label,
@@ -67,6 +67,26 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
         if (name.isNotEmpty && !industriesSet.contains(name)) {
           industriesSet.add(name);
         }
+      }
+
+      // Also ensure all categories present on user's scoped circles are included
+      for (final c in allCircles) {
+        final cat = c.category.trim();
+        if (cat.isNotEmpty && !industriesSet.contains(cat)) {
+          industriesSet.add(cat);
+        }
+      }
+
+      // If non-super admin (CD, CF, Chair), only keep industries present in their scoped circles
+      if (!SessionManager().isSuperAdmin && allCircles.isNotEmpty) {
+        final circleCategories = allCircles
+            .map((c) => c.category.toLowerCase().trim())
+            .where((c) => c.isNotEmpty)
+            .toSet();
+
+        industriesSet.retainWhere((ind) =>
+            ind == 'All Industries' ||
+            circleCategories.contains(ind.toLowerCase().trim()));
       }
 
       emit(

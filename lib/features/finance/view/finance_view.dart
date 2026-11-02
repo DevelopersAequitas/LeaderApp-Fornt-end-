@@ -12,6 +12,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/enums/user_role.dart';
+import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../bloc/finance_bloc.dart';
 import '../bloc/finance_event.dart';
@@ -56,10 +58,16 @@ class _FinanceContent extends StatelessWidget {
     FinanceMetricsModel metrics,
     List<FinanceTransactionModel> transactions,
   ) {
+    final isSuperAdmin = SessionManager().isSuperAdmin ||
+        SessionManager().currentRole == UserRole.superAdmin;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FinanceMetricsGrid(metrics: metrics),
+        FinanceMetricsGrid(
+          metrics: metrics,
+          isSuperAdmin: isSuperAdmin,
+        ),
         FinanceActionButtons(
           onRecordPaymentTap: () {
             RecordPaymentBottomSheet.show(
@@ -101,16 +109,17 @@ class _FinanceContent extends StatelessWidget {
           },
         ),
         FinanceChartSection(metrics: metrics),
-        if (metrics.commissionRates.isNotEmpty)
+        if (metrics.commissionRates.isNotEmpty && !isSuperAdmin)
           FinanceCommissionRates(rates: metrics.commissionRates),
-        FinanceCommissionStructure(
-          structure: metrics.commissionStructure,
-          onRatesUpdated: () {
-            context.read<FinanceBloc>().add(
-              LoadFinanceData(selectedCircle: selectedCircle),
-            );
-          },
-        ),
+        if (isSuperAdmin)
+          FinanceCommissionStructure(
+            structure: metrics.commissionStructure,
+            onRatesUpdated: () {
+              context.read<FinanceBloc>().add(
+                LoadFinanceData(selectedCircle: selectedCircle),
+              );
+            },
+          ),
         if (transactions.isNotEmpty)
           FinanceTransactionsList(transactions: transactions),
         const SizedBox(

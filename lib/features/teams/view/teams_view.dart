@@ -17,7 +17,6 @@ import '../bloc/teams_event.dart';
 import '../bloc/teams_state.dart';
 import 'widgets/teams_circle_card.dart';
 import 'widgets/teams_industry_filter_chips.dart';
-import 'widgets/teams_metrics_banner.dart';
 import 'widgets/teams_restricted_placeholder.dart';
 import 'widgets/teams_search_bar.dart';
 import 'widgets/teams_shimmer_skeleton.dart';
@@ -110,17 +109,19 @@ class _TeamsContentState extends State<_TeamsContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TeamsMetricsBanner(circles: state.allCircles),
-                  const SizedBox(height: 8),
-                  TeamsIndustryFilterChips(
-                    industries: state.availableIndustries,
-                    industriesList: state.industriesList,
-                    allCircles: state.allCircles,
-                    selectedIndustry: state.selectedIndustryFilter,
-                    onIndustrySelected: (ind) =>
-                        bloc.add(IndustryCirclesFilterChanged(ind)),
-                  ),
-                  const SizedBox(height: 4),
+                  // TeamsMetricsBanner(circles: state.allCircles),
+                  // const SizedBox(height: 8),
+                  if (state.availableIndustries.isNotEmpty) ...[
+                    TeamsIndustryFilterChips(
+                      industries: state.availableIndustries,
+                      industriesList: state.industriesList,
+                      allCircles: state.allCircles,
+                      selectedIndustry: state.selectedIndustryFilter,
+                      onIndustrySelected: (ind) =>
+                          bloc.add(IndustryCirclesFilterChanged(ind)),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
                   TeamsStatusFilterHeader(
                     title: _getSectionTitle(state.selectedIndustryFilter),
                     selectedStatus: state.selectedStatusFilter,

@@ -140,3 +140,76 @@ class UserProfileModel {
         'bio': bio,
       };
 }
+
+
+/// Model representing a single leadership milestone goal and its live completion progress.
+class LeaderMilestoneItemModel {
+  final String id;
+  final String ruleCode;
+  final String title;
+  final String description;
+  final String category; // speed_bonus, growth_milestone, quality_bonus, circle_launch_bonus
+  final double currentMetricValue;
+  final double targetMetricValue;
+  final double progressPercentage;
+  final double bonusAmountInr;
+  final String rewardPerks;
+  final String status; // in_progress, pending_approval, credited, expired
+  final bool isAchieved;
+  final int? timeframeDays;
+
+  const LeaderMilestoneItemModel({
+    required this.id,
+    required this.ruleCode,
+    required this.title,
+    required this.description,
+    required this.category,
+    required this.currentMetricValue,
+    required this.targetMetricValue,
+    required this.progressPercentage,
+    required this.bonusAmountInr,
+    this.rewardPerks = '',
+    required this.status,
+    required this.isAchieved,
+    this.timeframeDays,
+  });
+
+  factory LeaderMilestoneItemModel.fromJson(Map<String, dynamic> json) {
+    final title = json['title']?.toString() ?? 'Leadership Milestone';
+    final desc = json['description']?.toString() ?? '';
+    final current = (json['current_metric_value'] as num?)?.toDouble() ??
+        (json['current_value'] as num?)?.toDouble() ??
+        0.0;
+    final target = (json['target_metric_value'] as num?)?.toDouble() ??
+        (json['target_members_count'] as num?)?.toDouble() ??
+        (json['target_circles_count'] as num?)?.toDouble() ??
+        (json['target_value'] as num?)?.toDouble() ??
+        50.0;
+    final progress = (json['progress_percentage'] as num?)?.toDouble() ??
+        (target > 0 ? ((current / target) * 100).clamp(0.0, 100.0) : 0.0);
+    final bonus = (json['bonus_amount_inr'] as num?)?.toDouble() ?? 0.0;
+    final status = json['status']?.toString() ?? 'in_progress';
+    final isAchieved = json['is_achieved'] == true ||
+        status == 'credited' ||
+        status == 'pending_approval' ||
+        progress >= 100.0;
+    final timeframe = (json['timeframe_days'] as num?)?.toInt() ??
+        (json['override_timeframe_days'] as num?)?.toInt();
+
+    return LeaderMilestoneItemModel(
+      id: json['bonus_rule_id']?.toString() ?? json['id']?.toString() ?? '',
+      ruleCode: json['rule_code']?.toString() ?? '',
+      title: title,
+      description: desc,
+      category: json['bonus_category']?.toString() ?? 'performance',
+      currentMetricValue: current,
+      targetMetricValue: target,
+      progressPercentage: progress,
+      bonusAmountInr: bonus,
+      rewardPerks: json['reward_perks']?.toString() ?? '',
+      status: status,
+      isAchieved: isAchieved,
+      timeframeDays: timeframe,
+    );
+  }
+}

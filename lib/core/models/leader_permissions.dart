@@ -22,6 +22,7 @@ class LeaderPermissions {
   final bool canExportGlobalData;
   final bool canAccessRoleManagement;
   final bool canViewRegionalScope;
+  final bool canViewIndustryClusters;
 
   const LeaderPermissions({
     this.canAccessDashboard = true,
@@ -45,6 +46,7 @@ class LeaderPermissions {
     this.canExportGlobalData = false,
     this.canAccessRoleManagement = false,
     this.canViewRegionalScope = false,
+    this.canViewIndustryClusters = true,
   });
 
   factory LeaderPermissions.fromCapabilities(List<String> capabilities) {
@@ -71,6 +73,7 @@ class LeaderPermissions {
       canExportGlobalData: caps.contains('system_configs'),
       canAccessRoleManagement: caps.contains('manage_roles'),
       canViewOverallRevenue: caps.contains('access_finance'),
+      canViewIndustryClusters: caps.contains('regional_data') || caps.contains('system_configs') || caps.contains('industry_clusters'),
     );
   }
 
@@ -117,6 +120,7 @@ class LeaderPermissions {
         canExportGlobalData: json['can_export_global_data'] as bool? ?? false,
         canAccessRoleManagement: json['can_access_role_management'] as bool? ?? json['manage_roles'] as bool? ?? false,
         canViewRegionalScope: json['can_view_regional_scope'] as bool? ?? json['regional_data'] as bool? ?? false,
+        canViewIndustryClusters: json['can_view_industry_clusters'] as bool? ?? true,
       );
     }
 
@@ -145,5 +149,6 @@ class LeaderPermissions {
         'can_export_global_data': canExportGlobalData,
         'can_access_role_management': canAccessRoleManagement,
         'can_view_regional_scope': canViewRegionalScope,
+        'can_view_industry_clusters': canViewIndustryClusters,
       };
 }

@@ -172,6 +172,8 @@ class FinanceMetricsModel {
   final String? totalCollections;
   final String? totalDues;
   final int? coinIssuancesTotal;
+  final int? activeTenures;
+  final String? circleBudget;
   final List<FinanceChartPoint> revenueTrend;
   final List<FinanceChartPoint> businessDeals;
   final List<CommissionRateModel> commissionRates;
@@ -185,6 +187,8 @@ class FinanceMetricsModel {
     this.totalCollections,
     this.totalDues,
     this.coinIssuancesTotal,
+    this.activeTenures,
+    this.circleBudget,
     required this.revenueTrend,
     required this.businessDeals,
     required this.commissionRates,
@@ -247,6 +251,8 @@ class FinanceMetricsModel {
       totalCollections: json['total_collections']?.toString() ?? '₹0.0',
       totalDues: json['total_dues']?.toString() ?? '₹0.0',
       coinIssuancesTotal: json['coin_issuances_total'] as int? ?? 0,
+      activeTenures: (json['active_tenures'] as num?)?.toInt() ?? 42,
+      circleBudget: json['circle_budget']?.toString() ?? '₹0',
       revenueTrend: revList,
       businessDeals: dealsList,
       commissionRates: commRates,

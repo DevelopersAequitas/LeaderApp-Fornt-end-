@@ -44,51 +44,96 @@ class _CommissionSettingsBottomSheetState
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
-  final List<_RoleRateFormState> _roleForms = [
-    _RoleRateFormState(
-      roleId: 'circleFounder',
-      roleName: 'Circle Founder',
-      defaultReferral: 7.5,
-      defaultAppJoin: 3.0,
-      defaultRenewal: 2.0,
-      icon: Icons.star_rounded,
-      description: 'Founder overseeing circle inception and growth.',
-    ),
-    _RoleRateFormState(
-      roleId: 'circleChair',
-      roleName: 'Circle Chair',
-      defaultReferral: 5.0,
-      defaultAppJoin: 2.0,
-      defaultRenewal: 1.5,
-      icon: Icons.chair_rounded,
-      description: 'Chair leading weekly meetings and peer engagement.',
-    ),
-    _RoleRateFormState(
-      roleId: 'countryDirector',
-      roleName: 'Country Director',
-      defaultReferral: 10.0,
-      defaultAppJoin: 5.0,
-      defaultRenewal: 3.0,
-      icon: Icons.business_center_rounded,
-      description: 'Director governing national circles and operations.',
-    ),
-    _RoleRateFormState(
-      roleId: 'superAdmin',
-      roleName: 'Super Admin',
-      defaultReferral: 12.0,
-      defaultAppJoin: 6.0,
-      defaultRenewal: 3.0,
-      icon: Icons.admin_panel_settings_rounded,
-      description: 'Global system administrator override.',
-    ),
-  ];
-
+  late final List<_RoleRateFormState> _roleForms;
   int _selectedIndex = 0;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
+    _roleForms = [
+      _RoleRateFormState(
+        roleId: 'circleFounder',
+        roleName: 'Circle Founder',
+        defaultReferral: 10.0,
+        defaultAppJoin: 5.0,
+        defaultRenewal: 10.0,
+        icon: Icons.star_rounded,
+        description: 'Founder overseeing circle inception and growth.',
+      ),
+      _RoleRateFormState(
+        roleId: 'circleDirector',
+        roleName: 'Circle Director',
+        defaultReferral: 10.0,
+        defaultAppJoin: 5.0,
+        defaultRenewal: 10.0,
+        icon: Icons.person_pin_rounded,
+        description: 'Director governing chartered circle operations.',
+      ),
+      _RoleRateFormState(
+        roleId: 'circleChair',
+        roleName: 'Circle Chair',
+        defaultReferral: 5.0,
+        defaultAppJoin: 2.5,
+        defaultRenewal: 5.0,
+        icon: Icons.chair_rounded,
+        description: 'Chair leading weekly meetings and peer engagement.',
+      ),
+      _RoleRateFormState(
+        roleId: 'districtExecDirector',
+        roleName: 'District Exec Director',
+        defaultReferral: 5.0,
+        defaultAppJoin: 2.5,
+        defaultRenewal: 5.0,
+        icon: Icons.location_city_rounded,
+        description: 'Executive director governing district circles.',
+      ),
+      _RoleRateFormState(
+        roleId: 'industryDirector',
+        roleName: 'Industry Director',
+        defaultReferral: 5.0,
+        defaultAppJoin: 2.5,
+        defaultRenewal: 5.0,
+        icon: Icons.factory_rounded,
+        description: 'Director governing cross-circle industry verticals.',
+      ),
+      _RoleRateFormState(
+        roleId: 'countryDirector',
+        roleName: 'Country Director',
+        defaultReferral: 0.0,
+        defaultAppJoin: 0.0,
+        defaultRenewal: 0.0,
+        icon: Icons.public_rounded,
+        description: 'National leader overseeing nationwide initiatives.',
+      ),
+    ];
+
+    // Discover any future dynamic leader roles from server currentStructure
+    for (final item in widget.currentStructure) {
+      final roleKey = item.roleId ??
+          item.role.toLowerCase().replaceAll(' ', '').replaceAll('_', '');
+      if (roleKey.toLowerCase().contains('super')) continue;
+
+      final alreadyExists = _roleForms.any(
+        (f) =>
+            f.roleId.toLowerCase() == roleKey.toLowerCase() ||
+            f.roleName.toLowerCase() == item.role.toLowerCase(),
+      );
+      if (!alreadyExists) {
+        _roleForms.add(
+          _RoleRateFormState(
+            roleId: roleKey,
+            roleName: item.role,
+            defaultReferral: 0.0,
+            defaultAppJoin: 0.0,
+            defaultRenewal: 0.0,
+            icon: Icons.assignment_ind_rounded,
+            description: 'Custom dynamic leadership role.',
+          ),
+        );
+      }
+    }
+
     _tabController = TabController(length: _roleForms.length, vsync: this);
     _tabController.addListener(_handleTabChange);
 

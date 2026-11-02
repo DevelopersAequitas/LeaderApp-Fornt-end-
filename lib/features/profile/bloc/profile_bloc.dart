@@ -79,7 +79,36 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       enabledCapabilityNames: enabledCaps,
     );
 
-    emit(state.copyWith(isLoading: false, userProfile: profile));
+    List<LeaderMilestoneItemModel> milestonesList = [];
+    bool isApplicable = false;
+    String totalBonuses = '₹0';
+
+    try {
+      final milestoneRes = await ApiClient().get<Map<String, dynamic>>(
+        ApiEndpoints.leaderMilestones,
+        fromJsonT: (json) => json is Map<String, dynamic> ? json : <String, dynamic>{},
+      );
+      if (milestoneRes.data != null) {
+        final data = milestoneRes.data!;
+        isApplicable = data['is_applicable'] == true;
+        totalBonuses = data['total_earned_bonuses']?.toString() ?? '₹0';
+        final rawMilestones = data['milestones'] ?? data['awards'] ?? data['catalog'];
+        if (rawMilestones is List) {
+          milestonesList = rawMilestones
+              .whereType<Map<String, dynamic>>()
+              .map((m) => LeaderMilestoneItemModel.fromJson(m))
+              .toList();
+        }
+      }
+    } catch (_) {}
+
+    emit(state.copyWith(
+      isLoading: false,
+      userProfile: profile,
+      milestones: milestonesList,
+      isApplicableForMilestones: isApplicable,
+      totalEarnedBonuses: totalBonuses,
+    ));
   }
 
   Future<void> _onTriggerSignOut(

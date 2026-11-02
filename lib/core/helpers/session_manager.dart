@@ -233,6 +233,11 @@ class SessionManager {
   /// Gets the current active role.
   UserRole get currentRole => _currentSession.role;
 
+  /// Returns true if current user is Super Admin or Global Administrator.
+  bool get isSuperAdmin =>
+      _currentSession.role == UserRole.superAdmin ||
+      _currentSession.role.label.toLowerCase().contains('admin');
+
   /// Clears the session and wipes all secure storage tokens upon sign out.
   Future<void> clearSession() async {
     _authToken = null;
@@ -313,7 +318,8 @@ class SessionManager {
           canAccessPeersTab: true,
           canAddEditPeer: false,
           canSendWishes: true,
-          canAccessTeamsTab: false,
+          canAccessTeamsTab: true,
+          canViewIndustryClusters: true,
           canAccessFinanceTab: false,
           canAccessReportsTab: true,
           canSubmitReports: true,
@@ -328,7 +334,8 @@ class SessionManager {
           canAccessPeersTab: true,
           canAddEditPeer: true,
           canSendWishes: true,
-          canAccessTeamsTab: false,
+          canAccessTeamsTab: true,
+          canViewIndustryClusters: true,
           canAccessFinanceTab: false,
           canAccessReportsTab: true,
           canSubmitReports: true,
