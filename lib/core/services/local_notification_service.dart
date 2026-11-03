@@ -65,6 +65,11 @@ class LocalNotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
 
       if (androidPlugin != null) {
+        // Request runtime notification permission on Android 13+ (API 33+)
+        try {
+          await androidPlugin.requestNotificationsPermission();
+        } catch (_) {}
+
         // Leader Channel
         await androidPlugin.createNotificationChannel(
           const AndroidNotificationChannel(

@@ -20,6 +20,7 @@ import '../routes/app_routes.dart';
 import '../storage/secure_storage_service.dart';
 import 'local_notification_service.dart';
 import 'notification_count_service.dart';
+import 'top_banner_notification_service.dart';
 
 /// Top-level background message handler required by Firebase Messaging
 @pragma('vm:entry-point')
@@ -291,6 +292,15 @@ class PushNotificationService {
       title: title,
       body: body,
       payload: payloadString,
+    );
+
+    // Display sleek top-sliding in-app heads-up banner (never overlaps bottom navigation)
+    TopBannerNotificationService.instance.show(
+      title: title,
+      message: body,
+      onTap: () {
+        routeFromNotificationData(message.data);
+      },
     );
 
     // Increment notification unread count dynamically
