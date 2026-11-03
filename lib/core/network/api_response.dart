@@ -58,6 +58,9 @@ class ApiResponse<T> {
   final String? message;
   final String? errorCode;
   final PaginationMeta? meta;
+  final int? unreadCount;
+  final int? totalCount;
+  final Map<String, dynamic>? rawJson;
 
   const ApiResponse({
     required this.success,
@@ -65,6 +68,9 @@ class ApiResponse<T> {
     this.message,
     this.errorCode,
     this.meta,
+    this.unreadCount,
+    this.totalCount,
+    this.rawJson,
   });
 
   factory ApiResponse.fromJson(
@@ -77,6 +83,12 @@ class ApiResponse<T> {
     final rawData = json['data'];
     final message = json['message'] as String?;
     final errorCode = json['error_code'] as String?;
+
+    final unreadCount = (json['unread_count'] as num?)?.toInt() ??
+        (json['data'] is Map ? (json['data']['unread_count'] as num?)?.toInt() : null);
+    final totalCount = (json['total_count'] as num?)?.toInt() ??
+        (json['data'] is Map ? (json['data']['total_count'] as num?)?.toInt() : null) ??
+        (json['total'] as num?)?.toInt();
 
     PaginationMeta? meta;
     if (json['meta'] is Map<String, dynamic>) {
@@ -106,6 +118,9 @@ class ApiResponse<T> {
       message: message,
       errorCode: errorCode,
       meta: meta,
+      unreadCount: unreadCount,
+      totalCount: totalCount ?? meta?.total,
+      rawJson: json,
     );
   }
 }

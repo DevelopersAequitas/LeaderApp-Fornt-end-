@@ -35,15 +35,37 @@ class NotificationCountService {
       final res = await ApiClient().get<dynamic>(
         ApiEndpoints.leaderNotificationsUnreadCount,
       );
-      if (res.success && res.data != null) {
+      if (res.unreadCount != null) {
+        updateCount(res.unreadCount!);
+        return;
+      }
+      if (res.data != null) {
         if (res.data is Map) {
           final count = res.data['unread_count'];
-          if (count is int) {
-            updateCount(count);
+          if (count is num) {
+            updateCount(count.toInt());
+            return;
           }
         }
       }
-    } catch (_) {}
+      if (res.rawJson != null) {
+        final count = res.rawJson!['unread_count'];
+        if (count is num) {
+          updateCount(count.toInt());
+          return;
+        }
+      }
+
+      // Fallback: fetch from main notifications index endpoint header
+      final listRes = await ApiClient().get<dynamic>(
+        '${ApiEndpoints.leaderNotifications}?page=1&per_page=1',
+      );
+      if (listRes.unreadCount != null) {
+        updateCount(listRes.unreadCount!);
+      }
+    } catch (e) {
+      debugPrint('⚠️ [NotificationCountService] Error fetching unread count: $e');
+    }
   }
 }
 

@@ -38,7 +38,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
       if (res.success) {
         List<dynamic> rawList = [];
-        int? serverUnreadCount;
+        int? serverUnreadCount = res.unreadCount;
         int currentPage = 1;
         int lastPage = 1;
         bool hasMore = false;
@@ -51,15 +51,15 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           if (nested is List) {
             rawList = nested;
           }
-          if (map['unread_count'] is int) {
-            serverUnreadCount = map['unread_count'] as int;
+          if (serverUnreadCount == null && map['unread_count'] is num) {
+            serverUnreadCount = (map['unread_count'] as num).toInt();
           }
-          final meta = map['meta'] ?? map['pagination'];
-          if (meta is Map) {
-            currentPage = (meta['current_page'] as num?)?.toInt() ?? 1;
-            lastPage = (meta['last_page'] as num?)?.toInt() ?? 1;
-            hasMore = (meta['has_more'] as bool?) ?? (currentPage < lastPage);
-          }
+        }
+
+        if (res.meta != null) {
+          currentPage = res.meta!.currentPage;
+          lastPage = res.meta!.lastPage;
+          hasMore = res.meta!.hasMore;
         }
 
         final items = rawList
@@ -147,12 +147,17 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           ...newItems.where((n) => !existingIds.contains(n.id)),
         ];
 
+        if (res.unreadCount != null) {
+          NotificationCountService.instance.updateCount(res.unreadCount!);
+        }
+
         emit(state.copyWith(
           notifications: combined,
           currentPage: currentPage,
           lastPage: lastPage,
           hasMore: hasMore,
           isLoadingMore: false,
+          unreadCount: res.unreadCount ?? state.unreadCount,
         ));
       } else {
         emit(state.copyWith(isLoadingMore: false));
