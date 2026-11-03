@@ -115,7 +115,10 @@ class _DashboardKeyMetricsGridState extends State<DashboardKeyMetricsGrid> {
           _DashboardActivityTileItem(
             label: 'Peers',
             value: _formatCompactNumber(m.totalPeers),
-            onTap: () => _openLeaderActivity(context, 'peers'),
+            onTap: (SessionManager().isSuperAdmin ||
+                    SessionManager().permissions.canAccessPeersTab)
+                ? widget.onPeersTap
+                : () => _openLeaderActivity(context, 'peers'),
           ),
           _DashboardActivityTileItem(
             label: 'P2P Meetings',
@@ -147,7 +150,9 @@ class _DashboardKeyMetricsGridState extends State<DashboardKeyMetricsGrid> {
             value: _formatCompactNumber(m.introducedPeers),
             onTap: () => _openLeaderActivity(context, 'introduced-peers'),
           ),
-          if (SessionManager().currentRole.canModeratePendingRequests)
+          if (SessionManager().isSuperAdmin ||
+              SessionManager().currentRole.canModeratePendingRequests ||
+              SessionManager().permissions.canReviewPendingPeers)
             _DashboardActivityTileItem(
               label: 'Pending Approvals',
               value: _formatCompactNumber(m.pendingRequestsCount),

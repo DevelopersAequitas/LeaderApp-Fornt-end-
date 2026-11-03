@@ -65,18 +65,38 @@ class _DashboardContentState extends State<_DashboardContent> {
   bool _isPeersSearching = false;
   String _peersSearchQuery = '';
 
+  bool _isTabPermitted(int tabIndex) {
+    if (tabIndex == 0) return true;
+    final isSuper = SessionManager().isSuperAdmin;
+    if (isSuper) return true;
+    final perms = SessionManager().permissions;
+    switch (tabIndex) {
+      case 1:
+        return perms.canAccessPeersTab;
+      case 2:
+        return perms.canAccessTeamsTab;
+      case 3:
+        return perms.canAccessFinanceTab;
+      case 4:
+        return perms.canAccessReportsTab;
+      default:
+        return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: widget.initialTab);
+    final initial = _isTabPermitted(widget.initialTab) ? widget.initialTab : 0;
+    _pageController = PageController(initialPage: initial);
     _peersSearchController = TextEditingController();
     PushNotificationService.instance.initialize();
     PushNotificationService.instance.fetchAndRegisterFcmToken();
     NotificationCountService.instance.fetchUnreadCount();
-    if (widget.initialTab > 0) {
+    if (initial > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.read<DashboardBloc>().add(TabChanged(widget.initialTab));
+          context.read<DashboardBloc>().add(TabChanged(initial));
         }
       });
     }
@@ -139,7 +159,19 @@ class _DashboardContentState extends State<_DashboardContent> {
               'circleId': ?selectedCircle,
             },
           ),
-          onRevenueTap: () => bloc.add(const TabChanged(3)),
+          onRevenueTap: () {
+            if (_isTabPermitted(3)) {
+              bloc.add(const TabChanged(3));
+            } else {
+              Navigator.of(context).pushNamed(
+                AppRoutes.leaderActivities,
+                arguments: {
+                  'type': 'business-deals',
+                  'circleId': ?selectedCircle,
+                },
+              );
+            }
+          },
         ),
         const SizedBox(height: 6),
         DashboardKeyMetricsGrid(
@@ -153,7 +185,10 @@ class _DashboardContentState extends State<_DashboardContent> {
           metrics: metrics,
           selectedCircle: selectedCircle,
         ),
-        if (hasPendingRequests && session.role.canModeratePendingRequests)
+        if (hasPendingRequests &&
+            (SessionManager().isSuperAdmin ||
+             session.role.canModeratePendingRequests ||
+             SessionManager().permissions.canReviewPendingPeers))
           DashboardPendingPeersCard(
             count: pendingApprovalsCount,
             onReviewTap: () => Navigator.of(context).pushNamed(
@@ -307,6 +342,7 @@ class _DashboardContentState extends State<_DashboardContent> {
               bottomNavigationBar: DashboardBottomNavBar(
                 activeTab: state.activeTab,
                 onTabSelected: (idx) {
+                  if (!_isTabPermitted(idx)) return;
                   bloc.add(TabChanged(idx));
                   if (_pageController.hasClients &&
                       _pageController.page?.round() != idx) {

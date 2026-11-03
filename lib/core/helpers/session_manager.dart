@@ -128,7 +128,7 @@ class SessionManager {
   bool get isAuthenticated => _authToken != null && _authToken!.isNotEmpty;
 
   /// Gets the current dynamic permissions matrix.
-  LeaderPermissions get permissions => _permissions;
+  LeaderPermissions get permissions => isSuperAdmin ? LeaderPermissions.allGranted : _permissions;
 
   /// Loads the persisted session and tokens from encrypted secure storage on app startup.
   Future<bool> loadPersistedSession() async {
@@ -193,12 +193,10 @@ class SessionManager {
         : data;
     _currentSession = UserSession.fromJson(userMap);
 
-    if (data['permissions'] is Map &&
-        data['permissions']['enabled_capabilities'] is List) {
-      final caps = (data['permissions']['enabled_capabilities'] as List)
-          .map((e) => e.toString())
-          .toList();
-      _permissions = LeaderPermissions.fromCapabilities(caps);
+    if (isSuperAdmin) {
+      _permissions = LeaderPermissions.allGranted;
+    } else if (data['permissions'] != null) {
+      _permissions = LeaderPermissions.fromJson(data['permissions']);
     } else if (data['enabled_capabilities'] is List) {
       final caps = (data['enabled_capabilities'] as List)
           .map((e) => e.toString())
@@ -429,27 +427,7 @@ class SessionManager {
         );
         break;
       case UserRole.superAdmin:
-        _permissions = const LeaderPermissions(
-          canAccessDashboard: true,
-          canViewOverallRevenue: true,
-          canReviewPendingPeers: true,
-          canAccessPeersTab: true,
-          canAddEditPeer: true,
-          canSendWishes: true,
-          canAccessTeamsTab: true,
-          canManageCircles: true,
-          canAssignCircleChair: true,
-          canAccessFinanceTab: true,
-          canModifyFinanceSettings: true,
-          canIssueCoins: true,
-          canAccessReportsTab: true,
-          canSubmitReports: true,
-          canExportPeerData: true,
-          canExportFinancialData: true,
-          canExportGlobalData: true,
-          canAccessRoleManagement: true,
-          canViewRegionalScope: true,
-        );
+        _permissions = LeaderPermissions.allGranted;
         break;
     }
   }

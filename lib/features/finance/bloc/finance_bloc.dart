@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/repositories/finance_repository.dart';
-import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../model/finance_model.dart';
 import 'finance_event.dart';
@@ -23,7 +22,8 @@ class FinanceBloc extends Bloc<FinanceEvent, FinanceState> {
 
     final session = SessionManager().currentSession;
     final permissions = SessionManager().permissions;
-    final isRestricted = !permissions.canAccessFinanceTab && session.role == UserRole.circleChair;
+    final isSuper = SessionManager().isSuperAdmin;
+    final isRestricted = !isSuper && !permissions.canAccessFinanceTab;
 
     final permissionModel = FinancePermissionModel(
       role: session.customRoleLabel ?? session.role.label,

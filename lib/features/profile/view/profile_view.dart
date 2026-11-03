@@ -16,7 +16,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
@@ -83,10 +82,9 @@ class _ProfileContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<ProfileBloc>();
-    final session = SessionManager().currentSession;
-    final isSuperAdmin = session.role == UserRole.superAdmin;
-    final isCountryDirector = session.role == UserRole.countryDirector;
-    final canManageRoles = isSuperAdmin || isCountryDirector;
+    final isSuperAdmin = SessionManager().isSuperAdmin;
+    final canManageRoles = isSuperAdmin ||
+        SessionManager().permissions.canAccessRoleManagement;
 
     return BlocListener<ProfileBloc, ProfileState>(
       listenWhen: (prev, curr) =>

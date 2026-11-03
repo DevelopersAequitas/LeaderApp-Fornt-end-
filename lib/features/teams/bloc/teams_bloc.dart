@@ -26,7 +26,8 @@ class TeamsBloc extends Bloc<TeamsEvent, TeamsState> {
 
     final session = SessionManager().currentSession;
     final permissions = SessionManager().permissions;
-    final isRestricted = !permissions.canAccessTeamsTab && !session.role.isChair;
+    final isSuper = SessionManager().isSuperAdmin;
+    final isRestricted = !isSuper && !permissions.canAccessTeamsTab;
 
     final permissionModel = TeamsPermissionModel(
       role: session.customRoleLabel ?? session.role.label,

@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
+import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
-
 import '../../../../core/widgets/gradient_widgets.dart';
 
-/// Renders the executive 5-tab Material 3 bottom navigation bar with clear semantic icons and max w500 typography.
+class _DashboardNavItemData {
+  final int index;
+  final IconData activeIcon;
+  final IconData inactiveIcon;
+  final String label;
+
+  const _DashboardNavItemData({
+    required this.index,
+    required this.activeIcon,
+    required this.inactiveIcon,
+    required this.label,
+  });
+}
+
+/// Renders the executive bottom navigation bar with clear semantic icons and max w500 typography.
+/// Dynamically renders all 5 tabs for Super Admin, and permitted tabs for non-super-admin roles.
 class DashboardBottomNavBar extends StatelessWidget {
   final int activeTab;
   final ValueChanged<int> onTabSelected;
@@ -70,6 +85,62 @@ class DashboardBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSuper = SessionManager().isSuperAdmin;
+    final perms = SessionManager().permissions;
+
+    final navItems = <_DashboardNavItemData>[
+      const _DashboardNavItemData(
+        index: 0,
+        activeIcon: Icons.dashboard_rounded,
+        inactiveIcon: Icons.dashboard_outlined,
+        label: 'Dashboard',
+      ),
+    ];
+
+    if (isSuper || perms.canAccessPeersTab) {
+      navItems.add(
+        const _DashboardNavItemData(
+          index: 1,
+          activeIcon: Icons.people_alt_rounded,
+          inactiveIcon: Icons.people_alt_outlined,
+          label: 'Peers',
+        ),
+      );
+    }
+
+    if (isSuper || perms.canAccessTeamsTab) {
+      navItems.add(
+        const _DashboardNavItemData(
+          index: 2,
+          activeIcon: Icons.diversity_3_rounded,
+          inactiveIcon: Icons.diversity_3_outlined,
+          label: 'Teams',
+        ),
+      );
+    }
+
+    if (isSuper || perms.canAccessFinanceTab) {
+      navItems.add(
+        const _DashboardNavItemData(
+          index: 3,
+          activeIcon: Icons.credit_card_rounded,
+          inactiveIcon: Icons.credit_card_outlined,
+          label: 'Finance',
+        ),
+      );
+    }
+
+    if (isSuper || perms.canAccessReportsTab) {
+      navItems.add(
+        const _DashboardNavItemData(
+          index: 4,
+          activeIcon: Icons.description_rounded,
+          inactiveIcon: Icons.description_outlined,
+          label: 'Report',
+        ),
+      );
+    }
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -81,38 +152,16 @@ class DashboardBottomNavBar extends StatelessWidget {
           height: 62,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildNavBarItem(
-                0,
-                Icons.dashboard_rounded,
-                Icons.dashboard_outlined,
-                'Dashboard',
-              ),
-              _buildNavBarItem(
-                1,
-                Icons.people_alt_rounded,
-                Icons.people_alt_outlined,
-                'Peers',
-              ),
-              _buildNavBarItem(
-                2,
-                Icons.diversity_3_rounded,
-                Icons.diversity_3_outlined,
-                'Teams',
-              ),
-              _buildNavBarItem(
-                3,
-                Icons.credit_card_rounded,
-                Icons.credit_card_outlined,
-                'Finance',
-              ),
-              _buildNavBarItem(
-                4,
-                Icons.description_rounded,
-                Icons.description_outlined,
-                'Report',
-              ),
-            ],
+            children: navItems
+                .map(
+                  (item) => _buildNavBarItem(
+                    item.index,
+                    item.activeIcon,
+                    item.inactiveIcon,
+                    item.label,
+                  ),
+                )
+                .toList(),
           ),
         ),
       ),

@@ -544,8 +544,9 @@ class _LeaderActivitiesContentState extends State<_LeaderActivitiesContent> {
         }
 
         final item = items[index];
-        final canModerate =
-            SessionManager().currentRole.canModeratePendingRequests;
+        final canModerate = SessionManager().isSuperAdmin ||
+            SessionManager().currentRole.canModeratePendingRequests ||
+            SessionManager().permissions.canReviewPendingPeers;
         final isActionable = item.isActionablePending && canModerate;
         return LeaderActivityItemCard(
           item: item,

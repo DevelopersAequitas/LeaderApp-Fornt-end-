@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../model/dashboard_metrics_model.dart';
 
 /// Renders the 3 Peers Global Unity-styled Hero Metric Cards on the Leader App Dashboard:
-/// 1. `Total Revenue` (Theme Emerald Green Gradient) + `assets/images/total_revenue_3d.png`
+/// 1. `Total Revenue` (for Super Admin & roles with revenue permission) OR `Total Coins`
 /// 2. `Lives Impacted` (Theme Brand Pink Gradient) + `assets/images/life_impact_3d.png`
 /// 3. `Business Deals` (Theme Brand Blue Gradient) + `assets/images/business_deals_3d.png`
 class DashboardHeroCard extends StatelessWidget {
@@ -53,6 +54,9 @@ class DashboardHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canViewRevenue = SessionManager().isSuperAdmin ||
+        SessionManager().permissions.canViewOverallRevenue;
+
     final hasOverallRevenue =
         metrics.overallRevenue != null &&
         metrics.overallRevenue!.trim().isNotEmpty &&
@@ -66,25 +70,43 @@ class DashboardHeroCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
       child: Row(
         children: [
-          // 1st Card: Total Revenue (Theme Emerald Green Gradient)
+          // 1st Card: Total Revenue (for Super Admin / allowed roles) OR Total Coins (for roles without revenue permission)
           Expanded(
-            child: _UnityStyleMetricCard(
-              count: revenueDisplay,
-              subtitle: 'Total Revenue',
-              assetImage: 'assets/images/total_revenue_3d.png',
-              gradientColors: const [AppColor.success, AppColor.successDark],
-              borderColor: AppColor.successDark,
-              arrowColor: AppColor.successDark,
-              onTap:
-                  onRevenueTap ??
-                  () => Navigator.of(context).pushNamed(
-                    AppRoutes.leaderActivities,
-                    arguments: {
-                      'type': 'business-deals',
-                      'circleId': ?selectedCircle,
-                    },
+            child: canViewRevenue
+                ? _UnityStyleMetricCard(
+                    count: revenueDisplay,
+                    subtitle: 'Total Revenue',
+                    assetImage: 'assets/images/total_revenue_3d.png',
+                    gradientColors: const [AppColor.success, AppColor.successDark],
+                    borderColor: AppColor.successDark,
+                    arrowColor: AppColor.successDark,
+                    onTap:
+                        onRevenueTap ??
+                        () => Navigator.of(context).pushNamed(
+                          AppRoutes.leaderActivities,
+                          arguments: {
+                            'type': 'business-deals',
+                            'circleId': ?selectedCircle,
+                          },
+                        ),
+                  )
+                : _UnityStyleMetricCard(
+                    count: _formatCompactNumber(metrics.coins),
+                    subtitle: 'Total Coins',
+                    assetImage: 'assets/images/coins_stack_3d.png',
+                    gradientColors: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+                    borderColor: const Color(0xFFD97706),
+                    arrowColor: const Color(0xFFD97706),
+                    onTap:
+                        onCoinsTap ??
+                        () => Navigator.of(context).pushNamed(
+                          AppRoutes.leaderActivities,
+                          arguments: {
+                            'type': 'coins',
+                            'circleId': ?selectedCircle,
+                          },
+                        ),
                   ),
-            ),
           ),
           const SizedBox(width: 8),
           // 2nd Card: Lives Impacted (Theme Brand Pink Gradient)

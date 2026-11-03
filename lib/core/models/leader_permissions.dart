@@ -49,6 +49,31 @@ class LeaderPermissions {
     this.canViewIndustryClusters = true,
   });
 
+  static const LeaderPermissions allGranted = LeaderPermissions(
+    canAccessDashboard: true,
+    canViewOverallRevenue: true,
+    canReviewPendingPeers: true,
+    canAccessPeersTab: true,
+    canAddEditPeer: true,
+    canSendWishes: true,
+    canViewPeerProfile: true,
+    canViewPeerContactInfo: true,
+    canAccessTeamsTab: true,
+    canManageCircles: true,
+    canAssignCircleChair: true,
+    canAccessFinanceTab: true,
+    canModifyFinanceSettings: true,
+    canIssueCoins: true,
+    canAccessReportsTab: true,
+    canSubmitReports: true,
+    canExportPeerData: true,
+    canExportFinancialData: true,
+    canExportGlobalData: true,
+    canAccessRoleManagement: true,
+    canViewRegionalScope: true,
+    canViewIndustryClusters: true,
+  );
+
   factory LeaderPermissions.fromCapabilities(List<String> capabilities) {
     final caps = capabilities.map((c) => c.toLowerCase().trim()).toSet();
     return LeaderPermissions(
@@ -87,12 +112,17 @@ class LeaderPermissions {
     }
 
     if (json is Map<String, dynamic>) {
-      if (json['capabilities'] is List) {
+      final hasDirectFlags = json.containsKey('can_access_dashboard') ||
+          json.containsKey('can_access_peers_tab') ||
+          json.containsKey('can_access_teams_tab') ||
+          json.containsKey('can_view_overall_revenue');
+
+      if (!hasDirectFlags && json['capabilities'] is List) {
         return LeaderPermissions.fromCapabilities(
           (json['capabilities'] as List).map((e) => e.toString()).toList(),
         );
       }
-      if (json['enabled_capabilities'] is List) {
+      if (!hasDirectFlags && json['enabled_capabilities'] is List) {
         return LeaderPermissions.fromCapabilities(
           (json['enabled_capabilities'] as List).map((e) => e.toString()).toList(),
         );
