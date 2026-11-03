@@ -292,19 +292,35 @@ class PushNotificationService {
   /// Handles notification tap when app is backgrounded or terminated
   void _onMessageOpenedApp(RemoteMessage message) {
     debugPrint('🚀 [PushNotificationService] Opened app from push notification: ${message.data}');
-    _routeFromNotificationData(message.data);
+    routeFromNotificationData(message.data);
   }
 
   /// Routes to target screen based on notification payload
-  void _routeFromNotificationData(Map<String, dynamic> data) {
-    final targetRoute = data['route'] ?? data['screen'] ?? data['click_action'];
-    if (targetRoute != null && targetRoute.toString().isNotEmpty) {
-      AppRoutes.navigatorKey.currentState?.pushNamed(targetRoute.toString());
+  void routeFromNotificationData(Map<String, dynamic> data) {
+    final rawTarget = (data['route'] ?? data['screen'] ?? data['click_action'])?.toString().trim();
+    if (rawTarget == null || rawTarget.isEmpty) {
+      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.notifications);
       return;
     }
 
-    // Default: Open Notifications screen
-    AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.notifications);
+    final target = rawTarget.toLowerCase();
+    if (target.contains('team') || target.contains('circle')) {
+      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 2});
+    } else if (target.contains('finance')) {
+      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 3});
+    } else if (target.contains('report')) {
+      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 4});
+    } else if (target.contains('peer')) {
+      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 1});
+    } else if (target.contains('profile')) {
+      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.profile);
+    } else if (target.contains('notification')) {
+      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.notifications);
+    } else if (target == '/dashboard' || target == 'dashboard') {
+      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 0});
+    } else {
+      AppRoutes.navigatorKey.currentState?.pushNamed(rawTarget);
+    }
   }
 
   /// Generates or retrieves a persistent device identifier

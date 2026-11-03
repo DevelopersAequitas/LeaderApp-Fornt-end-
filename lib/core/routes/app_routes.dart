@@ -136,9 +136,31 @@ abstract class AppRoutes {
           builder: (_) => const LoginView(),
           settings: settings,
         );
+      case '/dashboard':
       case home:
+        int tab = 0;
+        if (settings.arguments is Map) {
+          tab = (settings.arguments as Map)['tab'] as int? ?? 0;
+        }
         return AppPageRoute(
-          builder: (_) => const DashboardView(),
+          builder: (_) => DashboardView(initialTab: tab),
+          settings: settings,
+        );
+      case '/teams':
+      case '/circles':
+        return AppPageRoute(
+          builder: (_) => const DashboardView(initialTab: 2),
+          settings: settings,
+        );
+      case '/finance':
+        return AppPageRoute(
+          builder: (_) => const DashboardView(initialTab: 3),
+          settings: settings,
+        );
+      case '/reports':
+      case '/report':
+        return AppPageRoute(
+          builder: (_) => const DashboardView(initialTab: 4),
           settings: settings,
         );
       case peers:
@@ -413,10 +435,42 @@ abstract class AppRoutes {
           settings: settings,
         );
       default:
+        // Gracefully handle common aliases or fallback to home / notifications
+        final routeName = settings.name?.toLowerCase().trim() ?? '';
+        if (routeName.contains('team') || routeName.contains('circle')) {
+          return AppPageRoute(
+            builder: (_) => const DashboardView(initialTab: 2),
+            settings: settings,
+          );
+        } else if (routeName.contains('finance')) {
+          return AppPageRoute(
+            builder: (_) => const DashboardView(initialTab: 3),
+            settings: settings,
+          );
+        } else if (routeName.contains('report')) {
+          return AppPageRoute(
+            builder: (_) => const DashboardView(initialTab: 4),
+            settings: settings,
+          );
+        } else if (routeName.contains('peer')) {
+          return AppPageRoute(
+            builder: (_) => const DashboardView(initialTab: 1),
+            settings: settings,
+          );
+        } else if (routeName.contains('profile')) {
+          return AppPageRoute(
+            builder: (_) => const ProfileView(),
+            settings: settings,
+          );
+        } else if (routeName.contains('notification')) {
+          return AppPageRoute(
+            builder: (_) => const NotificationsView(),
+            settings: settings,
+          );
+        }
         return AppPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(child: Text('No route defined for ${settings.name}')),
-          ),
+          builder: (_) => const DashboardView(initialTab: 0),
+          settings: settings,
         );
     }
   }

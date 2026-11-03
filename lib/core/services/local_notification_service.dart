@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../routes/app_routes.dart';
+import 'push_notification_service.dart';
 
 /// Top-level background tap handler for local notifications (must be entry-point)
 @pragma('vm:entry-point')
@@ -166,11 +167,8 @@ class LocalNotificationService {
       try {
         final data = jsonDecode(payloadString);
         if (data is Map<String, dynamic>) {
-          final targetRoute = data['route'] ?? data['screen'] ?? data['click_action'];
-          if (targetRoute != null && targetRoute.toString().isNotEmpty) {
-            AppRoutes.navigatorKey.currentState?.pushNamed(targetRoute.toString());
-            return;
-          }
+          PushNotificationService.instance.routeFromNotificationData(data);
+          return;
         }
       } catch (_) {}
     }
