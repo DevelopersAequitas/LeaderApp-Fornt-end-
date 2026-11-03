@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/services/notification_count_service.dart';
 import '../model/leader_notification_model.dart';
 import 'notifications_event.dart';
 import 'notifications_state.dart';
@@ -56,6 +57,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
             .toList();
 
         final unreadCount = serverUnreadCount ?? items.where((n) => n.isUnread).length;
+        NotificationCountService.instance.updateCount(unreadCount);
 
         emit(state.copyWith(
           status: NotificationsStatus.success,
@@ -97,6 +99,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     }).toList();
 
     final newUnreadCount = updatedList.where((n) => n.isUnread).length;
+    NotificationCountService.instance.updateCount(newUnreadCount);
     emit(state.copyWith(
       notifications: updatedList,
       unreadCount: newUnreadCount,
@@ -120,6 +123,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         .map((n) => n.copyWith(isUnread: false))
         .toList();
 
+    NotificationCountService.instance.clear();
     emit(state.copyWith(
       notifications: updatedList,
       unreadCount: 0,

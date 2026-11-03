@@ -16,6 +16,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/services/notification_count_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../finance/view/finance_view.dart';
 import '../../peers/view/peers_view.dart';
@@ -69,6 +70,7 @@ class _DashboardContentState extends State<_DashboardContent> {
     super.initState();
     _pageController = PageController(initialPage: widget.initialTab);
     _peersSearchController = TextEditingController();
+    NotificationCountService.instance.fetchUnreadCount();
     if (widget.initialTab > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

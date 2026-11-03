@@ -13,208 +13,329 @@ class NotificationCard extends StatelessWidget {
   });
 
   String _formatTimeAgo(DateTime dt) {
-    // Local device timezone difference
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inSeconds < 45) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${dt.day}/${dt.month}/${dt.year}';
+    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+  }
+
+  String _formatCategory(String cat) {
+    if (cat.trim().isEmpty) return 'General';
+    final clean = cat.replaceAll(RegExp(r'[_\-]+'), ' ').trim();
+    final words = clean.split(' ').where((w) => w.isNotEmpty).map((w) {
+      if (w.length <= 1) return w.toUpperCase();
+      return '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}';
+    });
+    return words.join(' ');
+  }
+
+  String _formatScreenName(String screen) {
+    final clean = screen.replaceAll(RegExp(r'[/_\-]+'), ' ').trim();
+    if (clean.isEmpty) return 'Details';
+    return '${clean[0].toUpperCase()}${clean.substring(1).toLowerCase()}';
   }
 
   Color _getCategoryColor(String cat) {
-    switch (cat.toLowerCase()) {
-      case 'milestones':
-        return const Color(0xFFF59E0B);
-      case 'circle':
-        return AppColor.primaryBlue;
-      case 'peers':
-        return const Color(0xFF10B981);
-      case 'reports':
-        return const Color(0xFF8B5CF6);
-      case 'finance':
-        return const Color(0xFFEC4899);
-      case 'system':
-      default:
-        return const Color(0xFF64748B);
+    final lower = cat.toLowerCase();
+    if (lower.contains('milestone')) return const Color(0xFFF59E0B);
+    if (lower.contains('circle') || lower.contains('team')) {
+      return AppColor.primaryBlue;
     }
+    if (lower.contains('peer') || lower.contains('member')) {
+      return const Color(0xFF10B981);
+    }
+    if (lower.contains('report') || lower.contains('audit')) {
+      return const Color(0xFF8B5CF6);
+    }
+    if (lower.contains('finance') || lower.contains('payment')) {
+      return const Color(0xFFE11D48);
+    }
+    return const Color(0xFF64748B);
   }
 
   IconData _getCategoryIcon(String cat) {
-    switch (cat.toLowerCase()) {
-      case 'milestones':
-        return Icons.emoji_events_rounded;
-      case 'circle':
-        return Icons.groups_rounded;
-      case 'peers':
-        return Icons.person_search_rounded;
-      case 'reports':
-        return Icons.assessment_rounded;
-      case 'finance':
-        return Icons.account_balance_wallet_rounded;
-      case 'system':
-      default:
-        return Icons.notifications_rounded;
+    final lower = cat.toLowerCase();
+    if (lower.contains('milestone')) return Icons.emoji_events_rounded;
+    if (lower.contains('circle') || lower.contains('team')) {
+      return Icons.groups_rounded;
     }
+    if (lower.contains('peer') || lower.contains('member')) {
+      return Icons.person_search_rounded;
+    }
+    if (lower.contains('report') || lower.contains('audit')) {
+      return Icons.assessment_rounded;
+    }
+    if (lower.contains('finance') || lower.contains('payment')) {
+      return Icons.account_balance_wallet_rounded;
+    }
+    return Icons.notifications_rounded;
   }
 
   @override
   Widget build(BuildContext context) {
     final catColor = _getCategoryColor(notification.category);
     final isUnread = notification.isUnread;
+    final hasActionScreen = notification.screen.isNotEmpty &&
+        notification.screen != '/dashboard' &&
+        notification.screen != 'dashboard';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: isUnread
-            ? AppColor.primaryBlue.withValues(alpha: 0.04)
-            : AppColor.lightSurface,
-        borderRadius: BorderRadius.circular(12),
+        color: isUnread ? const Color(0xFFFAFCFF) : AppColor.lightSurface,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isUnread
-              ? AppColor.primaryBlue.withValues(alpha: 0.25)
-              : AppColor.lightBorder,
-          width: isUnread ? 1.2 : 0.8,
+              ? AppColor.primaryBlue.withValues(alpha: 0.22)
+              : AppColor.lightBorder.withValues(alpha: 0.8),
+          width: isUnread ? 1.1 : 0.8,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 1.5),
+            color: isUnread
+                ? AppColor.primaryBlue.withValues(alpha: 0.04)
+                : Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Category Icon Badge
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left Executive Accent Indicator for unread cards
+              if (isUnread)
                 Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: catColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    _getCategoryIcon(notification.category),
-                    size: 20,
-                    color: catColor,
+                  width: 3.5,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF1D4ED8), Color(0xFFE11D48)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
 
-                // Main Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Main Card Interactive Surface
+              Expanded(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onTap,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        isUnread ? 12 : 14,
+                        13,
+                        14,
+                        13,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Category Chip
+                          // Category Squircle Icon
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6.5, vertical: 2),
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
-                              color: catColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              notification.category.toUpperCase(),
-                              style: TextStyle(
-                                color: catColor,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
+                              gradient: LinearGradient(
+                                colors: [
+                                  catColor.withValues(alpha: 0.16),
+                                  catColor.withValues(alpha: 0.05),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
+                              borderRadius: BorderRadius.circular(11),
+                              border: Border.all(
+                                color: catColor.withValues(alpha: 0.18),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Icon(
+                              _getCategoryIcon(notification.category),
+                              size: 20,
+                              color: catColor,
                             ),
                           ),
+                          const SizedBox(width: 12),
 
-                          // Time Ago (Timezone-Aware)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _formatTimeAgo(notification.createdAt),
-                                style: const TextStyle(
-                                  color: AppColor.lightTextMuted,
-                                  fontSize: 11,
+                          // Text Info
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Top row: Category Badge & Time Ago
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    // Category Pill Badge (Flexible with Ellipsis prevents overflow)
+                                    Flexible(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 2.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              catColor.withValues(alpha: 0.08),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: catColor.withValues(
+                                                alpha: 0.18),
+                                            width: 0.7,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _formatCategory(
+                                              notification.category),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: catColor,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+
+                                    // Time Ago & Unread Glowing Dot
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          _formatTimeAgo(
+                                              notification.createdAt),
+                                          style: TextStyle(
+                                            color: isUnread
+                                                ? AppColor.lightTextSecondary
+                                                : AppColor.lightTextMuted,
+                                            fontSize: 11,
+                                            fontWeight: isUnread
+                                                ? FontWeight.w500
+                                                : FontWeight.w400,
+                                          ),
+                                        ),
+                                        if (isUnread) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            width: 7,
+                                            height: 7,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              gradient: const LinearGradient(
+                                                colors: [
+                                                  Color(0xFF1D4ED8),
+                                                  Color(0xFFE11D48)
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: AppColor.primaryPink
+                                                      .withValues(alpha: 0.4),
+                                                  blurRadius: 3,
+                                                  offset: const Offset(0, 1),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              if (isUnread) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: const BoxDecoration(
-                                    color: AppColor.primaryBlue,
-                                    shape: BoxShape.circle,
+                                const SizedBox(height: 6),
+
+                                // Title
+                                Text(
+                                  notification.title,
+                                  style: TextStyle(
+                                    fontSize: 13.5,
+                                    fontWeight: isUnread
+                                        ? FontWeight.w700
+                                        : FontWeight.w600,
+                                    color: AppColor.lightTextPrimary,
+                                    letterSpacing: -0.15,
+                                    height: 1.25,
                                   ),
                                 ),
+                                const SizedBox(height: 4),
+
+                                // Message Body
+                                Text(
+                                  notification.message,
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    color: isUnread
+                                        ? const Color(0xFF334155)
+                                        : AppColor.lightTextSecondary,
+                                    height: 1.4,
+                                  ),
+                                ),
+
+                                // Deep Link Prompt (if actionable)
+                                if (hasActionScreen) ...[
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColor.primaryBlue
+                                          .withValues(alpha: 0.06),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: AppColor.primaryBlue
+                                            .withValues(alpha: 0.12),
+                                        width: 0.7,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'View ${_formatScreenName(notification.screen)}',
+                                          style: const TextStyle(
+                                            color: AppColor.primaryBlue,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Icon(
+                                          Icons.arrow_forward_rounded,
+                                          size: 11,
+                                          color: AppColor.primaryBlue,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 5),
-
-                      // Title
-                      Text(
-                        notification.title,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight:
-                              isUnread ? FontWeight.w700 : FontWeight.w600,
-                          color: AppColor.lightTextPrimary,
-                          letterSpacing: -0.1,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-
-                      // Message Body
-                      Text(
-                        notification.message,
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          color: AppColor.lightTextSecondary,
-                          height: 1.35,
-                        ),
-                      ),
-
-                      if (notification.screen.isNotEmpty &&
-                          notification.screen != '/dashboard') ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              'Tap to view ${notification.screen.replaceAll('/', '')}',
-                              style: const TextStyle(
-                                color: AppColor.primaryBlue,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 3),
-                            const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 12,
-                              color: AppColor.primaryBlue,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

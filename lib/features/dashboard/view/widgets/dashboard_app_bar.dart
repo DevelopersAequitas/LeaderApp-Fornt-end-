@@ -5,6 +5,7 @@ import '../../../../core/enums/user_role.dart';
 import '../../model/dashboard_circle_option.dart';
 import 'dashboard_circle_switcher.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/services/notification_count_service.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../core/widgets/widgets.dart';
 
@@ -322,46 +323,98 @@ class DashboardAppBar extends StatelessWidget {
   }
 
   Widget _buildNotificationBellButton(BuildContext context) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: AppColor.lightSurfaceSubtle,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColor.lightBorder,
-          width: 0.5,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: () => Navigator.of(context).pushNamed(AppRoutes.notifications),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              const Icon(
-                Icons.notifications_outlined,
-                size: 19,
-                color: AppColor.lightTextPrimary,
+    return ValueListenableBuilder<int>(
+      valueListenable: NotificationCountService.instance.unreadCount,
+      builder: (context, unreadCount, _) {
+        final hasUnread = unreadCount > 0;
+        final countText = unreadCount > 99 ? '99+' : '$unreadCount';
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColor.lightSurfaceSubtle,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColor.lightBorder,
+                  width: 0.5,
+                ),
               ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  width: 7,
-                  height: 7,
-                  decoration: const BoxDecoration(
-                    color: AppColor.primaryPink,
-                    shape: BoxShape.circle,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () async {
+                    await Navigator.of(context)
+                        .pushNamed(AppRoutes.notifications);
+                    // Refresh count after returning from notifications screen
+                    NotificationCountService.instance.fetchUnreadCount();
+                  },
+                  child: const Center(
+                    child: Icon(
+                      Icons.notifications_outlined,
+                      size: 19,
+                      color: AppColor.lightTextPrimary,
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
+            if (hasUnread)
+              Positioned(
+                top: -5,
+                right: -5,
+                child: IgnorePointer(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1.5,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              const Color(0xFFE11D48).withValues(alpha: 0.35),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1.5),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      countText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        height: 1.0,
+                        letterSpacing: -0.3,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
