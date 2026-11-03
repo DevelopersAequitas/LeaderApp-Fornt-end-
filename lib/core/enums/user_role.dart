@@ -23,6 +23,16 @@ enum UserRole {
       this == UserRole.chairEvents ||
       this == UserRole.circleChair;
 
+  /// Returns true if this role is authorized to view and moderate pending requests
+  /// (DED, CD, CF, ID, Super Admin, Country Director).
+  bool get canModeratePendingRequests =>
+      this == UserRole.districtExecDirector ||
+      this == UserRole.circleDirector ||
+      this == UserRole.circleFounder ||
+      this == UserRole.industryDirector ||
+      this == UserRole.superAdmin ||
+      this == UserRole.countryDirector;
+
   /// Helper to get a role from its label or key (case-insensitive).
   static UserRole? fromLabel(String label) {
     final clean = label.trim().toLowerCase().replaceAll('_', '').replaceAll('-', '').replaceAll(' ', '');

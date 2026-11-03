@@ -13,7 +13,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/notification_count_service.dart';
@@ -154,10 +153,7 @@ class _DashboardContentState extends State<_DashboardContent> {
           metrics: metrics,
           selectedCircle: selectedCircle,
         ),
-        if (hasPendingRequests &&
-            session.role != UserRole.industryDirector &&
-            session.role != UserRole.countryDirector &&
-            session.role != UserRole.superAdmin)
+        if (hasPendingRequests && session.role.canModeratePendingRequests)
           DashboardPendingPeersCard(
             count: pendingApprovalsCount,
             onReviewTap: () => Navigator.of(context).pushNamed(

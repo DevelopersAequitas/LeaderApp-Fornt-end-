@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../core/widgets/three_d_number_display.dart';
@@ -146,11 +147,18 @@ class _DashboardKeyMetricsGridState extends State<DashboardKeyMetricsGrid> {
             value: _formatCompactNumber(m.introducedPeers),
             onTap: () => _openLeaderActivity(context, 'introduced-peers'),
           ),
-          _DashboardActivityTileItem(
-            label: 'Pending Approvals',
-            value: _formatCompactNumber(m.pendingRequestsCount),
-            onTap: () => _openLeaderActivity(context, 'pending-requests'),
-          ),
+          if (SessionManager().currentRole.canModeratePendingRequests)
+            _DashboardActivityTileItem(
+              label: 'Pending Approvals',
+              value: _formatCompactNumber(m.pendingRequestsCount),
+              onTap: () => _openLeaderActivity(context, 'pending-requests'),
+            )
+          else
+            _DashboardActivityTileItem(
+              label: 'Deals',
+              value: _formatCompactNumber(m.dealsCount),
+              onTap: () => _openLeaderActivity(context, 'business-deals'),
+            ),
         ],
       ),
 

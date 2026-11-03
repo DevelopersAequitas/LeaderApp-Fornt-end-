@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/leader_activities_bloc.dart';
@@ -543,13 +544,16 @@ class _LeaderActivitiesContentState extends State<_LeaderActivitiesContent> {
         }
 
         final item = items[index];
+        final canModerate =
+            SessionManager().currentRole.canModeratePendingRequests;
+        final isActionable = item.isActionablePending && canModerate;
         return LeaderActivityItemCard(
           item: item,
           isProcessing: processingItemIds.contains(item.id),
-          onApprove: item.isActionablePending
+          onApprove: isActionable
               ? () => bloc.add(ApproveLeaderActivityItem(item))
               : null,
-          onReject: item.isActionablePending
+          onReject: isActionable
               ? () => bloc.add(RejectLeaderActivityItem(item))
               : null,
         );
