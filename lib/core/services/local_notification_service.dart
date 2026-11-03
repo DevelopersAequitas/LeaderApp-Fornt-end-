@@ -131,6 +131,9 @@ class LocalNotificationService {
         icon: '@mipmap/ic_launcher',
         enableVibration: true,
         playSound: true,
+        ticker: title,
+        category: AndroidNotificationCategory.message,
+        visibility: NotificationVisibility.public,
       );
 
       const darwinDetails = DarwinNotificationDetails(

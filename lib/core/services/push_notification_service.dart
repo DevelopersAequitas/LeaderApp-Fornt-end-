@@ -19,6 +19,7 @@ import '../network/api_client.dart';
 import '../routes/app_routes.dart';
 import '../storage/secure_storage_service.dart';
 import 'local_notification_service.dart';
+import 'notification_count_service.dart';
 
 /// Top-level background message handler required by Firebase Messaging
 @pragma('vm:entry-point')
@@ -55,15 +56,16 @@ class PushNotificationService {
 
   FirebaseMessaging get _messaging => FirebaseMessaging.instance;
 
-  bool _isInitialized = false;
   String? _cachedFcmToken;
   String? _lastSyncedToken;
+
+  StreamSubscription<RemoteMessage>? _foregroundSubscription;
+  StreamSubscription<RemoteMessage>? _openedAppSubscription;
+  StreamSubscription<String>? _tokenSubscription;
 
   /// Initializes Firebase Core, Messaging, Local Notifications and registers handlers.
   /// Designed to be lightweight and non-blocking so app launch performance is unaffected.
   Future<void> initialize() async {
-    if (_isInitialized) return;
-
     try {
       // 1. Ensure Firebase App is initialized
       if (Firebase.apps.isEmpty) {
@@ -88,26 +90,28 @@ class PushNotificationService {
         sound: true,
       );
 
-      // 6. Listen to foreground messages
-      FirebaseMessaging.onMessage.listen(_onForegroundMessage);
+      // 6. Listen to foreground messages (always re-hook active stream listener)
+      await _foregroundSubscription?.cancel();
+      _foregroundSubscription = FirebaseMessaging.onMessage.listen(_onForegroundMessage);
 
       // 7. Handle notification tapped while app is in background
-      FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
+      await _openedAppSubscription?.cancel();
+      _openedAppSubscription = FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
 
       // 8. Handle notification that launched the app from terminated state
       unawaited(_checkInitialMessage());
 
       // 9. Listen to token registration / refresh events
-      _messaging.onRegistered.listen((token) {
+      await _tokenSubscription?.cancel();
+      _tokenSubscription = _messaging.onRegistered.listen((token) {
         debugPrint('🔄 [PushNotificationService] FCM Token received via onRegistered: $token');
         _cachedFcmToken = token;
-        unawaited(syncTokenWithBackend(token));
+        unawaited(syncTokenWithBackend(token, true));
       });
 
       // 10. Fetch token and sync with backend in BACKGROUND (zero blocking on app startup)
       unawaited(_backgroundTokenLifecycle());
 
-      _isInitialized = true;
       debugPrint('🚀 [PushNotificationService] Push notification system initialized successfully');
     } catch (e, st) {
       debugPrint('❌ [PushNotificationService] Failed to initialize push notifications: $e\n$st');
@@ -195,7 +199,7 @@ class PushNotificationService {
   /// Sends the FCM device token to the server push endpoints in the background.
   /// Tags the payload with `app: 'leader'` and `device_id: 'leader_...'` to prevent
   /// clobbering or overwriting tokens from the separate Peers Global member app.
-  Future<void> syncTokenWithBackend([String? token]) async {
+  Future<void> syncTokenWithBackend([String? token, bool force = false]) async {
     final fcmToken = token ?? _cachedFcmToken;
     if (fcmToken == null || fcmToken.isEmpty) return;
 
@@ -205,7 +209,7 @@ class PushNotificationService {
       return;
     }
 
-    if (_lastSyncedToken == fcmToken) {
+    if (!force && _lastSyncedToken == fcmToken) {
       debugPrint('ℹ️ [PushNotificationService] Token already synced with backend for this session');
       return;
     }
@@ -265,7 +269,8 @@ class PushNotificationService {
   }
 
   /// Handles incoming push notification when app is in FOREGROUND.
-  /// Generates a native heads-up system popup via flutter_local_notifications.
+  /// Displays a native OS heads-up system notification banner at the top of the screen.
+  /// Strictly NEVER renders any in-app Flutter SnackBar.
   void _onForegroundMessage(RemoteMessage message) {
     debugPrint('📩 [PushNotificationService] Foreground Push Message: ${message.messageId}');
 
@@ -281,12 +286,16 @@ class PushNotificationService {
 
     final payloadString = jsonEncode(message.data);
 
-    // Trigger local notification system popup
+    // Trigger local notification system heads-up popup
     LocalNotificationService.instance.showNotification(
       title: title,
       body: body,
       payload: payloadString,
     );
+
+    // Increment notification unread count dynamically
+    NotificationCountService.instance.unreadCount.value =
+        NotificationCountService.instance.unreadCount.value + 1;
   }
 
   /// Handles notification tap when app is backgrounded or terminated

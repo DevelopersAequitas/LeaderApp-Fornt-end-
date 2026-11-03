@@ -46,3 +46,4 @@ class NotificationCountService {
     } catch (_) {}
   }
 }
+
