@@ -21,6 +21,17 @@ class ReportsState {
   final String dealsClosedValue;
   final String totalRevenue;
 
+  // Peer & Activity Scope Selection Options
+  final String peersScopeMode; // 'all' or 'specific'
+  final List<ReportPeerRosterItem> availableCirclePeers;
+  final Set<String> selectedPeerIds;
+  final bool isLoadingPeers;
+
+  final String activitiesScopeMode; // 'all' or 'specific'
+  final Set<String> selectedActivityKeys;
+
+  final bool includePeerWithActivities;
+
   // History & Filters
   final String filterType; // "all", "Weekly", "Monthly", "Quarterly", "Annual"
   final String filterStatus; // "all", "Approved", "Under Review", "Draft"
@@ -55,6 +66,20 @@ class ReportsState {
     this.attendancePercentage,
     this.dealsClosedValue = '',
     this.totalRevenue = '',
+    this.peersScopeMode = 'all',
+    this.availableCirclePeers = const [],
+    this.selectedPeerIds = const {},
+    this.isLoadingPeers = false,
+    this.activitiesScopeMode = 'all',
+    this.selectedActivityKeys = const {
+      'p2p_meetings',
+      'referrals',
+      'deals_closed',
+      'testimonials',
+      'visitor_registrations',
+      'attendance',
+    },
+    this.includePeerWithActivities = true,
     this.filterType = 'all',
     this.filterStatus = 'all',
     this.submittedReports = const [],
@@ -85,6 +110,13 @@ class ReportsState {
     double? attendancePercentage,
     String? dealsClosedValue,
     String? totalRevenue,
+    String? peersScopeMode,
+    List<ReportPeerRosterItem>? availableCirclePeers,
+    Set<String>? selectedPeerIds,
+    bool? isLoadingPeers,
+    String? activitiesScopeMode,
+    Set<String>? selectedActivityKeys,
+    bool? includePeerWithActivities,
     String? filterType,
     String? filterStatus,
     List<ReportModel>? submittedReports,
@@ -114,6 +146,14 @@ class ReportsState {
       attendancePercentage: attendancePercentage ?? this.attendancePercentage,
       dealsClosedValue: dealsClosedValue ?? this.dealsClosedValue,
       totalRevenue: totalRevenue ?? this.totalRevenue,
+      peersScopeMode: peersScopeMode ?? this.peersScopeMode,
+      availableCirclePeers: availableCirclePeers ?? this.availableCirclePeers,
+      selectedPeerIds: selectedPeerIds ?? this.selectedPeerIds,
+      isLoadingPeers: isLoadingPeers ?? this.isLoadingPeers,
+      activitiesScopeMode: activitiesScopeMode ?? this.activitiesScopeMode,
+      selectedActivityKeys: selectedActivityKeys ?? this.selectedActivityKeys,
+      includePeerWithActivities:
+          includePeerWithActivities ?? this.includePeerWithActivities,
       filterType: filterType ?? this.filterType,
       filterStatus: filterStatus ?? this.filterStatus,
       submittedReports: submittedReports ?? this.submittedReports,
@@ -130,5 +170,3 @@ class ReportsState {
     );
   }
 }
-
-

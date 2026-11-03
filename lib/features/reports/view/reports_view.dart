@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../bloc/reports_bloc.dart';
@@ -106,9 +105,8 @@ class _ReportsContentState extends State<_ReportsContent> {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<ReportsBloc>();
-    final session = SessionManager().currentSession;
-    final isGlobalAdmin = session.role == UserRole.superAdmin ||
-        session.customRoleLabel?.toLowerCase().contains('admin') == true;
+    final canSubmitReports = SessionManager().isSuperAdmin ||
+        SessionManager().permissions.canSubmitReports;
 
     return BlocListener<ReportsBloc, ReportsState>(
       listenWhen: (prev, curr) =>
@@ -151,8 +149,8 @@ class _ReportsContentState extends State<_ReportsContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Tab selector only shown for non-global admin roles
-                  if (!isGlobalAdmin) ...[
+                  // Tab selector shown whenever leader has permission to submit reports
+                  if (canSubmitReports) ...[
                     ReportsTabSelector(
                       activeIndex: state.activeSubTab,
                       firstTabLabel: 'Submit Report',
@@ -164,7 +162,7 @@ class _ReportsContentState extends State<_ReportsContent> {
                     ),
                     const SizedBox(height: 12),
                   ],
-                  if (!isGlobalAdmin && state.activeSubTab == 0)
+                  if (canSubmitReports && state.activeSubTab == 0)
                     ReportSubmitSection(
                       selectedType: state.selectedType,
                       onTypeChanged: (type) => bloc.add(ChangeReportType(type)),
@@ -181,6 +179,20 @@ class _ReportsContentState extends State<_ReportsContent> {
                       actionItemsController: _actionItemsController,
                       isSubmitting: state.isSubmitting,
                       onSubmit: () => _handleFormSubmit(bloc),
+                      peersScopeMode: state.peersScopeMode,
+                      onPeersScopeModeChanged: (mode) => bloc.add(TogglePeersScopeMode(mode)),
+                      availableCirclePeers: state.availableCirclePeers,
+                      selectedPeerIds: state.selectedPeerIds,
+                      onSelectAllPeers: (selectAll) => bloc.add(ToggleSelectAllPeers(selectAll)),
+                      onToggleSelectPeer: (peerId) => bloc.add(ToggleSelectPeer(peerId)),
+                      isLoadingPeers: state.isLoadingPeers,
+                      activitiesScopeMode: state.activitiesScopeMode,
+                      onActivitiesScopeModeChanged: (mode) => bloc.add(ToggleActivitiesScopeMode(mode)),
+                      selectedActivityKeys: state.selectedActivityKeys,
+                      onSelectAllActivities: (selectAll) => bloc.add(ToggleSelectAllActivities(selectAll)),
+                      onToggleSelectActivity: (act) => bloc.add(ToggleSelectActivity(act)),
+                      includePeerWithActivities: state.includePeerWithActivities,
+                      onToggleIncludePeerWithActivities: (inc) => bloc.add(ToggleIncludePeerWithActivities(inc)),
                     )
                   else
                     ReportHistorySection(

@@ -92,6 +92,54 @@ class ReportRevenueChanged extends ReportsEvent {
   const ReportRevenueChanged(this.revenue);
 }
 
+/// Dispatched to toggle peers inclusion mode ('all' or 'specific').
+class TogglePeersScopeMode extends ReportsEvent {
+  final String mode;
+  const TogglePeersScopeMode(this.mode);
+}
+
+/// Dispatched to select all or deselect all peers.
+class ToggleSelectAllPeers extends ReportsEvent {
+  final bool selectAll;
+  const ToggleSelectAllPeers(this.selectAll);
+}
+
+/// Dispatched to toggle selection of a single peer.
+class ToggleSelectPeer extends ReportsEvent {
+  final String peerId;
+  const ToggleSelectPeer(this.peerId);
+}
+
+/// Dispatched to toggle activities inclusion mode ('all' or 'specific').
+class ToggleActivitiesScopeMode extends ReportsEvent {
+  final String mode;
+  const ToggleActivitiesScopeMode(this.mode);
+}
+
+/// Dispatched to select all or deselect all activities.
+class ToggleSelectAllActivities extends ReportsEvent {
+  final bool selectAll;
+  const ToggleSelectAllActivities(this.selectAll);
+}
+
+/// Dispatched to toggle selection of a single activity.
+class ToggleSelectActivity extends ReportsEvent {
+  final String activityKey;
+  const ToggleSelectActivity(this.activityKey);
+}
+
+/// Dispatched to toggle whether peer-by-peer activity breakdown is included.
+class ToggleIncludePeerWithActivities extends ReportsEvent {
+  final bool include;
+  const ToggleIncludePeerWithActivities(this.include);
+}
+
+/// Dispatched to fetch peers for the active circle.
+class LoadCirclePeersForReport extends ReportsEvent {
+  final String circleId;
+  const LoadCirclePeersForReport(this.circleId);
+}
+
 /// Dispatched when report form is submitted.
 class SubmitReportForm extends ReportsEvent {
   const SubmitReportForm();
@@ -108,4 +156,3 @@ class DownloadReportPdf extends ReportsEvent {
   final String reportId;
   const DownloadReportPdf(this.reportId);
 }
-

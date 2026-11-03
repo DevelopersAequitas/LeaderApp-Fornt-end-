@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../data/repositories/reports_repository.dart';
 import '../../../data/repositories/teams_repository.dart';
@@ -33,6 +32,14 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     on<ReportAttendanceChanged>(_onReportAttendanceChanged);
     on<ReportDealsValueChanged>(_onReportDealsValueChanged);
     on<ReportRevenueChanged>(_onReportRevenueChanged);
+    on<TogglePeersScopeMode>(_onTogglePeersScopeMode);
+    on<ToggleSelectAllPeers>(_onToggleSelectAllPeers);
+    on<ToggleSelectPeer>(_onToggleSelectPeer);
+    on<ToggleActivitiesScopeMode>(_onToggleActivitiesScopeMode);
+    on<ToggleSelectAllActivities>(_onToggleSelectAllActivities);
+    on<ToggleSelectActivity>(_onToggleSelectActivity);
+    on<ToggleIncludePeerWithActivities>(_onToggleIncludePeerWithActivities);
+    on<LoadCirclePeersForReport>(_onLoadCirclePeersForReport);
     on<SubmitReportForm>(_onSubmitReportForm);
     on<FetchReportDetails>(_onFetchReportDetails);
     on<DownloadReportPdf>(_onDownloadReportPdf);
@@ -69,9 +76,7 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
     }
 
-    final isSuperAdmin = SessionManager().currentSession.role == UserRole.superAdmin ||
-        SessionManager().currentSession.customRoleLabel?.toLowerCase().contains('admin') == true;
-
+    final isSuperAdmin = SessionManager().isSuperAdmin;
     final activeCircle = event.selectedCircle ?? state.selectedCircle ?? '';
 
     // Retrieve available circles for this user's scope
@@ -155,7 +160,6 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       emit(
         state.copyWith(
           isLoading: false,
-          activeSubTab: isSuperAdmin ? 1 : state.activeSubTab,
           submittedReports: reportsList,
           attendanceTrend: trendList,
           selectedCircle: activeCircle,
@@ -165,11 +169,15 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
           period: currentPeriod,
         ),
       );
+
+      // Automatically fetch circle peers for report roster
+      if (resolvedCircleId.isNotEmpty) {
+        add(LoadCirclePeersForReport(resolvedCircleId));
+      }
     } catch (e) {
       emit(
         state.copyWith(
           isLoading: false,
-          activeSubTab: isSuperAdmin ? 1 : state.activeSubTab,
           errorMessage: e.toString(),
           availableCircles: circlesList,
           circleName: resolvedCircleName,
@@ -246,6 +254,9 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         : (event.circleId ?? _resolveCircleId(event.circleName));
     emit(state.copyWith(circleName: event.circleName, selectedCircleId: circleId));
     add(LoadReports(selectedCircle: event.circleName));
+    if (circleId.isNotEmpty) {
+      add(LoadCirclePeersForReport(circleId));
+    }
   }
 
   void _onReportPeriodChanged(ReportPeriodChanged event, Emitter<ReportsState> emit) {
@@ -301,21 +312,136 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     emit(state.copyWith(totalRevenue: event.revenue));
   }
 
+  void _onTogglePeersScopeMode(
+    TogglePeersScopeMode event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(peersScopeMode: event.mode));
+  }
+
+  void _onToggleSelectAllPeers(
+    ToggleSelectAllPeers event,
+    Emitter<ReportsState> emit,
+  ) {
+    if (event.selectAll) {
+      final allIds = state.availableCirclePeers
+          .map((p) => p.peerId)
+          .where((id) => id.isNotEmpty)
+          .toSet();
+      emit(state.copyWith(selectedPeerIds: allIds));
+    } else {
+      emit(state.copyWith(selectedPeerIds: const <String>{}));
+    }
+  }
+
+  void _onToggleSelectPeer(
+    ToggleSelectPeer event,
+    Emitter<ReportsState> emit,
+  ) {
+    final nextIds = Set<String>.from(state.selectedPeerIds);
+    if (nextIds.contains(event.peerId)) {
+      nextIds.remove(event.peerId);
+    } else {
+      nextIds.add(event.peerId);
+    }
+    emit(state.copyWith(selectedPeerIds: nextIds));
+  }
+
+  void _onToggleActivitiesScopeMode(
+    ToggleActivitiesScopeMode event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(activitiesScopeMode: event.mode));
+  }
+
+  void _onToggleSelectAllActivities(
+    ToggleSelectAllActivities event,
+    Emitter<ReportsState> emit,
+  ) {
+    const allKeys = {
+      'p2p_meetings',
+      'referrals',
+      'deals_closed',
+      'testimonials',
+      'visitor_registrations',
+      'attendance',
+    };
+    if (event.selectAll) {
+      emit(state.copyWith(selectedActivityKeys: allKeys));
+    } else {
+      emit(state.copyWith(selectedActivityKeys: const <String>{}));
+    }
+  }
+
+  void _onToggleSelectActivity(
+    ToggleSelectActivity event,
+    Emitter<ReportsState> emit,
+  ) {
+    final nextKeys = Set<String>.from(state.selectedActivityKeys);
+    if (nextKeys.contains(event.activityKey)) {
+      nextKeys.remove(event.activityKey);
+    } else {
+      nextKeys.add(event.activityKey);
+    }
+    emit(state.copyWith(selectedActivityKeys: nextKeys));
+  }
+
+  void _onToggleIncludePeerWithActivities(
+    ToggleIncludePeerWithActivities event,
+    Emitter<ReportsState> emit,
+  ) {
+    emit(state.copyWith(includePeerWithActivities: event.include));
+  }
+
+  Future<void> _onLoadCirclePeersForReport(
+    LoadCirclePeersForReport event,
+    Emitter<ReportsState> emit,
+  ) async {
+    if (event.circleId.isEmpty) return;
+    emit(state.copyWith(isLoadingPeers: true));
+    try {
+      final res = await _teamsRepository.getCirclePeers(event.circleId);
+      if (res.success && res.data != null && res.data!.isNotEmpty) {
+        final peers = res.data!
+            .where((p) => !ReportModel.isDummyPeer(p.name, p.id))
+            .map((p) => ReportPeerRosterItem(
+                  peerId: p.id,
+                  name: p.name,
+                  avatarUrl: p.avatarUrl,
+                  company: p.company,
+                  designation: p.designation ?? '',
+                  status: p.status,
+                  platformMembershipStart: p.joinedDate ?? '',
+                  platformMembershipEnd: '',
+                  circleJoiningDate: p.joinedDate ?? '',
+                  circleRenewalDate: '',
+                  attendance: p.attendance,
+                  dealsClosed: p.dealsFormatted,
+                  p2pCount: p.p2pMeetings ?? 0,
+                  referralsCount: p.referralsGiven ?? 0,
+                ))
+            .toList();
+
+        final allIds = peers.map((p) => p.peerId).where((id) => id.isNotEmpty).toSet();
+        emit(
+          state.copyWith(
+            isLoadingPeers: false,
+            availableCirclePeers: peers,
+            selectedPeerIds: allIds,
+          ),
+        );
+      } else {
+        emit(state.copyWith(isLoadingPeers: false));
+      }
+    } catch (_) {
+      emit(state.copyWith(isLoadingPeers: false));
+    }
+  }
+
   Future<void> _onSubmitReportForm(
     SubmitReportForm event,
     Emitter<ReportsState> emit,
   ) async {
-    final session = SessionManager().currentSession;
-    final isSuperAdmin = session.role == UserRole.superAdmin ||
-        session.customRoleLabel?.toLowerCase().contains('admin') == true;
-
-    if (isSuperAdmin) {
-      emit(state.copyWith(
-        errorMessage: 'Global Admin cannot submit reports. Only circle leadership can submit reports.',
-      ));
-      return;
-    }
-
     if (state.reportContent.trim().isEmpty) {
       emit(state.copyWith(errorMessage: 'Report executive summary cannot be empty.'));
       return;
@@ -340,36 +466,29 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       final session = SessionManager().currentSession;
       final periodToSubmit = state.period.isNotEmpty ? state.period : _defaultPeriod();
 
-      // Retrieve live peers for the circle so the report has authentic live peer breakdown
-      List<Map<String, dynamic>> livePeersRoster = [];
-      List<ReportPeerRosterItem> rosterItems = [];
-      if (targetCircleId.isNotEmpty) {
-        try {
-          final peersRes = await _teamsRepository.getCirclePeers(targetCircleId);
-          if (peersRes.success && peersRes.data != null && peersRes.data!.isNotEmpty) {
-            for (final p in peersRes.data!) {
-              final item = ReportPeerRosterItem(
-                peerId: p.id,
-                name: p.name,
-                avatarUrl: p.avatarUrl,
-                company: p.company,
-                designation: p.designation ?? '',
-                status: p.status,
-                platformMembershipStart: p.joinedDate ?? '',
-                platformMembershipEnd: '',
-                circleJoiningDate: p.joinedDate ?? '',
-                circleRenewalDate: '',
-                attendance: p.attendance,
-                dealsClosed: p.dealsFormatted,
-                p2pCount: p.p2pMeetings ?? 0,
-                referralsCount: p.referralsGiven ?? 0,
-              );
-              rosterItems.add(item);
-              livePeersRoster.add(item.toJson());
-            }
-          }
-        } catch (_) {}
-      }
+      // Filter peers roster based on scope mode & manual selection
+      final List<ReportPeerRosterItem> effectivePeers = state.peersScopeMode == 'specific'
+          ? state.availableCirclePeers
+              .where((p) => state.selectedPeerIds.contains(p.peerId))
+              .toList()
+          : state.availableCirclePeers;
+
+      // Filter activities based on scope mode & manual selection
+      final List<String> effectiveActivities = state.activitiesScopeMode == 'specific'
+          ? state.selectedActivityKeys.toList()
+          : const [
+              'p2p_meetings',
+              'referrals',
+              'deals_closed',
+              'testimonials',
+              'visitor_registrations',
+              'attendance',
+            ];
+
+      // Build JSON roster if peer with activities breakdown is enabled
+      final peersRosterJson = state.includePeerWithActivities
+          ? effectivePeers.map((p) => p.toJson()).toList()
+          : <Map<String, dynamic>>[];
 
       final response = await _reportsRepository.submitReport(
         circleId: targetCircleId.isNotEmpty ? targetCircleId : state.circleName,
@@ -382,7 +501,8 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         highlights: state.highlights.isNotEmpty ? state.highlights : null,
         challengesFaced: state.challengesFaced.isNotEmpty ? state.challengesFaced : null,
         actionItems: state.actionItems.isNotEmpty ? state.actionItems : null,
-        peersRoster: livePeersRoster,
+        includedSections: effectiveActivities,
+        peersRoster: peersRosterJson,
       );
 
       if (response.success && response.data != null) {
@@ -405,7 +525,8 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
           highlights: state.highlights.isNotEmpty ? state.highlights : null,
           challengesFaced: state.challengesFaced.isNotEmpty ? state.challengesFaced : null,
           actionItems: state.actionItems.isNotEmpty ? state.actionItems : null,
-          peersRoster: rosterItems,
+          includedSections: effectiveActivities,
+          peersRoster: effectivePeers,
         );
 
         final updatedList = [newReport, ...state.submittedReports];
@@ -455,8 +576,8 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       } else {
         emit(state.copyWith(isLoadingDetail: false));
       }
-    } catch (_) {
-      emit(state.copyWith(isLoadingDetail: false));
+    } catch (e) {
+      emit(state.copyWith(isLoadingDetail: false, errorMessage: e.toString()));
     }
   }
 
@@ -475,7 +596,7 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
       } else {
         emit(state.copyWith(
           isDownloading: false,
-          errorMessage: res.message ?? 'Failed to retrieve report download link.',
+          errorMessage: res.message ?? 'Unable to retrieve PDF download link.',
         ));
       }
     } catch (e) {
@@ -483,5 +604,3 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     }
   }
 }
-
-
