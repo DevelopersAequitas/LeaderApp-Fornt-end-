@@ -96,6 +96,8 @@ class ApiResponse<T> {
       parsedData = fromJsonT(rawData);
     } else if (rawData is T) {
       parsedData = rawData;
+    } else if (json is T) {
+      parsedData = json as T;
     }
 
     return ApiResponse<T>(

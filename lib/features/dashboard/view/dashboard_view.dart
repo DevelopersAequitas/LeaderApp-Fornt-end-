@@ -13,6 +13,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/constants/api_endpoints.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
@@ -61,12 +63,124 @@ class _DashboardContentState extends State<_DashboardContent> {
   late final TextEditingController _peersSearchController;
   bool _isPeersSearching = false;
   String _peersSearchQuery = '';
+  static String? _lastAlertedNotifId;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
     _peersSearchController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUnreadNotificationAlert();
+    });
+  }
+
+  Future<void> _checkUnreadNotificationAlert() async {
+    try {
+      final res = await ApiClient().get<dynamic>(
+        ApiEndpoints.leaderNotifications,
+      );
+      if (res.success && mounted) {
+        List<dynamic> items = [];
+        if (res.data is List) {
+          items = res.data as List;
+        } else if (res.data is Map) {
+          final nested = res.data['data'] ?? res.data['notifications'] ?? [];
+          if (nested is List) items = nested;
+        }
+        if (items.isNotEmpty) {
+          final unreadItem = items.firstWhere(
+            (it) =>
+                (it['is_unread'] == true || it['is_read'] == false) &&
+                it['id'] != _lastAlertedNotifId,
+            orElse: () => null,
+          );
+          if (unreadItem != null) {
+            _lastAlertedNotifId = unreadItem['id']?.toString();
+            _showInAppNotificationBanner(
+              title: unreadItem['title']?.toString() ?? 'Leader Notification',
+              message: unreadItem['message']?.toString() ??
+                  unreadItem['body']?.toString() ??
+                  'You have a new update.',
+              screen: unreadItem['screen']?.toString() ?? '/dashboard',
+            );
+          }
+        }
+      }
+    } catch (_) {
+      // Graceful silence
+    }
+  }
+
+  void _showInAppNotificationBanner({
+    required String title,
+    required String message,
+    required String screen,
+  }) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: const Color(0xFF1E293B),
+        elevation: 6,
+        duration: const Duration(seconds: 5),
+        content: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_active_rounded,
+                size: 18,
+                color: Color(0xFF60A5FA),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    message,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'VIEW',
+          textColor: const Color(0xFF60A5FA),
+          onPressed: () {
+            Navigator.of(context).pushNamed(AppRoutes.notifications);
+          },
+        ),
+      ),
+    );
   }
 
   @override

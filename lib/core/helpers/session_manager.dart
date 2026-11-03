@@ -1,3 +1,4 @@
+import '../services/push_notification_service.dart';
 import '../enums/user_role.dart';
 import '../models/leader_permissions.dart';
 import '../storage/secure_storage_service.dart';
@@ -180,7 +181,10 @@ class SessionManager {
       session: session,
       permissions: _permissions,
     );
-  }
+  
+    // Sync FCM device token with backend now that user is authenticated
+    PushNotificationService.instance.syncTokenWithBackend();
+}
 
   /// Updates active session and dynamic capabilities directly from GET /api/v1/auth/profile response.
   Future<void> updateFromAuthProfile(Map<String, dynamic> data) async {
@@ -211,7 +215,10 @@ class SessionManager {
         session: _currentSession,
         permissions: _permissions,
       );
-    }
+    
+    // Sync FCM device token with backend now that user is authenticated
+    PushNotificationService.instance.syncTokenWithBackend();
+}
   }
 
   /// The active user session. Defaults to Circle Chair (Arjun Patel).

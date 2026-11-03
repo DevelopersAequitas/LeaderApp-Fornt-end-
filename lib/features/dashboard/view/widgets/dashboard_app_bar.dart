@@ -257,6 +257,8 @@ class DashboardAppBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                     ],
+                    _buildNotificationBellButton(context),
+                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () =>
                           Navigator.of(context).pushNamed(AppRoutes.profile),
@@ -313,6 +315,50 @@ class DashboardAppBar extends StatelessWidget {
               size: 18,
               color: AppColor.lightTextPrimary,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationBellButton(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: AppColor.lightSurfaceSubtle,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColor.lightBorder,
+          width: 0.5,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => Navigator.of(context).pushNamed(AppRoutes.notifications),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Icon(
+                Icons.notifications_outlined,
+                size: 19,
+                color: AppColor.lightTextPrimary,
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: AppColor.primaryPink,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

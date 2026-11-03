@@ -1,0 +1,139 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/constants/api_endpoints.dart';
+import '../../../core/network/api_client.dart';
+import '../model/leader_notification_model.dart';
+import 'notifications_event.dart';
+import 'notifications_state.dart';
+
+class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
+  final ApiClient _apiClient;
+
+  NotificationsBloc({ApiClient? apiClient})
+      : _apiClient = apiClient ?? ApiClient(),
+        super(const NotificationsState()) {
+    on<LoadNotifications>(_onLoadNotifications);
+    on<FilterNotificationsByCategory>(_onFilterNotificationsByCategory);
+    on<MarkNotificationAsRead>(_onMarkNotificationAsRead);
+    on<MarkAllNotificationsAsRead>(_onMarkAllNotificationsAsRead);
+  }
+
+  Future<void> _onLoadNotifications(
+    LoadNotifications event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    if (!event.isRefresh) {
+      emit(state.copyWith(status: NotificationsStatus.loading));
+    }
+
+    try {
+      final categoryParam = event.category.isNotEmpty && event.category != 'all'
+          ? '?category=${event.category}'
+          : '';
+      final url = '${ApiEndpoints.leaderNotifications}$categoryParam';
+
+      final res = await _apiClient.get<dynamic>(url);
+
+      if (res.success) {
+        List<dynamic> rawList = [];
+        int? serverUnreadCount;
+
+        if (res.data is List) {
+          rawList = res.data as List;
+        } else if (res.data is Map) {
+          final map = res.data as Map;
+          final nested = map['data'] ?? map['notifications'] ?? map['items'];
+          if (nested is List) {
+            rawList = nested;
+          }
+          if (map['unread_count'] is int) {
+            serverUnreadCount = map['unread_count'] as int;
+          }
+        }
+
+        final items = rawList
+            .map((item) =>
+                LeaderNotificationModel.fromJson(Map<String, dynamic>.from(item as Map)))
+            .toList();
+
+        final unreadCount = serverUnreadCount ?? items.where((n) => n.isUnread).length;
+
+        emit(state.copyWith(
+          status: NotificationsStatus.success,
+          notifications: items,
+          unreadCount: unreadCount,
+          activeCategory: event.category,
+        ));
+      } else {
+        emit(state.copyWith(
+          status: NotificationsStatus.failure,
+          errorMessage: res.message ?? 'Failed to load notifications.',
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        status: NotificationsStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  void _onFilterNotificationsByCategory(
+    FilterNotificationsByCategory event,
+    Emitter<NotificationsState> emit,
+  ) {
+    emit(state.copyWith(activeCategory: event.category));
+  }
+
+  Future<void> _onMarkNotificationAsRead(
+    MarkNotificationAsRead event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    // Optimistic local update
+    final updatedList = state.notifications.map((n) {
+      if (n.id == event.notificationId) {
+        return n.copyWith(isUnread: false);
+      }
+      return n;
+    }).toList();
+
+    final newUnreadCount = updatedList.where((n) => n.isUnread).length;
+    emit(state.copyWith(
+      notifications: updatedList,
+      unreadCount: newUnreadCount,
+    ));
+
+    try {
+      await _apiClient.post<Map<String, dynamic>>(
+        ApiEndpoints.leaderNotificationReadSingle(event.notificationId),
+        body: {'notification_id': event.notificationId},
+      );
+    } catch (_) {
+      // Keep optimistic update
+    }
+  }
+
+  Future<void> _onMarkAllNotificationsAsRead(
+    MarkAllNotificationsAsRead event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    final updatedList = state.notifications
+        .map((n) => n.copyWith(isUnread: false))
+        .toList();
+
+    emit(state.copyWith(
+      notifications: updatedList,
+      unreadCount: 0,
+      isMarkingRead: true,
+    ));
+
+    try {
+      await _apiClient.post<Map<String, dynamic>>(
+        ApiEndpoints.leaderNotificationsMarkAllRead,
+      );
+    } catch (_) {
+      // Keep optimistic state
+    } finally {
+      emit(state.copyWith(isMarkingRead: false));
+    }
+  }
+}

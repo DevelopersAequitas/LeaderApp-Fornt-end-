@@ -38,14 +38,21 @@ import '../../features/maintenance/view/maintenance_view.dart';
 import '../../features/peers/view/peers_view.dart';
 import '../../features/reports/model/report_model.dart';
 import '../../features/reports/view/report_details_view.dart';
+import '../../features/notifications/view/notifications_view.dart';
 
 /// Centralized routing configuration for the Leader App.
 abstract class AppRoutes {
+  /// Global navigator key for navigation outside widget trees (e.g. push notification callbacks).
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   /// Splash screen route
   static const String splash = '/';
 
   /// Login screen route
   static const String login = '/login';
+
+  /// Notifications route
+  static const String notifications = '/notifications';
 
   /// Home screen route
   static const String home = '/home';
@@ -349,6 +356,11 @@ abstract class AppRoutes {
       case maintenance:
         return AppPageRoute(
           builder: (_) => const MaintenanceView(),
+          settings: settings,
+        );
+      case notifications:
+        return AppPageRoute(
+          builder: (_) => const NotificationsView(),
           settings: settings,
         );
       case peerCollaboration:

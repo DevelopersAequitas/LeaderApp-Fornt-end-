@@ -24,6 +24,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Peers Unity: Leader App',
       debugShowCheckedModeBanner: false,
+      navigatorKey: AppRoutes.navigatorKey,
       themeMode: ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,

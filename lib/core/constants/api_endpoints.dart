@@ -202,4 +202,20 @@ abstract class ApiEndpoints {
   static String get circulars => '$baseUrl/circulars';
   static String circularById(String id) => '$baseUrl/circulars/$id';
   static String get circularPublish => '$baseUrl/circulars/publish';
+
+  // --- 11. Leader Notifications ---
+  static String get leaderNotifications => '$baseUrl/leader/notifications';
+  static String get leaderNotificationsUnreadCount =>
+      '$baseUrl/leader/notifications/unread-count';
+  static String get leaderNotificationsMarkRead =>
+      '$baseUrl/leader/notifications/mark-read';
+  static String get leaderNotificationsMarkAllRead =>
+      '$baseUrl/leader/notifications/mark-all-read';
+  static String leaderNotificationReadSingle(String id) =>
+      '$baseUrl/leader/notifications/$id/read';
+
+  // --- 12. Push Token Registration ---
+  static String get leaderPushTokenRegistration => '$baseUrl/leader/push-token';
+  static String get pushTokenRegistration => '$baseUrl/user/push-token';
+  static String get pushTokens => '$baseUrl/push-tokens';
 }
