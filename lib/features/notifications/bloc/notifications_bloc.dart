@@ -13,6 +13,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       : _apiClient = apiClient ?? ApiClient(),
         super(const NotificationsState()) {
     on<LoadNotifications>(_onLoadNotifications);
+    on<LoadMoreNotifications>(_onLoadMoreNotifications);
     on<FilterNotificationsByCategory>(_onFilterNotificationsByCategory);
     on<MarkNotificationAsRead>(_onMarkNotificationAsRead);
     on<MarkAllNotificationsAsRead>(_onMarkAllNotificationsAsRead);
@@ -28,15 +29,19 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
     try {
       final categoryParam = event.category.isNotEmpty && event.category != 'all'
-          ? '?category=${event.category}'
+          ? '&category=${event.category}'
           : '';
-      final url = '${ApiEndpoints.leaderNotifications}$categoryParam';
+      final url =
+          '${ApiEndpoints.leaderNotifications}?page=1&per_page=20$categoryParam';
 
       final res = await _apiClient.get<dynamic>(url);
 
       if (res.success) {
         List<dynamic> rawList = [];
         int? serverUnreadCount;
+        int currentPage = 1;
+        int lastPage = 1;
+        bool hasMore = false;
 
         if (res.data is List) {
           rawList = res.data as List;
@@ -49,14 +54,21 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           if (map['unread_count'] is int) {
             serverUnreadCount = map['unread_count'] as int;
           }
+          final meta = map['meta'] ?? map['pagination'];
+          if (meta is Map) {
+            currentPage = (meta['current_page'] as num?)?.toInt() ?? 1;
+            lastPage = (meta['last_page'] as num?)?.toInt() ?? 1;
+            hasMore = (meta['has_more'] as bool?) ?? (currentPage < lastPage);
+          }
         }
 
         final items = rawList
-            .map((item) =>
-                LeaderNotificationModel.fromJson(Map<String, dynamic>.from(item as Map)))
+            .map((item) => LeaderNotificationModel.fromJson(
+                Map<String, dynamic>.from(item as Map)))
             .toList();
 
-        final unreadCount = serverUnreadCount ?? items.where((n) => n.isUnread).length;
+        final unreadCount =
+            serverUnreadCount ?? items.where((n) => n.isUnread).length;
         NotificationCountService.instance.updateCount(unreadCount);
 
         emit(state.copyWith(
@@ -64,6 +76,10 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           notifications: items,
           unreadCount: unreadCount,
           activeCategory: event.category,
+          currentPage: currentPage,
+          lastPage: lastPage,
+          hasMore: hasMore,
+          isLoadingMore: false,
         ));
       } else {
         emit(state.copyWith(
@@ -76,6 +92,73 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         status: NotificationsStatus.failure,
         errorMessage: e.toString(),
       ));
+    }
+  }
+
+  Future<void> _onLoadMoreNotifications(
+    LoadMoreNotifications event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    if (state.isLoadingMore || !state.hasMore) return;
+
+    emit(state.copyWith(isLoadingMore: true));
+
+    try {
+      final nextPage = state.currentPage + 1;
+      final categoryParam =
+          state.activeCategory.isNotEmpty && state.activeCategory != 'all'
+              ? '&category=${state.activeCategory}'
+              : '';
+      final url =
+          '${ApiEndpoints.leaderNotifications}?page=$nextPage&per_page=20$categoryParam';
+
+      final res = await _apiClient.get<dynamic>(url);
+
+      if (res.success) {
+        List<dynamic> rawList = [];
+        int currentPage = nextPage;
+        int lastPage = state.lastPage;
+        bool hasMore = false;
+
+        if (res.data is List) {
+          rawList = res.data as List;
+        } else if (res.data is Map) {
+          final map = res.data as Map;
+          final nested = map['data'] ?? map['notifications'] ?? map['items'];
+          if (nested is List) {
+            rawList = nested;
+          }
+          final meta = map['meta'] ?? map['pagination'];
+          if (meta is Map) {
+            currentPage = (meta['current_page'] as num?)?.toInt() ?? nextPage;
+            lastPage = (meta['last_page'] as num?)?.toInt() ?? state.lastPage;
+            hasMore = (meta['has_more'] as bool?) ?? (currentPage < lastPage);
+          }
+        }
+
+        final newItems = rawList
+            .map((item) => LeaderNotificationModel.fromJson(
+                Map<String, dynamic>.from(item as Map)))
+            .toList();
+
+        final existingIds = state.notifications.map((n) => n.id).toSet();
+        final combined = [
+          ...state.notifications,
+          ...newItems.where((n) => !existingIds.contains(n.id)),
+        ];
+
+        emit(state.copyWith(
+          notifications: combined,
+          currentPage: currentPage,
+          lastPage: lastPage,
+          hasMore: hasMore,
+          isLoadingMore: false,
+        ));
+      } else {
+        emit(state.copyWith(isLoadingMore: false));
+      }
+    } catch (_) {
+      emit(state.copyWith(isLoadingMore: false));
     }
   }
 

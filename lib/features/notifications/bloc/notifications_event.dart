@@ -35,3 +35,8 @@ class MarkAllNotificationsAsRead extends NotificationsEvent {
   const MarkAllNotificationsAsRead();
 }
 
+/// Dispatched when scrolling near bottom of list to fetch next page.
+class LoadMoreNotifications extends NotificationsEvent {
+  const LoadMoreNotifications();
+}
+

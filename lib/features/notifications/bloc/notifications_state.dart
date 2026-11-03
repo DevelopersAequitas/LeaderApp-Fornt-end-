@@ -11,6 +11,10 @@ class NotificationsState {
   final int unreadCount;
   final String? errorMessage;
   final bool isMarkingRead;
+  final int currentPage;
+  final int lastPage;
+  final bool hasMore;
+  final bool isLoadingMore;
 
   const NotificationsState({
     this.status = NotificationsStatus.initial,
@@ -19,6 +23,10 @@ class NotificationsState {
     this.unreadCount = 0,
     this.errorMessage,
     this.isMarkingRead = false,
+    this.currentPage = 1,
+    this.lastPage = 1,
+    this.hasMore = false,
+    this.isLoadingMore = false,
   });
 
   bool get isLoading => status == NotificationsStatus.loading;
@@ -44,6 +52,10 @@ class NotificationsState {
     int? unreadCount,
     String? errorMessage,
     bool? isMarkingRead,
+    int? currentPage,
+    int? lastPage,
+    bool? hasMore,
+    bool? isLoadingMore,
   }) {
     return NotificationsState(
       status: status ?? this.status,
@@ -52,6 +64,10 @@ class NotificationsState {
       unreadCount: unreadCount ?? this.unreadCount,
       errorMessage: errorMessage,
       isMarkingRead: isMarkingRead ?? this.isMarkingRead,
+      currentPage: currentPage ?? this.currentPage,
+      lastPage: lastPage ?? this.lastPage,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 }

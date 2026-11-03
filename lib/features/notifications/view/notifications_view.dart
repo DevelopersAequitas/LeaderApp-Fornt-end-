@@ -21,17 +21,29 @@ class _NotificationsViewState extends State<NotificationsView>
     implements NotificationsViewContract {
   late final NotificationsBloc _bloc;
   late final NotificationsPresenter _presenter;
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
     _bloc = NotificationsBloc();
     _presenter = NotificationsPresenter(view: this, bloc: _bloc);
+    _scrollController = ScrollController()..addListener(_onScroll);
     _presenter.loadNotifications();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (currentScroll >= maxScroll - 200) {
+      _presenter.loadMore();
+    }
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _bloc.close();
     super.dispose();
   }
@@ -238,6 +250,7 @@ class _NotificationsViewState extends State<NotificationsView>
                                   );
                                 },
                                 child: ListView.builder(
+                                  controller: _scrollController,
                                   physics:
                                       const AlwaysScrollableScrollPhysics(
                                     parent: BouncingScrollPhysics(),
@@ -247,8 +260,27 @@ class _NotificationsViewState extends State<NotificationsView>
                                     vertical: 4,
                                   ),
                                   itemCount:
-                                      state.filteredNotifications.length,
+                                      state.filteredNotifications.length +
+                                          (state.isLoadingMore ? 1 : 0),
                                   itemBuilder: (context, index) {
+                                    if (index ==
+                                        state.filteredNotifications.length) {
+                                      return const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        child: Center(
+                                          child: SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColor.primaryBlue,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }
                                     final item =
                                         state.filteredNotifications[index];
                                     return NotificationCard(

@@ -35,6 +35,10 @@ class NotificationsPresenter {
     bloc.add(const MarkAllNotificationsAsRead());
   }
 
+  void loadMore() {
+    bloc.add(const LoadMoreNotifications());
+  }
+
   void handleNotificationClick(
     String notificationId,
     String screen,
