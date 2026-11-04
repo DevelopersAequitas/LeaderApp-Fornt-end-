@@ -94,7 +94,8 @@ class _PeerProfileContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = context.read<PeerProfileBloc>();
     final session = SessionManager().currentSession;
-    final canEdit = session.role == UserRole.superAdmin ||
+    final canEdit = SessionManager().isSuperAdmin ||
+        SessionManager().permissions.canAddEditPeer ||
         session.role == UserRole.countryDirector ||
         session.role == UserRole.circleFounder;
 

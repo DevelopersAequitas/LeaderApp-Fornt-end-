@@ -241,7 +241,8 @@ class SessionManager {
   /// Returns true if current user is Super Admin or Global Administrator.
   bool get isSuperAdmin =>
       _currentSession.role == UserRole.superAdmin ||
-      _currentSession.role.label.toLowerCase().contains('admin');
+      _currentSession.role.label.toLowerCase().contains('admin') ||
+      (_currentSession.customRoleLabel?.toLowerCase().contains('admin') ?? false);
 
   /// Clears the session and wipes all secure storage tokens upon sign out.
   Future<void> clearSession() async {

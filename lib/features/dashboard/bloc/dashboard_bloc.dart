@@ -8,6 +8,9 @@ import '../../../features/dashboard/model/impacter_model.dart';
 import '../../../features/teams/model/teams_model.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';
+import '../../../core/constants/api_endpoints.dart';
+import '../../../core/helpers/session_manager.dart';
+import '../../../core/network/api_client.dart';
 
 /// Business Logic Component for managing Executive Dashboard state.
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
@@ -44,6 +47,21 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     final selected = state.selectedCircle?.trim();
     final String? activeCircle =
         (selected != null && _uuidRegex.hasMatch(selected)) ? selected : null;
+
+    // Dynamic RBAC sync: update active session and permissions in background
+    ApiClient()
+        .get<Map<String, dynamic>>(
+          ApiEndpoints.profile,
+          fromJsonT: (json) => json is Map<String, dynamic>
+              ? json
+              : (json is Map ? Map<String, dynamic>.from(json) : <String, dynamic>{}),
+        )
+        .then((res) async {
+          if (res.success && res.data != null) {
+            await SessionManager().updateFromAuthProfile(res.data!);
+          }
+        })
+        .catchError((_) {});
 
     try {
       // Parallel fetch with individual error isolation

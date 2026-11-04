@@ -499,10 +499,11 @@ class CircleTeamModel {
           ? cadence!.timeRange
           : (cadence?.startTime.isNotEmpty == true ? cadence!.startTime : '');
 
-  /// Returns the effective cover banner image URL if available.
+  /// Returns the effective cover banner image URL if available and distinct from circle logo.
   String? get effectiveCoverUrl {
     final c = coverImageUrl?.trim();
-    if (c != null && c.isNotEmpty) {
+    final l = circleImageUrl?.trim();
+    if (c != null && c.isNotEmpty && c != l) {
       return c;
     }
     return null;

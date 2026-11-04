@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/enums/user_role.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -16,7 +15,7 @@ class FinanceActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSuperAdmin = SessionManager().currentRole == UserRole.superAdmin;
+    final isSuperAdmin = SessionManager().isSuperAdmin;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),

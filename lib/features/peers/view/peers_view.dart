@@ -235,7 +235,8 @@ class _PeersContentState extends State<_PeersContent> {
     final bloc = context.read<PeersBloc>();
     final session = SessionManager().currentSession;
     final isRoleManagementEnabled =
-        session.role == UserRole.superAdmin ||
+        SessionManager().isSuperAdmin ||
+        SessionManager().permissions.canAccessRoleManagement ||
         session.role == UserRole.countryDirector;
 
     return BlocListener<PeersBloc, PeersState>(
