@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/date_time_utils.dart';
 import '../../peers/model/peer_model.dart';
 
 /// Configuration metadata for each user-input activity section on the Leader App.
@@ -605,6 +606,18 @@ class LeaderActivityItemModel {
     this.targetPeerCompany,
     this.requestCategory,
   });
+
+  /// Formatted local date string (e.g. "25 Sep 2026" or "25 Sep 2026, 02:19 PM").
+  String get formattedDate {
+    if (date.isEmpty) return '';
+    return DateTimeUtils.formatDate(date);
+  }
+
+  /// Relative time (e.g. "2h ago", "Just now", "25 Sep 2026").
+  String get timeAgo {
+    if (date.isEmpty) return '';
+    return DateTimeUtils.formatTimeAgo(date);
+  }
 
   bool get isActionablePending {
     if (id.trim().isEmpty) return false;

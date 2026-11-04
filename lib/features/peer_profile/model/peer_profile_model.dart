@@ -1,3 +1,4 @@
+import '../../../../core/utils/date_time_utils.dart';
 /// Model representing a P2P or circle meeting item in peer profile.
 class PeerMeetingModel {
   final String id;
@@ -1068,18 +1069,15 @@ class PeerPostCommentModel {
     final rawDate = json['created_at']?.toString() ?? '';
     String formattedDate = rawDate;
     if (rawDate.isNotEmpty) {
-      try {
-        final dt = DateTime.parse(rawDate).toLocal();
-        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final dt = DateTimeUtils.parseUtc(rawDate);
+      if (dt != null) {
         final day = dt.day.toString().padLeft(2, '0');
-        final monthStr = months[dt.month - 1];
+        final monthStr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.month - 1];
         final hourNum = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
         final hour = hourNum.toString().padLeft(2, '0');
         final min = dt.minute.toString().padLeft(2, '0');
         final ampm = dt.hour >= 12 ? 'PM' : 'AM';
         formattedDate = '$day $monthStr · $hour:$min $ampm';
-      } catch (_) {
-        formattedDate = rawDate;
       }
     }
 
@@ -1171,19 +1169,16 @@ class PeerPostModel {
     String rawDate = json['created_at']?.toString() ?? '';
     String formattedDate = rawDate;
     if (rawDate.isNotEmpty) {
-      try {
-        final dt = DateTime.parse(rawDate).toLocal();
-        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final dt = DateTimeUtils.parseUtc(rawDate);
+      if (dt != null) {
         final day = dt.day.toString().padLeft(2, '0');
-        final monthStr = months[dt.month - 1];
+        final monthStr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.month - 1];
         final year = dt.year;
         final hourNum = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
         final hour = hourNum.toString().padLeft(2, '0');
         final min = dt.minute.toString().padLeft(2, '0');
         final ampm = dt.hour >= 12 ? 'PM' : 'AM';
         formattedDate = '$day $monthStr $year · $hour:$min $ampm';
-      } catch (_) {
-        formattedDate = rawDate;
       }
     }
 

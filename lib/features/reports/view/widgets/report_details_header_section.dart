@@ -101,6 +101,17 @@ class ReportDetailsHeaderSection extends StatelessWidget {
                         fontWeight: FontWeight.w400,
                       ),
                     ),
+                    if (report.formattedSubmittedAt.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Submitted: ${report.formattedSubmittedAt}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

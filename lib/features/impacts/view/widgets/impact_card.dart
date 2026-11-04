@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../model/impact_model.dart';
 
@@ -149,9 +150,11 @@ class ImpactCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        impact.createdAt.length > 10
-                            ? impact.createdAt.substring(0, 10)
-                            : impact.createdAt,
+                        DateTimeUtils.formatDate(impact.createdAt).isNotEmpty
+                            ? DateTimeUtils.formatDate(impact.createdAt)
+                            : (impact.createdAt.length > 10
+                                ? impact.createdAt.substring(0, 10)
+                                : impact.createdAt),
                         style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 10,

@@ -1,3 +1,4 @@
+import '../../../../core/utils/date_time_utils.dart';
 import '../../peers/model/peer_model.dart';
 
 /// Model representing a circle assembly or summit event.
@@ -46,14 +47,17 @@ class CircleEventModel {
     String parsedDate = json['date'] as String? ?? '';
     String parsedTime = json['time'] as String? ?? '';
 
-    if (parsedDate.isEmpty && json['start_at'] != null) {
-      try {
-        final dt = DateTime.parse(json['start_at'].toString()).toLocal();
-        parsedDate = '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
-        final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
-        final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-        parsedTime = '${hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} $ampm';
-      } catch (_) {}
+    final rawStart = json['start_at'] ?? json['start_time'] ?? json['event_date'] ?? json['date'];
+    if (rawStart != null && rawStart.toString().trim().isNotEmpty) {
+      final dt = DateTimeUtils.parseUtc(rawStart);
+      if (dt != null) {
+        if (parsedDate.isEmpty) {
+          parsedDate = DateTimeUtils.formatDate(dt);
+        }
+        if (parsedTime.isEmpty && (rawStart.toString().contains('T') || rawStart.toString().contains(':'))) {
+          parsedTime = DateTimeUtils.formatTime(dt);
+        }
+      }
     }
 
     final attendeesList = <PeerModel>[];

@@ -648,7 +648,10 @@ class ReportExportService {
     final buffer = StringBuffer();
     buffer.writeln('CIRCLE PERFORMANCE REPORT');
     buffer.writeln('Circle Name,${_escapeCsv(report.circleName)}');
-    buffer.writeln('Period,${_escapeCsv(report.period ?? report.date)}');
+    buffer.writeln('Period,${_escapeCsv(report.formattedDisplayDate.isNotEmpty ? report.formattedDisplayDate : (report.period ?? report.date))}');
+    if (report.formattedSubmittedAt.isNotEmpty) {
+      buffer.writeln('Submitted At,${_escapeCsv(report.formattedSubmittedAt)}');
+    }
     buffer.writeln('Type,${_escapeCsv(report.type)}');
     buffer.writeln('Status,${_escapeCsv(report.status)}');
     buffer.writeln('Submitted By,${_escapeCsv(report.author)} (${_escapeCsv(report.authorRole)})');
@@ -875,8 +878,8 @@ class ReportExportService {
   <div class="content-wrap">
     <h1>$title</h1>
     <div class="meta">
-      Period: <strong>${report.period ?? report.date}</strong> &bull; Type: <strong>${report.type}</strong> &bull; Status: <strong>${report.status}</strong><br>
-      Submitted By: <strong>${report.author}</strong> (${report.authorRole})
+      Period: <strong>${report.formattedDisplayDate.isNotEmpty ? report.formattedDisplayDate : (report.period ?? report.date)}</strong> &bull; Type: <strong>${report.type}</strong> &bull; Status: <strong>${report.status}</strong><br>
+      Submitted By: <strong>${report.author}</strong> (${report.authorRole})${report.formattedSubmittedAt.isNotEmpty ? '<br>Submission Time: <strong>${report.formattedSubmittedAt}</strong>' : ''}
     </div>
 
     <div class="grid">

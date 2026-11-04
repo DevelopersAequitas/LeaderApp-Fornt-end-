@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_color.dart';
+import '../../../../core/utils/date_time_utils.dart';
 import '../../model/leader_notification_model.dart';
 
 class NotificationCard extends StatelessWidget {
@@ -13,12 +14,7 @@ class NotificationCard extends StatelessWidget {
   });
 
   String _formatTimeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inSeconds < 45) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    return DateTimeUtils.formatTimeAgo(dt);
   }
 
   String _formatCategory(String cat) {

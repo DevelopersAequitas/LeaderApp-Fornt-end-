@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_color.dart';
+import '../../../../core/utils/date_time_utils.dart';
 import '../../../../core/widgets/gradient_widgets.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../model/member_activity_model.dart';
@@ -195,23 +196,8 @@ class MemberActivityCard extends StatelessWidget {
 
   String _formatDate(String rawDate) {
     if (rawDate.isEmpty) return '';
-    final parsed = DateTime.tryParse(rawDate);
-    if (parsed == null) return rawDate;
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${months[parsed.month - 1]} ${parsed.day}, ${parsed.year}';
+    final formatted = DateTimeUtils.formatDate(rawDate);
+    return formatted.isNotEmpty ? formatted : rawDate;
   }
 
   Widget _buildStatusPill(String status) {

@@ -1,3 +1,4 @@
+import '../../../../core/utils/date_time_utils.dart';
 import '../../peers/model/peer_model.dart';
 
 /// Model representing a peer testimonial.
@@ -153,7 +154,8 @@ class TestimonialModel {
     if (rawDate is Map) {
       dateStr = rawDate['human']?.toString() ?? rawDate['formatted']?.toString() ?? '';
     } else if (rawDate is String) {
-      dateStr = rawDate;
+      final formatted = DateTimeUtils.formatDate(rawDate);
+      dateStr = formatted.isNotEmpty ? formatted : rawDate;
     }
 
     final peerMap = json['peer'] is Map<String, dynamic>

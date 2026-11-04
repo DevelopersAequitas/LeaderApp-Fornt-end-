@@ -77,7 +77,7 @@ class ReportHistoryCardHeader extends StatelessWidget {
         ],
         const Spacer(),
         Text(
-          report.period ?? report.date,
+          report.formattedDisplayDate.isNotEmpty ? report.formattedDisplayDate : (report.period ?? report.date),
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 11,

@@ -1,3 +1,4 @@
+import '../../../../core/utils/date_time_utils.dart';
 import '../../peers/model/peer_model.dart';
 
 /// Model representing coordinates for attendance & performance spline charts.
@@ -285,6 +286,38 @@ class ReportModel {
       return '${attendancePercentage!.toInt()}%';
     }
     return '${attendancePercentage!.toStringAsFixed(1)}%';
+  }
+
+  /// Returns parsed local DateTime of report submission.
+  DateTime? get submittedAtLocal => DateTimeUtils.parseUtc(submittedAt);
+
+  /// Formatted local submission date & time (e.g. "03 Nov 2026, 05:15 PM").
+  String get formattedSubmittedAt {
+    if (submittedAt == null || submittedAt!.isEmpty) return '';
+    return DateTimeUtils.formatDateTime(submittedAt);
+  }
+
+  /// Relative time since submission (e.g. "2h ago", "Just now").
+  String get submittedAtTimeAgo {
+    if (submittedAt == null || submittedAt!.isEmpty) return '';
+    return DateTimeUtils.formatTimeAgo(submittedAt);
+  }
+
+  /// Display date for report cards: prefers formatted local submission time or period.
+  String get formattedDisplayDate {
+    if (period != null && period!.isNotEmpty) return period!;
+    if (submittedAt != null && submittedAt!.isNotEmpty) {
+      final formatted = DateTimeUtils.formatDate(submittedAt);
+      if (formatted.isNotEmpty) return formatted;
+    }
+    if (date.isNotEmpty) {
+      final parsed = DateTimeUtils.parseUtc(date);
+      if (parsed != null) {
+        return DateTimeUtils.formatDate(parsed);
+      }
+      return date;
+    }
+    return '';
   }
 
   factory ReportModel.fromJson(Map<String, dynamic> json) {

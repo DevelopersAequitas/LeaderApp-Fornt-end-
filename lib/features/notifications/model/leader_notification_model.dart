@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../../core/utils/date_time_utils.dart';
 
 /// Represents a single event-driven notification for a Leader.
 @immutable
@@ -26,15 +27,7 @@ class LeaderNotificationModel {
   });
 
   factory LeaderNotificationModel.fromJson(Map<String, dynamic> json) {
-    DateTime parsedDate;
-    try {
-      final rawDate = json['created_at']?.toString();
-      parsedDate = rawDate != null && rawDate.isNotEmpty
-          ? DateTime.parse(rawDate)
-          : DateTime.now();
-    } catch (_) {
-      parsedDate = DateTime.now();
-    }
+    final parsedDate = DateTimeUtils.parseUtc(json['created_at']) ?? DateTime.now();
 
     final isUnreadVal = json['is_unread'] == true ||
         json['is_read'] == false ||

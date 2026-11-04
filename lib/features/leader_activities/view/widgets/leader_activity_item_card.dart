@@ -238,7 +238,7 @@ class LeaderActivityItemCard extends StatelessWidget {
                         if (item.date.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(
-                            item.date,
+                            item.formattedDate.isNotEmpty ? item.formattedDate : item.date,
                             style: const TextStyle(
                               color: AppColor.lightTextSecondary,
                               fontSize: 9.5,

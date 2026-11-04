@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/date_time_utils.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../peers/model/peer_model.dart';
 import '../bloc/peer_events_bloc.dart';
@@ -32,37 +33,16 @@ class _PeerEventsAttendanceContent extends StatelessWidget {
   static Map<String, String> _formatDateTimeParts(String raw) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) return {'date': '', 'time': ''};
-    final dt = DateTime.tryParse(trimmed);
+    final dt = DateTimeUtils.parseUtc(trimmed);
     if (dt == null) {
       return {'date': trimmed, 'time': ''};
     }
-    final local = dt.toLocal();
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final dateStr =
-        '${local.day.toString().padLeft(2, '0')} ${months[local.month - 1]} ${local.year}';
-
+    final dateStr = DateTimeUtils.formatDate(dt);
     final hasTime = trimmed.contains('T') || trimmed.contains(':');
     if (!hasTime) {
       return {'date': dateStr, 'time': ''};
     }
-
-    final hour12 = local.hour % 12 == 0 ? 12 : local.hour % 12;
-    final minuteStr = local.minute.toString().padLeft(2, '0');
-    final period = local.hour >= 12 ? 'PM' : 'AM';
-    final timeStr = '$hour12:$minuteStr $period';
+    final timeStr = DateTimeUtils.formatTime(dt);
     return {'date': dateStr, 'time': timeStr};
   }
 

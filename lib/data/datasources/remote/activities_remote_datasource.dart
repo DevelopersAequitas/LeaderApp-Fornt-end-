@@ -509,9 +509,7 @@ class ActivitiesRemoteDataSource {
                 description: (map['description'] ?? map['details'] ?? '')
                     .toString(),
                 status: (map['status'] ?? 'Published').toString(),
-                date: (map['created_at'] ?? '').toString().length > 10
-                    ? (map['created_at'] ?? '').toString().substring(0, 10)
-                    : (map['created_at'] ?? '').toString(),
+                date: (map['created_at'] ?? '').toString(),
                 peerId: (map['user_id'] ?? user['id'] ?? '').toString(),
                 peerName: peerName.isNotEmpty ? peerName : 'Peer Member',
                 avatarUrl:
@@ -607,9 +605,7 @@ class ActivitiesRemoteDataSource {
                         (map['content_text'] ?? map['description'] ?? '')
                             .toString(),
                     status: (map['status'] ?? 'Active').toString(),
-                    date: (map['created_at'] ?? '').toString().length > 10
-                        ? (map['created_at'] ?? '').toString().substring(0, 10)
-                        : (map['created_at'] ?? '').toString(),
+                    date: (map['created_at'] ?? '').toString(),
                     peerId: (map['user_id'] ?? user['id'] ?? '').toString(),
                     peerName: peerName.isNotEmpty ? peerName : 'Peer Member',
                     avatarUrl: user['profile_photo_url']?.toString(),
@@ -671,9 +667,7 @@ class ActivitiesRemoteDataSource {
                     (map['content'] ?? map['description'] ?? map['body'] ?? '')
                         .toString(),
                 status: (map['status'] ?? 'Published').toString(),
-                date: createdAt.length > 10
-                    ? createdAt.substring(0, 10)
-                    : createdAt,
+                date: createdAt,
                 peerId: (map['user_id'] ?? map['author_id'] ?? '').toString(),
                 peerName: author.isNotEmpty
                     ? author
@@ -758,9 +752,7 @@ class ActivitiesRemoteDataSource {
                   description: (map['details'] ?? map['description'] ?? '')
                       .toString(),
                   status: (map['status'] ?? 'Submitted').toString(),
-                  date: submittedAt.length > 10
-                      ? submittedAt.substring(0, 10)
-                      : submittedAt,
+                  date: submittedAt,
                   amount:
                       normalizedType == 'coin-claims' &&
                           targetEntity.toLowerCase().contains('coin')
@@ -886,9 +878,7 @@ class ActivitiesRemoteDataSource {
                     '')
                 .toString(),
         status: (map['status'] ?? 'Submitted').toString(),
-        date: (map['created_at'] ?? '').toString().length > 10
-            ? (map['created_at'] ?? '').toString().substring(0, 10)
-            : (map['created_at'] ?? '').toString(),
+        date: (map['created_at'] ?? '').toString(),
         peerId: (map['user_id'] ?? '').toString(),
         peerName: name.isNotEmpty ? name : 'Peer Member',
         city: (map['city'] ?? '').toString(),
