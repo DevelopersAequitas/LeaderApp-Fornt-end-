@@ -221,7 +221,7 @@ class CircleTeamModel {
   /// Returns the effective cover banner image URL if available.
   String? get effectiveCoverUrl {
     final c = coverImageUrl?.trim();
-    if (c != null && c.isNotEmpty && !c.contains('01a0f23b-0472-713a-be9b-652bf3bed62d')) {
+    if (c != null && c.isNotEmpty) {
       return c;
     }
     return null;
@@ -230,7 +230,7 @@ class CircleTeamModel {
   /// Returns the effective circle logo URL if available.
   String? get effectiveLogoUrl {
     final l = circleImageUrl?.trim();
-    if (l != null && l.isNotEmpty && !l.contains('01a0f23b-0472-713a-be9b-652bf3bed62d')) {
+    if (l != null && l.isNotEmpty) {
       return l;
     }
     return null;

@@ -193,9 +193,7 @@ class TeamsCircleCard extends StatelessWidget {
 
   Widget _buildCoverBanner(Color statusBgColor, Color statusTextColor) {
     final coverUrl = circle.effectiveCoverUrl ??
-        (circle.circleImageUrl != null &&
-                circle.circleImageUrl!.trim().isNotEmpty &&
-                !circle.circleImageUrl!.contains('01a0f23b-0472-713a-be9b-652bf3bed62d')
+        (circle.circleImageUrl != null && circle.circleImageUrl!.trim().isNotEmpty
             ? circle.circleImageUrl!.trim()
             : null);
     final hasImage = coverUrl != null && coverUrl.isNotEmpty;
