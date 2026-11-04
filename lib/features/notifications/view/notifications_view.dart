@@ -71,13 +71,18 @@ class _NotificationsViewState extends State<NotificationsView>
     if (!mounted) return;
 
     final target = screen.toLowerCase().trim();
-    if (target.contains('team') || target.contains('circle')) {
+    final type = (data['type'] ?? data['notification_type'] ?? '').toString().toLowerCase().trim();
+    final category = (data['category'] ?? '').toString().toLowerCase().trim();
+
+    if (target.contains('role') || type.contains('role') || type.contains('tenure') || type.contains('appointed')) {
+      Navigator.of(context).pushNamed(AppRoutes.roleManagement);
+    } else if (target.contains('team') || target.contains('circle') || type.contains('circle') || category.contains('circle')) {
       Navigator.of(context).pushNamed(AppRoutes.home, arguments: {'tab': 2});
-    } else if (target.contains('finance')) {
+    } else if (target.contains('finance') || type.contains('finance') || type.contains('withdrawal') || type.contains('payout') || type.contains('payment') || category.contains('finance')) {
       Navigator.of(context).pushNamed(AppRoutes.home, arguments: {'tab': 3});
-    } else if (target.contains('report')) {
+    } else if (target.contains('report') || type.contains('report') || type.contains('attendance') || type.contains('compliance') || category.contains('reports')) {
       Navigator.of(context).pushNamed(AppRoutes.home, arguments: {'tab': 4});
-    } else if (target.contains('peer')) {
+    } else if (target.contains('peer') || type.contains('peer') || type.contains('referral') || type.contains('p2p') || category.contains('peers')) {
       Navigator.of(context).pushNamed(AppRoutes.peers);
     } else if (target.contains('profile')) {
       Navigator.of(context).pushNamed(AppRoutes.profile);

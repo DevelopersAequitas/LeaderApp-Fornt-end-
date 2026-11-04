@@ -454,7 +454,7 @@ class CircleEventsSection extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
 
-                          // Date & Time Row with Gradient Icons
+                          // Date & Time Row with Gradient Icons & Cadence Display
                           Row(
                             children: [
                               const GradientIcon(
@@ -463,31 +463,35 @@ class CircleEventsSection extends StatelessWidget {
                                 gradient: AppColors.brandGradient,
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                dtParts['date']!,
-                                style: const TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              if (dtParts['time']!.isNotEmpty) ...[
-                                const SizedBox(width: 10),
-                                const GradientIcon(
-                                  icon: Icons.schedule_rounded,
-                                  size: 13,
-                                  gradient: AppColors.brandGradient,
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  dtParts['time']!,
+                              Expanded(
+                                child: Text(
+                                  ev.effectiveDateWithCadence,
                                   style: const TextStyle(
-                                    color: AppColors.textSecondary,
+                                    color: AppColors.text,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ],
+                              ),
+                              const SizedBox(width: 8),
+                              const GradientIcon(
+                                icon: Icons.schedule_rounded,
+                                size: 13,
+                                gradient: AppColors.brandGradient,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                ev.effectiveTimeRange.isNotEmpty
+                                    ? ev.effectiveTimeRange
+                                    : (dtParts['time']!.isNotEmpty ? dtParts['time']! : 'Time TBD'),
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ],
                           ),
 

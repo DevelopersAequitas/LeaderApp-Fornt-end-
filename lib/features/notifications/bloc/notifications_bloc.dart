@@ -65,6 +65,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         final items = rawList
             .map((item) => LeaderNotificationModel.fromJson(
                 Map<String, dynamic>.from(item as Map)))
+            .where((n) => n.isLeaderNotification)
             .toList();
 
         final unreadCount =
@@ -139,6 +140,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         final newItems = rawList
             .map((item) => LeaderNotificationModel.fromJson(
                 Map<String, dynamic>.from(item as Map)))
+            .where((n) => n.isLeaderNotification)
             .toList();
 
         final existingIds = state.notifications.map((n) => n.id).toSet();

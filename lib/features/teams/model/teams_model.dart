@@ -263,38 +263,83 @@ class CircleCadenceModel {
     final calendar = json['calendar'] is Map ? json['calendar'] as Map : null;
     final calSettings = calendar?['settings'] is Map ? calendar!['settings'] as Map : null;
 
-    final freq = data['frequency']?.toString() ??
+    final freqRaw = data['frequency']?.toString() ??
         data['meeting_frequency']?.toString() ??
         repeat?['frequency']?.toString() ??
         calSettings?['meeting_frequency']?.toString() ??
         'Monthly';
+    final freq = freqRaw.isNotEmpty
+        ? (freqRaw[0].toUpperCase() + freqRaw.substring(1).toLowerCase())
+        : 'Monthly';
 
-    final mode = data['mode']?.toString() ??
+    final modeRaw = data['mode']?.toString() ??
         data['meeting_mode']?.toString() ??
         calSettings?['meeting_mode']?.toString() ??
         'Offline';
+    final mode = modeRaw.toLowerCase().contains('online')
+        ? 'Online'
+        : (modeRaw.toLowerCase().contains('hybrid') ? 'Hybrid' : 'Offline');
 
-    String day = data['day']?.toString() ??
+    String normDay(String raw) {
+      final s = raw.trim().toLowerCase();
+      if (s.startsWith('mon')) return 'Monday';
+      if (s.startsWith('tue')) return 'Tuesday';
+      if (s.startsWith('wed')) return 'Wednesday';
+      if (s.startsWith('thu')) return 'Thursday';
+      if (s.startsWith('fri')) return 'Friday';
+      if (s.startsWith('sat')) return 'Saturday';
+      if (s.startsWith('sun')) return 'Sunday';
+      return raw.trim().isNotEmpty
+          ? (raw.trim()[0].toUpperCase() + raw.trim().substring(1).toLowerCase())
+          : '';
+    }
+
+    final rawDay = data['day']?.toString() ??
         data['meeting_day']?.toString() ??
         repeat?['weekday']?.toString() ??
         repeat?['day_of_week']?.toString() ??
         calendar?['default_meet_day']?.toString() ??
         '';
-    if (day.isNotEmpty) {
-      day = day[0].toUpperCase() + day.substring(1).toLowerCase();
+    final day = normDay(rawDay);
+
+    String normOrdinal(String raw) {
+      final s = raw.trim().toLowerCase();
+      if (s == 'first' || s == '1' || s == 'week_1') return '1st';
+      if (s == 'second' || s == '2' || s == 'week_2') return '2nd';
+      if (s == 'third' || s == '3' || s == 'week_3') return '3rd';
+      if (s == 'fourth' || s == '4' || s == 'week_4') return '4th';
+      if (s == 'fifth' || s == '5' || s == 'last') return '5th';
+      if (s.endsWith('st') || s.endsWith('nd') || s.endsWith('rd') || s.endsWith('th')) {
+        return raw.trim();
+      }
+      return raw.trim();
     }
 
-    final ordinal = data['ordinal']?.toString() ??
+    final rawOrd = data['ordinal']?.toString() ??
         data['meeting_ordinal']?.toString() ??
         repeat?['ordinal_text']?.toString() ??
         calendar?['monthly_rule']?.toString() ??
         '';
+    final ordinal = normOrdinal(rawOrd);
 
-    final weekOfMonth = data['week_of_month']?.toString() ??
+    String normWeekLabel(String raw) {
+      final s = raw.trim().toLowerCase();
+      if (s == 'week_1' || s == '1') return 'Week 1';
+      if (s == 'week_2' || s == '2') return 'Week 2';
+      if (s == 'week_3' || s == '3') return 'Week 3';
+      if (s == 'week_4' || s == '4') return 'Week 4';
+      if (s == 'week_4_provisional') return 'Week 4 (provisional)';
+      if (s == 'every_week') return 'Every Week';
+      return raw.trim();
+    }
+
+    final rawWeek = data['week_of_month']?.toString() ??
         data['meeting_week_of_month']?.toString() ??
         repeat?['week_of_month']?.toString() ??
         calendar?['week_of_month']?.toString() ??
         '';
+    final weekOfMonth = rawWeek.isNotEmpty ? rawWeek : (ordinal.isNotEmpty ? ordinal : 'week_1');
+    final weekLabel = normWeekLabel(weekOfMonth);
 
     String startTime = data['start_time']?.toString() ??
         data['meeting_time']?.toString() ??
@@ -368,17 +413,21 @@ class CircleCadenceModel {
         calSettings?['meeting_link']?.toString() ??
         '';
 
+    // Build cadence text matching Web Admin Step 4:
+    // e.g. "Week 1 • Tuesdays From 02:00 AM To 03:00 AM (Monthly • Offline)"
     String cadenceText = data['cadence_text']?.toString() ?? '';
-    if (cadenceText.isEmpty && day.isNotEmpty) {
-      final ordPart = ordinal.isNotEmpty ? '$ordinal ' : '';
-      final timePart = (startTime.isNotEmpty && endTime.isNotEmpty)
-          ? ' from $startTime to $endTime'
-          : (startTime.isNotEmpty ? ' at $startTime' : '');
-      cadenceText = '$ordPart$day$timePart ($freq • $mode)';
+    final pluralDay = day.isNotEmpty ? '${day}s' : 'Meetings';
+    final timeStr = (startFmt.isNotEmpty && endFmt.isNotEmpty)
+        ? 'From $startFmt To $endFmt'
+        : (startTime.isNotEmpty && endTime.isNotEmpty ? 'From $startTime To $endTime' : startFmt);
+    if (cadenceText.isEmpty || !cadenceText.contains('•')) {
+      final lead = weekLabel.isNotEmpty ? weekLabel : (ordinal.isNotEmpty ? '$ordinal Week' : 'Monthly');
+      cadenceText = '$lead • $pluralDay $timeStr ($freq • $mode)';
     }
 
+    // e.g. "1st Tuesday · Monthly"
     String cadenceSummary = data['cadence_summary']?.toString() ?? '';
-    if (cadenceSummary.isEmpty && day.isNotEmpty) {
+    if (cadenceSummary.isEmpty || !cadenceSummary.contains('·')) {
       final ordPart = ordinal.isNotEmpty ? '$ordinal ' : '';
       cadenceSummary = '$ordPart$day · $freq';
     }
@@ -502,9 +551,12 @@ class CircleTeamModel {
   /// Returns the effective cover banner image URL if available and distinct from circle logo.
   String? get effectiveCoverUrl {
     final c = coverImageUrl?.trim();
-    final l = circleImageUrl?.trim();
-    if (c != null && c.isNotEmpty && c != l) {
+    if (c != null && c.isNotEmpty) {
       return c;
+    }
+    final l = circleImageUrl?.trim();
+    if (l != null && l.isNotEmpty) {
+      return l;
     }
     return null;
   }
@@ -622,18 +674,26 @@ class CircleTeamModel {
         : (json['director_name'] as String? ?? '');
 
     // Parse Cover Image
-    final dynamic rawCover = json['cover_image'];
+    final dynamic rawCover = json['cover_image'] ?? json['cover'] ?? json['banner'];
     String? coverImg;
     if (rawCover is Map) {
       coverImg = rawCover['url']?.toString();
     } else if (rawCover is String && rawCover.trim().isNotEmpty) {
       coverImg = rawCover.trim();
     } else {
-      coverImg = json['cover_image_url']?.toString();
+      coverImg = json['cover_image_url']?.toString() ??
+          json['cover_url']?.toString() ??
+          json['banner_url']?.toString();
+    }
+    if ((coverImg == null || coverImg.isEmpty) && json['cover_file_id'] != null) {
+      final fid = json['cover_file_id'].toString().trim();
+      if (fid.isNotEmpty) {
+        coverImg = 'https://dev.peersunity.com/api/v1/files/$fid';
+      }
     }
 
     // Parse Circle Image (Logo)
-    final dynamic rawImage = json['circle_logo'] ?? json['circle_image'];
+    final dynamic rawImage = json['circle_logo'] ?? json['logo'] ?? json['circle_image'];
     String? circleImg;
     if (rawImage is Map) {
       circleImg = rawImage['url']?.toString();
@@ -643,6 +703,12 @@ class CircleTeamModel {
       circleImg = json['circle_image_url']?.toString() ??
           json['logo_url']?.toString() ??
           json['image_url']?.toString();
+    }
+    if ((circleImg == null || circleImg.isEmpty) && (json['circle_image_file_id'] != null || json['logo_file_id'] != null)) {
+      final fid = (json['circle_image_file_id'] ?? json['logo_file_id']).toString().trim();
+      if (fid.isNotEmpty) {
+        circleImg = 'https://dev.peersunity.com/api/v1/files/$fid';
+      }
     }
 
     return CircleTeamModel(

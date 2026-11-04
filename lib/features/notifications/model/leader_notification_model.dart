@@ -82,5 +82,75 @@ class LeaderNotificationModel {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  /// Returns true if this notification belongs in the executive Leader App.
+  /// Filters out consumer member-app notifications (social feed posts, member event reminders, etc.)
+  bool get isLeaderNotification {
+    final t = type.toLowerCase().trim();
+    final c = category.toLowerCase().trim();
+    final s = screen.toLowerCase().trim();
+
+    // Consumer event / social feed screens that do not exist in Leader App
+    if (s == 'event_detail' ||
+        s == 'event_details' ||
+        s == 'live_meeting' ||
+        s.contains('post_detail') ||
+        s.contains('/post-detail') ||
+        s == 'feed' ||
+        s == '/feed' ||
+        s.contains('chat_conversation') ||
+        s == 'connections' ||
+        s == 'member_feed') {
+      return false;
+    }
+
+    // Consumer social & feed notification types
+    const consumerTypes = {
+      'new_post',
+      'post_created',
+      'post_like',
+      'post_liked',
+      'post_comment',
+      'post_commented',
+      'comment_like',
+      'comment_liked',
+      'post_tagged',
+      'post_shared',
+      'feed_post',
+      'peer_post',
+      'social_post',
+      'event',
+      'new_event',
+      'event_created',
+      'upcoming_event_reminder',
+      'event_starting_now',
+      'event_reminder',
+      'live_meeting',
+      'activity_update',
+      'feed_update',
+      'speed_networking',
+      'daily_reminder',
+      'daily_engagement_reminder',
+      'engagement_reminder',
+      'engagement',
+      'engagement_founder',
+      'streak_reminder',
+      'streak',
+      'badge_earned',
+      'profile_view',
+      'profile_viewed',
+      'chat_message',
+      'chat',
+      'direct_message',
+      'connection_request',
+      'connection_accepted',
+    };
+
+    if (consumerTypes.contains(t) || consumerTypes.contains(c)) {
+      return false;
+    }
+
+    return true;
+  }
 }
 

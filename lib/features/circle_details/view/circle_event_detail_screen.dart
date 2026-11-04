@@ -255,11 +255,24 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
                     _buildDetailRow(
                       icon: Icons.calendar_month_rounded,
                       label: 'DATE & TIME',
-                      value: dtParts['date']! +
-                          (dtParts['time']!.isNotEmpty
-                              ? '  ·  ${dtParts['time']!}'
-                              : ''),
+                      value: widget.event.effectiveDateWithCadence +
+                          (widget.event.effectiveTimeRange.isNotEmpty
+                              ? '  ·  ${widget.event.effectiveTimeRange}'
+                              : (dtParts['time']!.isNotEmpty ? '  ·  ${dtParts['time']!}' : '')),
                     ),
+
+                    // Recurring Cadence
+                    if (widget.event.cadenceText.isNotEmpty ||
+                        (widget.circle != null && widget.circle!.effectiveCadenceText.isNotEmpty)) ...[
+                      const SizedBox(height: 12),
+                      _buildDetailRow(
+                        icon: Icons.event_repeat_rounded,
+                        label: 'RECURRING CADENCE',
+                        value: widget.event.cadenceText.isNotEmpty
+                            ? widget.event.cadenceText
+                            : widget.circle!.effectiveCadenceText,
+                      ),
+                    ],
 
                     // Location / Venue
                     if (widget.event.location.isNotEmpty) ...[

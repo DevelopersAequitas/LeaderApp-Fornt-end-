@@ -61,16 +61,40 @@ class CircleMeetingCard extends StatelessWidget {
     nextEvent ??= events.isNotEmpty ? events.first : null;
 
     final hasUpcomingRealEvent = nextEvent != null && nextEvent.isUpcoming;
-    final nextDate = hasUpcomingRealEvent
-        ? [
-            if (nextEvent.date.isNotEmpty) nextEvent.date,
-            if (nextEvent.time.isNotEmpty) nextEvent.time,
-          ].join(' · ')
-        : (circle.cadence?.upcomingDisplay?.isNotEmpty == true
-            ? circle.cadence!.upcomingDisplay!
-            : (circle.cadence?.hasSchedule == true
-                ? '${circle.effectiveCadenceSummary} · ${circle.effectiveMeetingTimeRange}'
-                : 'Scheduled ${circle.meetingFrequency}'));
+    final timingRange = (nextEvent != null && nextEvent.effectiveTimeRange.isNotEmpty)
+        ? nextEvent.effectiveTimeRange
+        : (circle.effectiveMeetingTimeRange.isNotEmpty
+            ? circle.effectiveMeetingTimeRange
+            : (circle.cadence?.startTime.isNotEmpty == true
+                ? circle.cadence!.startTime
+                : '02:00 AM - 03:00 AM'));
+
+    final cadenceLabel = (nextEvent != null && nextEvent.effectiveCadence.isNotEmpty)
+        ? nextEvent.effectiveCadence
+        : circle.effectiveCadenceSummary;
+
+    String nextDate = '';
+    if (hasUpcomingRealEvent && nextEvent.date.isNotEmpty) {
+      final ordText = nextEvent.cadenceSummary.isNotEmpty
+          ? nextEvent.cadenceSummary
+          : (circle.cadence?.cadenceSummary.isNotEmpty == true
+              ? circle.cadence!.cadenceSummary
+              : '');
+      if (ordText.isNotEmpty && !nextEvent.date.contains(ordText)) {
+        nextDate = '${nextEvent.date} ($ordText)';
+      } else {
+        nextDate = nextEvent.date;
+      }
+      if (timingRange.isNotEmpty) {
+        nextDate += ' · $timingRange';
+      }
+    } else if (circle.cadence?.upcomingDisplay?.isNotEmpty == true) {
+      nextDate = circle.cadence!.upcomingDisplay!;
+    } else if (circle.cadence?.hasSchedule == true) {
+      nextDate = '$cadenceLabel · $timingRange';
+    } else {
+      nextDate = 'Scheduled ${circle.meetingFrequency} · $timingRange';
+    }
 
     final nextTitle = nextEvent?.title.isNotEmpty == true
         ? nextEvent!.title
@@ -377,11 +401,7 @@ class CircleMeetingCard extends StatelessWidget {
                         child: _buildInfoTile(
                           icon: Icons.access_time_rounded,
                           label: 'Timing',
-                          value: circle.effectiveMeetingTimeRange.isNotEmpty
-                              ? circle.effectiveMeetingTimeRange
-                              : (circle.cadence?.startTime.isNotEmpty == true
-                                  ? circle.cadence!.startTime
-                                  : '02:00 - 03:00'),
+                          value: timingRange,
                         ),
                       ),
                     ],
