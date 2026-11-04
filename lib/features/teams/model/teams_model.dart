@@ -168,6 +168,265 @@ class CircleLeaderModel {
       };
 }
 
+/// Detailed model representing circle meeting cadence & schedule settings.
+class CircleCadenceModel {
+  final String frequency; // "Monthly", "Weekly", "Bi-Weekly", "Quarterly"
+  final String mode; // "Offline" / "In-Person", "Online", "Hybrid"
+  final String day; // "Monday", "Tuesday", etc.
+  final String ordinal; // "1st", "2nd", "3rd", "4th", "Last"
+  final String weekOfMonth; // "week_1", "week_2", etc.
+  final String startTime; // "02:00"
+  final String endTime; // "03:00"
+  final String startTimeFormatted; // "02:00 AM"
+  final String endTimeFormatted; // "03:00 AM"
+  final String timeRange; // "02:00 AM - 03:00 AM" or "02:00 to 03:00"
+  final String venue;
+  final String link;
+  final String cadenceText; // e.g. "1st Tuesday from 02:00 to 03:00 (Monthly • Offline)"
+  final String cadenceSummary; // e.g. "1st Tuesday · Monthly"
+  final String? upcomingDate; // "2026-11-03"
+  final String? upcomingDisplay; // "1st Tue, 3 Nov • 02:00 AM"
+
+  const CircleCadenceModel({
+    this.frequency = 'Monthly',
+    this.mode = 'Offline',
+    this.day = '',
+    this.ordinal = '',
+    this.weekOfMonth = '',
+    this.startTime = '',
+    this.endTime = '',
+    this.startTimeFormatted = '',
+    this.endTimeFormatted = '',
+    this.timeRange = '',
+    this.venue = '',
+    this.link = '',
+    this.cadenceText = '',
+    this.cadenceSummary = '',
+    this.upcomingDate,
+    this.upcomingDisplay,
+  });
+
+  /// True if a concrete recurring schedule (day + ordinal or weekly day) is defined.
+  bool get hasSchedule => day.isNotEmpty || startTime.isNotEmpty;
+
+  /// Returns user-friendly schedule string like "1st Tuesday of the month" or "Every Tuesday"
+  String get scheduleDescription {
+    if (day.isEmpty) {
+      return frequency;
+    }
+    final isWeekly = frequency.toLowerCase().contains('week');
+    if (isWeekly) {
+      return 'Every $day';
+    }
+    if (ordinal.isNotEmpty) {
+      return '$ordinal $day of the month';
+    }
+    return '$day ($frequency)';
+  }
+
+  /// Compact schedule badge text like "1st Tue • 02:00 - 03:00"
+  String get compactBadgeText {
+    final parts = <String>[];
+    if (ordinal.isNotEmpty && day.isNotEmpty) {
+      final shortDay = day.length > 3 ? day.substring(0, 3) : day;
+      parts.add('$ordinal $shortDay');
+    } else if (day.isNotEmpty) {
+      parts.add(day);
+    } else {
+      parts.add(frequency);
+    }
+
+    if (timeRange.isNotEmpty) {
+      parts.add(timeRange);
+    } else if (startTimeFormatted.isNotEmpty) {
+      parts.add(startTimeFormatted);
+    } else if (startTime.isNotEmpty) {
+      parts.add(startTime);
+    }
+    return parts.join(' • ');
+  }
+
+  factory CircleCadenceModel.fromJson(Map<String, dynamic> json) {
+    // 1. Direct cadence object if nested
+    final Map<String, dynamic> data = json['cadence'] is Map<String, dynamic>
+        ? json['cadence'] as Map<String, dynamic>
+        : (json['cadence'] is Map ? Map<String, dynamic>.from(json['cadence'] as Map) : json);
+
+    // 2. meeting_repeat fallback
+    final repeat = data['meeting_repeat'] is Map
+        ? Map<String, dynamic>.from(data['meeting_repeat'] as Map)
+        : (json['meeting_repeat'] is Map
+            ? Map<String, dynamic>.from(json['meeting_repeat'] as Map)
+            : null);
+
+    // 3. calendar settings fallback
+    final calendar = json['calendar'] is Map ? json['calendar'] as Map : null;
+    final calSettings = calendar?['settings'] is Map ? calendar!['settings'] as Map : null;
+
+    final freq = data['frequency']?.toString() ??
+        data['meeting_frequency']?.toString() ??
+        repeat?['frequency']?.toString() ??
+        calSettings?['meeting_frequency']?.toString() ??
+        'Monthly';
+
+    final mode = data['mode']?.toString() ??
+        data['meeting_mode']?.toString() ??
+        calSettings?['meeting_mode']?.toString() ??
+        'Offline';
+
+    String day = data['day']?.toString() ??
+        data['meeting_day']?.toString() ??
+        repeat?['weekday']?.toString() ??
+        repeat?['day_of_week']?.toString() ??
+        calendar?['default_meet_day']?.toString() ??
+        '';
+    if (day.isNotEmpty) {
+      day = day[0].toUpperCase() + day.substring(1).toLowerCase();
+    }
+
+    final ordinal = data['ordinal']?.toString() ??
+        data['meeting_ordinal']?.toString() ??
+        repeat?['ordinal_text']?.toString() ??
+        calendar?['monthly_rule']?.toString() ??
+        '';
+
+    final weekOfMonth = data['week_of_month']?.toString() ??
+        data['meeting_week_of_month']?.toString() ??
+        repeat?['week_of_month']?.toString() ??
+        calendar?['week_of_month']?.toString() ??
+        '';
+
+    String startTime = data['start_time']?.toString() ??
+        data['meeting_time']?.toString() ??
+        data['meeting_start_time']?.toString() ??
+        repeat?['start_time_local']?.toString() ??
+        repeat?['time_local']?.toString() ??
+        repeat?['start_time']?.toString() ??
+        calendar?['start_time_local']?.toString() ??
+        '';
+
+    String endTime = data['end_time']?.toString() ??
+        data['meeting_end_time']?.toString() ??
+        repeat?['end_time_local']?.toString() ??
+        repeat?['end_time']?.toString() ??
+        calendar?['end_time_local']?.toString() ??
+        '';
+
+    // Format 12-hour strings if needed
+    String formatTime12(String raw) {
+      final t = raw.trim();
+      if (t.isEmpty) return '';
+      final parts = t.split(':');
+      if (parts.length >= 2) {
+        final h = int.tryParse(parts[0]);
+        final m = parts[1].padLeft(2, '0');
+        if (h != null) {
+          final ampm = h >= 12 ? 'PM' : 'AM';
+          final h12 = h % 12 == 0 ? 12 : h % 12;
+          final hStr = h12.toString().padLeft(2, '0');
+          return '$hStr:$m $ampm';
+        }
+      }
+      return t;
+    }
+
+    String startFmt = data['start_time_formatted']?.toString() ??
+        data['meeting_time_formatted']?.toString() ??
+        '';
+    if (startFmt.isEmpty && startTime.isNotEmpty) {
+      startFmt = formatTime12(startTime);
+    }
+
+    String endFmt = data['end_time_formatted']?.toString() ??
+        data['meeting_end_time_formatted']?.toString() ??
+        '';
+    if (endFmt.isEmpty && endTime.isNotEmpty) {
+      endFmt = formatTime12(endTime);
+    }
+
+    String timeRange = data['time_range']?.toString() ??
+        data['meeting_time_range']?.toString() ??
+        '';
+    if (timeRange.isEmpty) {
+      if (startFmt.isNotEmpty && endFmt.isNotEmpty) {
+        timeRange = '$startFmt - $endFmt';
+      } else if (startTime.isNotEmpty && endTime.isNotEmpty) {
+        timeRange = '$startTime to $endTime';
+      } else if (startFmt.isNotEmpty) {
+        timeRange = startFmt;
+      }
+    }
+
+    final venue = data['venue']?.toString() ??
+        data['meeting_venue']?.toString() ??
+        calSettings?['meeting_venue']?.toString() ??
+        calSettings?['meeting_address']?.toString() ??
+        '';
+
+    final link = data['link']?.toString() ??
+        data['meeting_link']?.toString() ??
+        calSettings?['meeting_link']?.toString() ??
+        '';
+
+    String cadenceText = data['cadence_text']?.toString() ?? '';
+    if (cadenceText.isEmpty && day.isNotEmpty) {
+      final ordPart = ordinal.isNotEmpty ? '$ordinal ' : '';
+      final timePart = (startTime.isNotEmpty && endTime.isNotEmpty)
+          ? ' from $startTime to $endTime'
+          : (startTime.isNotEmpty ? ' at $startTime' : '');
+      cadenceText = '$ordPart$day$timePart ($freq • $mode)';
+    }
+
+    String cadenceSummary = data['cadence_summary']?.toString() ?? '';
+    if (cadenceSummary.isEmpty && day.isNotEmpty) {
+      final ordPart = ordinal.isNotEmpty ? '$ordinal ' : '';
+      cadenceSummary = '$ordPart$day · $freq';
+    }
+
+    final upcoming = data['upcoming_meeting'] is Map ? data['upcoming_meeting'] as Map : null;
+    final upDate = upcoming?['date']?.toString();
+    final upDisp = upcoming?['display']?.toString();
+
+    return CircleCadenceModel(
+      frequency: freq,
+      mode: mode,
+      day: day,
+      ordinal: ordinal,
+      weekOfMonth: weekOfMonth,
+      startTime: startTime,
+      endTime: endTime,
+      startTimeFormatted: startFmt,
+      endTimeFormatted: endFmt,
+      timeRange: timeRange,
+      venue: venue,
+      link: link,
+      cadenceText: cadenceText,
+      cadenceSummary: cadenceSummary,
+      upcomingDate: upDate,
+      upcomingDisplay: upDisp,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'frequency': frequency,
+        'mode': mode,
+        'day': day,
+        'ordinal': ordinal,
+        'week_of_month': weekOfMonth,
+        'start_time': startTime,
+        'end_time': endTime,
+        'start_time_formatted': startTimeFormatted,
+        'end_time_formatted': endTimeFormatted,
+        'time_range': timeRange,
+        'venue': venue,
+        'link': link,
+        'cadence_text': cadenceText,
+        'cadence_summary': cadenceSummary,
+        'upcoming_date': upcomingDate,
+        'upcoming_display': upcomingDisplay,
+      };
+}
+
 /// Model representing circle statistics and management details.
 class CircleTeamModel {
   final String id;
@@ -192,6 +451,7 @@ class CircleTeamModel {
   final String? stage;
   final String meetingFrequency;
   final String meetingMode;
+  final CircleCadenceModel? cadence;
 
   const CircleTeamModel({
     this.id = '',
@@ -216,7 +476,28 @@ class CircleTeamModel {
     this.stage,
     this.meetingFrequency = 'Monthly',
     this.meetingMode = 'Offline',
+    this.cadence,
   });
+
+  /// Effective cadence summary, e.g. "1st Tuesday · Monthly"
+  String get effectiveCadenceSummary =>
+      cadence?.cadenceSummary.isNotEmpty == true
+          ? cadence!.cadenceSummary
+          : (cadence?.hasSchedule == true
+              ? cadence!.scheduleDescription
+              : meetingFrequency);
+
+  /// Effective schedule cadence text e.g. "1st Tuesday from 02:00 to 03:00 (Monthly • Offline)"
+  String get effectiveCadenceText =>
+      cadence?.cadenceText.isNotEmpty == true
+          ? cadence!.cadenceText
+          : '$effectiveCadenceSummary ($meetingMode)';
+
+  /// Effective conclave time range e.g. "02:00 AM - 03:00 AM" or "02:00 - 03:00"
+  String get effectiveMeetingTimeRange =>
+      cadence?.timeRange.isNotEmpty == true
+          ? cadence!.timeRange
+          : (cadence?.startTime.isNotEmpty == true ? cadence!.startTime : '');
 
   /// Returns the effective cover banner image URL if available.
   String? get effectiveCoverUrl {
@@ -386,6 +667,7 @@ class CircleTeamModel {
       stage: json['stage'] as String? ?? 'Active Circle',
       meetingFrequency: json['meeting_frequency'] as String? ?? 'Monthly',
       meetingMode: json['meeting_mode'] as String? ?? 'Offline',
+      cadence: CircleCadenceModel.fromJson(json),
     );
   }
 
@@ -412,6 +694,7 @@ class CircleTeamModel {
     String? stage,
     String? meetingFrequency,
     String? meetingMode,
+    CircleCadenceModel? cadence,
   }) {
     return CircleTeamModel(
       id: id ?? this.id,
@@ -436,6 +719,7 @@ class CircleTeamModel {
       stage: stage ?? this.stage,
       meetingFrequency: meetingFrequency ?? this.meetingFrequency,
       meetingMode: meetingMode ?? this.meetingMode,
+      cadence: cadence ?? this.cadence,
     );
   }
 

@@ -60,19 +60,25 @@ class CircleMeetingCard extends StatelessWidget {
     }
     nextEvent ??= events.isNotEmpty ? events.first : null;
 
-    final nextDate = nextEvent != null
+    final hasUpcomingRealEvent = nextEvent != null && nextEvent.isUpcoming;
+    final nextDate = hasUpcomingRealEvent
         ? [
             if (nextEvent.date.isNotEmpty) nextEvent.date,
             if (nextEvent.time.isNotEmpty) nextEvent.time,
           ].join(' · ')
-        : 'Scheduled ${circle.meetingFrequency}';
+        : (circle.cadence?.upcomingDisplay?.isNotEmpty == true
+            ? circle.cadence!.upcomingDisplay!
+            : (circle.cadence?.hasSchedule == true
+                ? '${circle.effectiveCadenceSummary} · ${circle.effectiveMeetingTimeRange}'
+                : 'Scheduled ${circle.meetingFrequency}'));
 
-    final nextTitle = nextEvent?.title ?? 'Upcoming Circle Meeting';
+    final nextTitle = nextEvent?.title.isNotEmpty == true
+        ? nextEvent!.title
+        : '${circle.effectiveCadenceSummary} Conclave';
     final location = (nextEvent != null && nextEvent.location.trim().isNotEmpty)
         ? nextEvent.location.trim()
         : (circle.location.isNotEmpty ? circle.location : 'Ahmedabad');
     final mode = nextEvent?.mode ?? circle.meetingMode;
-    final freq = circle.meetingFrequency;
     final isOffline = !mode.toLowerCase().contains('online');
 
     return Column(
@@ -305,14 +311,91 @@ class CircleMeetingCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
 
-                  // Cadence & Stage Row
+                  // Recurring Schedule Cadence Callout Banner (matching Web Admin Step 4)
+                  if (circle.cadence?.hasSchedule == true || circle.effectiveMeetingTimeRange.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: AppColor.badgeBlueBg,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColor.primaryBlue.withValues(alpha: 0.22),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.event_repeat_rounded,
+                            size: 16,
+                            color: AppColor.primaryBlue,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                style: AppTypography.bodySmall.copyWith(
+                                  fontSize: 11,
+                                  color: AppColor.lightTextPrimary,
+                                ),
+                                children: [
+                                  const TextSpan(
+                                    text: 'Recurring Cadence: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.lightTextSecondary,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: circle.effectiveCadenceText,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColor.primaryBlue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  // Cadence, Timing, Format & Stage Tiles Grid
                   Row(
                     children: [
                       Expanded(
                         child: _buildInfoTile(
                           icon: Icons.update_rounded,
                           label: 'Cadence',
-                          value: freq,
+                          value: circle.effectiveCadenceSummary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildInfoTile(
+                          icon: Icons.access_time_rounded,
+                          label: 'Timing',
+                          value: circle.effectiveMeetingTimeRange.isNotEmpty
+                              ? circle.effectiveMeetingTimeRange
+                              : (circle.cadence?.startTime.isNotEmpty == true
+                                  ? circle.cadence!.startTime
+                                  : '02:00 - 03:00'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildInfoTile(
+                          icon: isOffline
+                              ? Icons.location_on_outlined
+                              : Icons.videocam_outlined,
+                          label: 'Format',
+                          value: circle.cadence?.mode ?? circle.meetingMode,
                         ),
                       ),
                       const SizedBox(width: 8),
