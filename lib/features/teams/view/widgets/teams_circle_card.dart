@@ -55,26 +55,62 @@ class TeamsCircleCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    circle.name,
-                    style: const TextStyle(
-                      color: AppColors.text,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${circle.category}$metaLocation',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (circle.effectiveLogoUrl != null) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Image.network(
+                              circle.effectiveLogoUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => const Icon(
+                                Icons.group_work_rounded,
+                                size: 20,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              circle.name,
+                              style: const TextStyle(
+                                color: AppColors.text,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${circle.category}$metaLocation',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
 
                   if (circle.category.isNotEmpty || circle.tags.isNotEmpty) ...[
@@ -156,7 +192,13 @@ class TeamsCircleCard extends StatelessWidget {
   }
 
   Widget _buildCoverBanner(Color statusBgColor, Color statusTextColor) {
-    final hasImage = circle.circleImageUrl != null && circle.circleImageUrl!.trim().isNotEmpty;
+    final coverUrl = circle.effectiveCoverUrl ??
+        (circle.circleImageUrl != null &&
+                circle.circleImageUrl!.trim().isNotEmpty &&
+                !circle.circleImageUrl!.contains('01a0f23b-0472-713a-be9b-652bf3bed62d')
+            ? circle.circleImageUrl!.trim()
+            : null);
+    final hasImage = coverUrl != null && coverUrl.isNotEmpty;
 
     return Container(
       height: 120,
@@ -169,7 +211,7 @@ class TeamsCircleCard extends StatelessWidget {
         children: [
           if (hasImage)
             Image.network(
-              circle.circleImageUrl!.trim(),
+              coverUrl,
               fit: BoxFit.cover,
               alignment: Alignment.center,
               errorBuilder: (context, error, stackTrace) => _buildDefaultGradientBanner(),

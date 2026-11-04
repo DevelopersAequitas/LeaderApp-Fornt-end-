@@ -187,6 +187,7 @@ class CircleTeamModel {
   final String status;
   final String? launchDate;
   final String? circleImageUrl;
+  final String? coverImageUrl;
   final String? description;
   final String? stage;
   final String meetingFrequency;
@@ -210,11 +211,30 @@ class CircleTeamModel {
     required this.status,
     this.launchDate,
     this.circleImageUrl,
+    this.coverImageUrl,
     this.description,
     this.stage,
     this.meetingFrequency = 'Monthly',
     this.meetingMode = 'Offline',
   });
+
+  /// Returns the effective cover banner image URL if available.
+  String? get effectiveCoverUrl {
+    final c = coverImageUrl?.trim();
+    if (c != null && c.isNotEmpty && !c.contains('01a0f23b-0472-713a-be9b-652bf3bed62d')) {
+      return c;
+    }
+    return null;
+  }
+
+  /// Returns the effective circle logo URL if available.
+  String? get effectiveLogoUrl {
+    final l = circleImageUrl?.trim();
+    if (l != null && l.isNotEmpty && !l.contains('01a0f23b-0472-713a-be9b-652bf3bed62d')) {
+      return l;
+    }
+    return null;
+  }
 
   factory CircleTeamModel.fromJson(Map<String, dynamic> json) {
     final tagsList = <String>[];
@@ -319,8 +339,19 @@ class CircleTeamModel {
         ? directorsList.map((d) => d.name).join(', ')
         : (json['director_name'] as String? ?? '');
 
-    // Parse Circle Image
-    final dynamic rawImage = json['circle_image'];
+    // Parse Cover Image
+    final dynamic rawCover = json['cover_image'];
+    String? coverImg;
+    if (rawCover is Map) {
+      coverImg = rawCover['url']?.toString();
+    } else if (rawCover is String && rawCover.trim().isNotEmpty) {
+      coverImg = rawCover.trim();
+    } else {
+      coverImg = json['cover_image_url']?.toString();
+    }
+
+    // Parse Circle Image (Logo)
+    final dynamic rawImage = json['circle_logo'] ?? json['circle_image'];
     String? circleImg;
     if (rawImage is Map) {
       circleImg = rawImage['url']?.toString();
@@ -328,7 +359,7 @@ class CircleTeamModel {
       circleImg = rawImage.trim();
     } else {
       circleImg = json['circle_image_url']?.toString() ??
-          json['cover_image_url']?.toString() ??
+          json['logo_url']?.toString() ??
           json['image_url']?.toString();
     }
 
@@ -350,10 +381,61 @@ class CircleTeamModel {
       status: json['status'] as String? ?? 'Active',
       launchDate: json['launch_date'] as String?,
       circleImageUrl: circleImg,
+      coverImageUrl: coverImg,
       description: json['description'] as String?,
       stage: json['stage'] as String? ?? 'Active Circle',
       meetingFrequency: json['meeting_frequency'] as String? ?? 'Monthly',
       meetingMode: json['meeting_mode'] as String? ?? 'Offline',
+    );
+  }
+
+  CircleTeamModel copyWith({
+    String? id,
+    String? name,
+    String? category,
+    String? location,
+    int? peersCount,
+    int? healthPercentage,
+    String? revenue,
+    List<String>? tags,
+    String? founderName,
+    String? directorName,
+    String? chairName,
+    List<CircleLeaderModel>? chairs,
+    List<CircleLeaderModel>? founders,
+    List<CircleLeaderModel>? directors,
+    String? status,
+    String? launchDate,
+    String? circleImageUrl,
+    String? coverImageUrl,
+    String? description,
+    String? stage,
+    String? meetingFrequency,
+    String? meetingMode,
+  }) {
+    return CircleTeamModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      location: location ?? this.location,
+      peersCount: peersCount ?? this.peersCount,
+      healthPercentage: healthPercentage ?? this.healthPercentage,
+      revenue: revenue ?? this.revenue,
+      tags: tags ?? this.tags,
+      founderName: founderName ?? this.founderName,
+      directorName: directorName ?? this.directorName,
+      chairName: chairName ?? this.chairName,
+      chairs: chairs ?? this.chairs,
+      founders: founders ?? this.founders,
+      directors: directors ?? this.directors,
+      status: status ?? this.status,
+      launchDate: launchDate ?? this.launchDate,
+      circleImageUrl: circleImageUrl ?? this.circleImageUrl,
+      coverImageUrl: coverImageUrl ?? this.coverImageUrl,
+      description: description ?? this.description,
+      stage: stage ?? this.stage,
+      meetingFrequency: meetingFrequency ?? this.meetingFrequency,
+      meetingMode: meetingMode ?? this.meetingMode,
     );
   }
 
@@ -376,6 +458,8 @@ class CircleTeamModel {
         'launch_date': launchDate,
         'circle_image': circleImageUrl != null ? {'url': circleImageUrl} : null,
         'circle_image_url': circleImageUrl,
+        'cover_image': coverImageUrl != null ? {'url': coverImageUrl} : null,
+        'cover_image_url': coverImageUrl,
         'description': description,
         'stage': stage,
         'meeting_frequency': meetingFrequency,

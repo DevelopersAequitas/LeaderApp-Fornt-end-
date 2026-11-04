@@ -21,9 +21,9 @@ class CircleDetailsHeroCard extends StatelessWidget {
       circle.category,
       circle.name,
     );
-    final rawCover = circle.circleImageUrl?.trim() ?? '';
-    final hasCustomCover = rawCover.isNotEmpty &&
-        !rawCover.contains('01a0f23b-0472-713a-be9b-652bf3bed62d');
+    final coverUrl = circle.effectiveCoverUrl;
+    final hasCustomCover = coverUrl != null && coverUrl.isNotEmpty;
+    final logoUrl = circle.effectiveLogoUrl;
     final effectivePeersCount = totalPeersCount != null && totalPeersCount! > 0
         ? totalPeersCount!
         : circle.peersCount;
@@ -58,7 +58,7 @@ class CircleDetailsHeroCard extends StatelessWidget {
                           fit: StackFit.expand,
                           children: [
                             Image.network(
-                              rawCover,
+                              coverUrl,
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) => _buildFallbackBanner(),
                             ),
@@ -103,13 +103,25 @@ class CircleDetailsHeroCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(13),
                   child: Container(
                     color: config.bgTint,
-                    child: Center(
-                      child: Icon(
-                        config.icon,
-                        size: 28,
-                        color: config.tintColor,
-                      ),
-                    ),
+                    child: (logoUrl != null && logoUrl.isNotEmpty)
+                        ? Image.network(
+                            logoUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Center(
+                              child: Icon(
+                                config.icon,
+                                size: 28,
+                                color: config.tintColor,
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(
+                              config.icon,
+                              size: 28,
+                              color: config.tintColor,
+                            ),
+                          ),
                   ),
                 ),
               ),
