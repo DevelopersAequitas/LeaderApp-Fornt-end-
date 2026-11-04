@@ -29,9 +29,18 @@ class LeaderNotificationModel {
   factory LeaderNotificationModel.fromJson(Map<String, dynamic> json) {
     final parsedDate = DateTimeUtils.parseUtc(json['created_at']) ?? DateTime.now();
 
-    final isUnreadVal = json['is_unread'] == true ||
-        json['is_read'] == false ||
-        json['read_at'] == null && (json['status'] != 'read');
+    final bool isUnreadVal;
+    if (json['is_unread'] != null) {
+      isUnreadVal = json['is_unread'] == true;
+    } else if (json['is_read'] != null) {
+      isUnreadVal = json['is_read'] == false;
+    } else if (json['read_at'] != null) {
+      isUnreadVal = false;
+    } else if (json['status'] != null) {
+      isUnreadVal = json['status'].toString().toLowerCase() != 'read';
+    } else {
+      isUnreadVal = false;
+    }
 
     return LeaderNotificationModel(
       id: json['id']?.toString() ?? '',

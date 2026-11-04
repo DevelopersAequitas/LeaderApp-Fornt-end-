@@ -186,7 +186,9 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       return n;
     }).toList();
 
-    final newUnreadCount = updatedList.where((n) => n.isUnread).length;
+    final newUnreadCount = state.unreadCount > 0
+        ? state.unreadCount - 1
+        : updatedList.where((n) => n.isUnread).length;
     NotificationCountService.instance.updateCount(newUnreadCount);
     emit(state.copyWith(
       notifications: updatedList,

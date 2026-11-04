@@ -158,7 +158,9 @@ class _NotificationsViewState extends State<NotificationsView>
             actions: [
               BlocBuilder<NotificationsBloc, NotificationsState>(
                 builder: (context, state) {
-                  if (state.unreadCount > 0) {
+                  final hasUnread = state.unreadCount > 0 ||
+                      state.notifications.any((n) => n.isUnread);
+                  if (hasUnread) {
                     return Padding(
                       padding: const EdgeInsets.only(right: 12),
                       child: TextButton.icon(
