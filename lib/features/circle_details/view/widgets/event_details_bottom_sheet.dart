@@ -210,7 +210,12 @@ class EventDetailsBottomSheet extends StatelessWidget {
                         _buildInfoRow(
                           icon: Icons.calendar_today_outlined,
                           label: 'DATE & TIME',
-                          value: '${event.date} · ${event.time}',
+                          value: event
+                              .formattedSchedule(
+                                showZoneId: true,
+                                showViewerTime: true,
+                              )
+                              .fullLabel,
                         ),
                         const SizedBox(height: 10),
 
@@ -290,7 +295,7 @@ class EventDetailsBottomSheet extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Circle members will appear here as they register.',
+                              'Circle peers will appear here as they register.',
                               style: TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 12,

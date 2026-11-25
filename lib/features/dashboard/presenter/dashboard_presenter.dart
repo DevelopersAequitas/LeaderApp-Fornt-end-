@@ -1,3 +1,4 @@
+import '../../teams/model/teams_model.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -17,7 +18,7 @@ abstract class DashboardViewContract {
   void onTabUpdated(int activeIndex);
 }
 
-/// Presenter coordinating presentation logic for Dashboard feature.
+/// Presenter coordinating presentation logic and verified domain rules for the Dashboard.
 class DashboardPresenter {
   /// View contract reference.
   final DashboardViewContract view;
@@ -27,9 +28,14 @@ class DashboardPresenter {
 
   DashboardPresenter({required this.view, required this.bloc});
 
-  /// Relays data fetch trigger.
+  /// Relays initial data fetch trigger.
   void load() {
     bloc.add(const LoadDashboardData());
+  }
+
+  /// Relays pull-to-refresh or retry trigger.
+  void refresh() {
+    bloc.add(const LoadDashboardData(isRefresh: true));
   }
 
   /// Relays navigation tab modifications.
@@ -37,9 +43,35 @@ class DashboardPresenter {
     bloc.add(TabChanged(index));
   }
 
-  /// Relays active circle modifications.
-  void selectCircle(String circleName) {
-    bloc.add(SelectCircle(circleName));
+  /// Relays active circle scope modifications.
+  void selectCircle(String circleIdOrAll) {
+    bloc.add(SelectCircle(circleIdOrAll));
+  }
+
+  /// Returns true ONLY when the backend explicitly marks a Circle's status or
+  /// stage as requiring attention / at risk — never using invented numeric thresholds.
+  static bool isBackendFlaggedCircle(CircleTeamModel circle) {
+    final status = circle.status.trim().toLowerCase();
+    final stage = (circle.stage ?? '').trim().toLowerCase();
+    return status == 'at risk' ||
+        status == 'at_risk' ||
+        status == 'needs attention' ||
+        status == 'needs_attention' ||
+        stage == 'at risk' ||
+        stage == 'needs attention';
+  }
+
+  /// Returns true when an active Circle has no Circle Director assigned in its
+  /// leadership payload (`directors` list and `directorName` field both empty).
+  static bool hasDirectorVacancy(CircleTeamModel circle) {
+    if (circle.status.trim().toLowerCase() != 'active') return false;
+    return circle.directors.isEmpty && circle.directorName.trim().isEmpty;
+  }
+
+  /// Returns true when an active Circle has no Circle Chairs assigned.
+  static bool hasChairVacancy(CircleTeamModel circle) {
+    if (circle.status.trim().toLowerCase() != 'active') return false;
+    return circle.chairs.isEmpty && circle.chairName.trim().isEmpty;
   }
 
   /// Maps BLoC state changes back to view contract triggers.

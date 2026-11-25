@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../peers/model/peer_model.dart';
 import '../model/peer_profile_model.dart';
+import '../presenter/peer_profile_presenter.dart';
 
 @immutable
 class PeerProfileState {
   final bool isLoading;
   final PeerModel? peer;
   final PeerProfileDetailModel? details;
-  final int activeSubTab; // 0: Overview, 1: Activity, 2: Testimonials
+  final int activeSubTab;
+  final PeerProfileSection activeSection;
+  final String? impactStatusFilter;
   final String errorMessage;
   final bool isDeleting;
   final String successMessage;
@@ -17,6 +20,8 @@ class PeerProfileState {
     this.peer,
     this.details,
     this.activeSubTab = 0,
+    this.activeSection = PeerProfileSection.overview,
+    this.impactStatusFilter,
     this.errorMessage = '',
     this.isDeleting = false,
     this.successMessage = '',
@@ -27,6 +32,9 @@ class PeerProfileState {
     PeerModel? peer,
     PeerProfileDetailModel? details,
     int? activeSubTab,
+    PeerProfileSection? activeSection,
+    String? impactStatusFilter,
+    bool clearImpactStatusFilter = false,
     String? errorMessage,
     bool? isDeleting,
     String? successMessage,
@@ -36,6 +44,10 @@ class PeerProfileState {
       peer: peer ?? this.peer,
       details: details ?? this.details,
       activeSubTab: activeSubTab ?? this.activeSubTab,
+      activeSection: activeSection ?? this.activeSection,
+      impactStatusFilter: clearImpactStatusFilter
+          ? null
+          : (impactStatusFilter ?? this.impactStatusFilter),
       errorMessage: errorMessage ?? this.errorMessage,
       isDeleting: isDeleting ?? this.isDeleting,
       successMessage: successMessage ?? this.successMessage,

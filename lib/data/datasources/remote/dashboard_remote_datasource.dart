@@ -51,7 +51,7 @@ class DashboardRemoteDataSource {
         }
         return const DashboardMetricsModel(
           impact: 0,
-          deals: '₹0.0L',
+          deals: null,
           p2pMeetings: 0,
           totalPeers: 0,
           totalPeersGrowth: 0,
@@ -113,20 +113,20 @@ class DashboardRemoteDataSource {
             .catchError(
               (_) => const ApiResponse<Map<String, dynamic>>(success: false),
             ),
-        // 1: Leads Counts (/admin/leads/counts)
+        // 1: Leads Counts (/leader/leads/counts)
         _apiClient
             .get<Map<String, dynamic>>(
-              ApiEndpoints.adminLeadsCounts,
+              ApiEndpoints.leaderLeadsCounts,
               fromJsonT: (j) =>
                   j is Map ? Map<String, dynamic>.from(j) : <String, dynamic>{},
             )
             .catchError(
               (_) => const ApiResponse<Map<String, dynamic>>(success: false),
             ),
-        // 2: Pending Requests Summary (/admin/pending-requests/summary?status=all)
+        // 2: Pending Requests Summary (/leader/pending-requests/summary?status=all)
         _apiClient
             .get<Map<String, dynamic>>(
-              ApiEndpoints.adminPendingRequestsSummary,
+              ApiEndpoints.leaderPendingRequestsSummary,
               queryParameters: const {'status': 'all'},
               fromJsonT: (j) =>
                   j is Map ? Map<String, dynamic>.from(j) : <String, dynamic>{},
@@ -134,10 +134,10 @@ class DashboardRemoteDataSource {
             .catchError(
               (_) => const ApiResponse<Map<String, dynamic>>(success: false),
             ),
-        // 3: Posts count (/admin/posts?per_page=50)
+        // 3: Posts count (/leader/posts?per_page=50)
         _apiClient
             .get<Map<String, dynamic>>(
-              ApiEndpoints.adminPosts,
+              ApiEndpoints.leaderPosts,
               queryParameters: {
                 'per_page': '50',
                 if (_isValidUuid(circleId)) 'circle_id': circleId!,
@@ -182,10 +182,10 @@ class DashboardRemoteDataSource {
             .catchError(
               (_) => const ApiResponse<List<dynamic>>(success: false),
             ),
-        // 6: Pending Requests List (/admin/pending-requests?category=all&status=pending&per_page=100)
+        // 6: Pending Requests List (/leader/pending-requests?category=all&status=pending&per_page=100)
         _apiClient
             .get<List<dynamic>>(
-              ApiEndpoints.adminPendingRequests,
+              ApiEndpoints.leaderPendingRequests,
               queryParameters: const {
                 'category': 'all',
                 'status': 'pending',

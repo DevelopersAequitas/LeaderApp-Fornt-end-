@@ -478,4 +478,24 @@ class TeamsRemoteDataSource {
       message: 'No industries found',
     );
   }
+
+  /// Assigns a Circle officer or committee role (chair, vice_chair, secretary, committee_leader).
+  Future<ApiResponse<Map<String, dynamic>>> assignCircleRole({
+    required String circleId,
+    required String userId,
+    required String role,
+    String? committeeName,
+  }) async {
+    return _apiClient.post<Map<String, dynamic>>(
+      ApiEndpoints.assignCircleRole(circleId),
+      body: {
+        'user_id': userId,
+        'role': role,
+        if (committeeName != null && committeeName.trim().isNotEmpty)
+          'committee_name': committeeName.trim(),
+      },
+      fromJsonT: (json) =>
+          json is Map<String, dynamic> ? json : <String, dynamic>{},
+    );
+  }
 }

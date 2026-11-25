@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../teams/model/teams_model.dart';
 import '../model/dashboard_circle_option.dart';
 import '../model/dashboard_metrics_model.dart';
 import '../model/impacter_model.dart';
@@ -29,6 +30,9 @@ class DashboardState {
   /// Circles within the user's role scope, used by the circle switcher.
   final List<DashboardCircleOption> availableCircles;
 
+  /// Full Circle models within the user's authorized scope, already fetched on load.
+  final List<CircleTeamModel> circles;
+
   const DashboardState({
     this.isLoading = false,
     this.metrics,
@@ -38,7 +42,17 @@ class DashboardState {
     this.selectedCircle,
     this.dynamicIndustries = const [],
     this.availableCircles = const [],
+    this.circles = const [],
   });
+
+  /// Circles filtered to [selectedCircle] when a single Circle is active,
+  /// otherwise all Circles in the leader's authorized scope.
+  List<CircleTeamModel> get scopedCircles {
+    final selected = selectedCircle?.trim();
+    if (selected == null || selected.isEmpty) return circles;
+    final filtered = circles.where((c) => c.id.trim() == selected).toList();
+    return filtered.isNotEmpty ? filtered : circles;
+  }
 
   /// Helper to copy the state with updated parameters.
   /// Pass [clearSelectedCircle] to reset the circle filter back to "all".
@@ -52,6 +66,7 @@ class DashboardState {
     bool clearSelectedCircle = false,
     List<String>? dynamicIndustries,
     List<DashboardCircleOption>? availableCircles,
+    List<CircleTeamModel>? circles,
   }) {
     return DashboardState(
       isLoading: isLoading ?? this.isLoading,
@@ -64,6 +79,7 @@ class DashboardState {
           : (selectedCircle ?? this.selectedCircle),
       dynamicIndustries: dynamicIndustries ?? this.dynamicIndustries,
       availableCircles: availableCircles ?? this.availableCircles,
+      circles: circles ?? this.circles,
     );
   }
 }

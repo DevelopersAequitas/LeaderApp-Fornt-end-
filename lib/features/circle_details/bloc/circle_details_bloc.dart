@@ -16,6 +16,7 @@ class CircleDetailsBloc extends Bloc<CircleDetailsEvent, CircleDetailsState> {
     on<LoadMoreCirclePeersEvent>(_onLoadMoreCirclePeers);
     on<SearchCirclePeersEvent>(_onSearchCirclePeers);
     on<FilterCirclePeersStatusEvent>(_onFilterCirclePeersStatus);
+    on<AssignCircleRoleEvent>(_onAssignCircleRole);
   }
 
   List<CircleEventModel> _applyEventFilter(List<CircleEventModel> events, String filter) {
@@ -172,5 +173,43 @@ class CircleDetailsBloc extends Bloc<CircleDetailsEvent, CircleDetailsState> {
   void _onFilterCirclePeersStatus(
       FilterCirclePeersStatusEvent event, Emitter<CircleDetailsState> emit) {
     emit(state.copyWith(selectedPeerStatusFilter: event.status));
+  }
+
+  Future<void> _onAssignCircleRole(
+      AssignCircleRoleEvent event, Emitter<CircleDetailsState> emit) async {
+    if (state.isAssigningRole) return;
+    emit(state.copyWith(isAssigningRole: true));
+
+    try {
+      final res = await _teamsRepository.assignCircleRole(
+        circleId: event.circleId,
+        userId: event.userId,
+        role: event.role,
+        committeeName: event.committeeName,
+      );
+
+      if (res.success) {
+        emit(state.copyWith(
+          isAssigningRole: false,
+          roleAssignmentSuccess: true,
+          roleAssignmentMessage: 'Circle role assigned successfully.',
+        ));
+        add(LoadCircleDetailsData(circleId: event.circleId, isRefresh: true));
+      } else {
+        emit(state.copyWith(
+          isAssigningRole: false,
+          roleAssignmentSuccess: false,
+          roleAssignmentMessage: res.message?.isNotEmpty == true
+              ? res.message!
+              : 'Failed to assign circle role.',
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        isAssigningRole: false,
+        roleAssignmentSuccess: false,
+        roleAssignmentMessage: 'Failed to assign circle role: $e',
+      ));
+    }
   }
 }

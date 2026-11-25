@@ -48,7 +48,7 @@ class PeerEventsBloc extends Bloc<PeerEventsEvent, PeerEventsState> {
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: 'Failed to load member events and attendance.',
+        errorMessage: 'Failed to load peer events and attendance.',
       ));
     }
   }

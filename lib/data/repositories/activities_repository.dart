@@ -1,6 +1,7 @@
 import '../../core/network/api_response.dart';
 import '../../features/business_deals/model/business_deal_model.dart';
 import '../../features/impacts/model/impact_model.dart';
+import '../../features/impacts/model/life_impact_detail_model.dart';
 import '../../features/p2p_meetings/model/p2p_meeting_model.dart';
 import '../../features/peers_by_coins/model/coin_balance_model.dart';
 import '../../features/referrals/model/referral_model.dart';
@@ -69,6 +70,15 @@ abstract class ActivitiesRepository {
     required String id,
     String? category,
     String? reason,
+  });
+  Future<ApiResponse<LifeImpactDetailModel>> getImpactDetail(String id);
+  Future<ApiResponse<Map<String, dynamic>>> approveImpact({
+    required String id,
+    String? remarks,
+  });
+  Future<ApiResponse<Map<String, dynamic>>> rejectImpact({
+    required String id,
+    required String reason,
   });
 }
 
@@ -242,5 +252,26 @@ class ActivitiesRepositoryImpl implements ActivitiesRepository {
       category: category,
       reason: reason,
     );
+  }
+
+  @override
+  Future<ApiResponse<LifeImpactDetailModel>> getImpactDetail(String id) {
+    return _remoteDataSource.getImpactDetail(id);
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> approveImpact({
+    required String id,
+    String? remarks,
+  }) {
+    return _remoteDataSource.approveImpact(id: id, remarks: remarks);
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> rejectImpact({
+    required String id,
+    required String reason,
+  }) {
+    return _remoteDataSource.rejectImpact(id: id, reason: reason);
   }
 }

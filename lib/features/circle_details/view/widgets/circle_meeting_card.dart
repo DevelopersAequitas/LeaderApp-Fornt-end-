@@ -61,8 +61,9 @@ class CircleMeetingCard extends StatelessWidget {
     nextEvent ??= events.isNotEmpty ? events.first : null;
 
     final hasUpcomingRealEvent = nextEvent != null && nextEvent.isUpcoming;
-    final timingRange = (nextEvent != null && nextEvent.effectiveTimeRange.isNotEmpty)
-        ? nextEvent.effectiveTimeRange
+    final eventSchedule = nextEvent?.formattedSchedule(showZoneId: true);
+    final timingRange = (eventSchedule != null && eventSchedule.timeLabel.isNotEmpty)
+        ? eventSchedule.timeLabel
         : (circle.effectiveMeetingTimeRange.isNotEmpty
             ? circle.effectiveMeetingTimeRange
             : (circle.cadence?.startTime.isNotEmpty == true
@@ -74,20 +75,8 @@ class CircleMeetingCard extends StatelessWidget {
         : circle.effectiveCadenceSummary;
 
     String nextDate = '';
-    if (hasUpcomingRealEvent && nextEvent.date.isNotEmpty) {
-      final ordText = nextEvent.cadenceSummary.isNotEmpty
-          ? nextEvent.cadenceSummary
-          : (circle.cadence?.cadenceSummary.isNotEmpty == true
-              ? circle.cadence!.cadenceSummary
-              : '');
-      if (ordText.isNotEmpty && !nextEvent.date.contains(ordText)) {
-        nextDate = '${nextEvent.date} ($ordText)';
-      } else {
-        nextDate = nextEvent.date;
-      }
-      if (timingRange.isNotEmpty) {
-        nextDate += ' · $timingRange';
-      }
+    if (hasUpcomingRealEvent && eventSchedule != null && eventSchedule.fullLabel.isNotEmpty) {
+      nextDate = eventSchedule.fullLabel;
     } else if (circle.cadence?.upcomingDisplay?.isNotEmpty == true) {
       nextDate = circle.cadence!.upcomingDisplay!;
     } else if (circle.cadence?.hasSchedule == true) {

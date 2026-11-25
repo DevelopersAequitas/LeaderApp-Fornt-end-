@@ -1,290 +1,320 @@
 import 'package:flutter/material.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/utils/date_time_utils.dart';
 import '../../model/leader_activity_item_model.dart';
 
-/// Renders a single peer row in the top-to-bottom ranked peers list for any
-/// activity section, matching the Peers Global Unity `PeerCard` layout and theme.
+/// Enterprise Peer list row displayed inside activity drill-down screens.
+///
+/// By default (`showContributionRank == false`), presents pure Peer identity
+/// details (Title-Case Name, Verified badge, Location, Designation · Company,
+/// and Category/Circle) with direct navigation to `PeerProfileView` — without
+/// repeating aggregate counts.
+///
+/// When `showContributionRank == true` (on the **Top Contributors** tab), also
+/// displays a subtle rank indicator (`#1`, `#2`, …) and verified contribution
+/// total (`metricDisplay` + `metricLabel`).
 class LeaderRankedPeerCard extends StatelessWidget {
   final LeaderRankedPeerModel item;
   final IconData metricIcon;
+  final bool showContributionRank;
+  final bool showRecency;
 
   const LeaderRankedPeerCard({
     super.key,
     required this.item,
     this.metricIcon = Icons.person_rounded,
+    this.showContributionRank = false,
+    this.showRecency = false,
   });
+
+  static String _formatDisplayName(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return 'Peer';
+    final isAllUpper = trimmed == trimmed.toUpperCase() && trimmed.length > 2;
+    final isAllLower = trimmed == trimmed.toLowerCase();
+    if (isAllUpper || isAllLower) {
+      return trimmed
+          .split(RegExp(r'\s+'))
+          .map((w) {
+            if (w.isEmpty) return '';
+            if (w.length == 1) return w.toUpperCase();
+            return '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}';
+          })
+          .join(' ');
+    }
+    return trimmed;
+  }
+
+  static String _normalizeDesignation(String? raw) {
+    final trimmed = (raw ?? '').trim();
+    if (trimmed.isEmpty) return '';
+    if (trimmed.toLowerCase() == 'member') return 'Peer';
+    return trimmed;
+  }
 
   @override
   Widget build(BuildContext context) {
     final peer = item.peer;
-    final displayDesignation = peer.designation != null &&
-            peer.designation!.trim().isNotEmpty
-        ? peer.designation!.trim()
-        : '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary =
+        isDark ? AppColor.darkTextPrimary : AppColor.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColor.darkTextSecondary : AppColor.lightTextSecondary;
+    final textMuted =
+        isDark ? AppColor.darkTextTertiary : AppColor.lightTextMuted;
+
+    final displayName = _formatDisplayName(peer.name);
+    final displayDesignation = _normalizeDesignation(peer.designation);
     final displayCompany = peer.company.trim();
 
-    String designationAndCompany = '';
-    if (displayDesignation.isNotEmpty && displayCompany.isNotEmpty) {
-      designationAndCompany = '$displayDesignation · $displayCompany';
-    } else if (displayDesignation.isNotEmpty) {
-      designationAndCompany = displayDesignation;
-    } else {
-      designationAndCompany = displayCompany;
-    }
+    final designationAndCompany = [
+      if (displayDesignation.isNotEmpty) displayDesignation,
+      if (displayCompany.isNotEmpty) displayCompany,
+    ].join(' · ');
 
-    final displayCategory = peer.level4Category != null &&
-            peer.level4Category!.trim().isNotEmpty
+    final displayCategory = (peer.level4Category ?? '').trim().isNotEmpty
         ? peer.level4Category!.trim()
-        : (peer.tags.isNotEmpty ? peer.tags : (peer.industry ?? ''));
+        : (peer.tags.trim().isNotEmpty
+            ? peer.tags.trim()
+            : (peer.industry ?? '').trim());
 
-    final isTopRank = item.rank <= 3;
+    final recencyText = showRecency && item.latestActivityAt != null
+        ? DateTimeUtils.formatTimeAgo(item.latestActivityAt!.toIso8601String())
+        : '';
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4.5),
-      decoration: BoxDecoration(
-        color: AppColor.lightSurface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColor.lightBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: () {
-            Navigator.of(context).pushNamed(
-              AppRoutes.peerProfile,
-              arguments: peer,
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Avatar (38px matching Peers Global Unity)
-                InitialsAvatar(
-                  name: peer.name.toUpperCase(),
-                  imageUrl: peer.avatarUrl,
-                  radius: 19,
-                  backgroundColor: AppColor.primaryBlue,
-                  fontSize: 12,
+    final metricChipLabel = item.metricDisplay.trim().isNotEmpty
+        ? (item.metricLabel.trim().isNotEmpty &&
+                !item.metricDisplay
+                    .toLowerCase()
+                    .contains(item.metricLabel.toLowerCase()) &&
+                !item.metricDisplay.contains('₹')
+            ? '${item.metricDisplay.trim()} ${item.metricLabel.trim()}'
+            : item.metricDisplay.trim())
+        : '';
+
+    return Semantics(
+      button: true,
+      label: 'Open profile for $displayName',
+      child: EnterpriseSurfaceCard(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            AppRoutes.peerProfile,
+            arguments: peer,
+          );
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (showContributionRank) ...[
+              Container(
+                width: 28,
+                alignment: Alignment.center,
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  color: item.rank <= 3
+                      ? AppColor.primaryContainer
+                      : (isDark
+                          ? AppColor.darkSurfaceElevated
+                          : AppColor.surfaceContainer),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                 ),
-                const SizedBox(width: 9),
-                // 2. Center 4-Row Details Column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: Text(
+                  '#${item.rank}',
+                  style: AppTypography.labelSmall.copyWith(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: item.rank <= 3
+                        ? (isDark
+                            ? const Color(0xFF93C5FD)
+                            : AppColor.primary)
+                        : textSecondary,
+                  ),
+                ),
+              ),
+            ],
+            InitialsAvatar(
+              name: displayName,
+              imageUrl: peer.avatarUrl,
+              radius: 20,
+              backgroundColor: AppColor.primaryContainer,
+              textColor: AppColor.onPrimaryContainer,
+              fontSize: 12.5,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
                     children: [
-                      // Row 1: Uppercase Name + Verified + Rank Pill
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              peer.name.toUpperCase(),
-                              style: const TextStyle(
-                                color: AppColor.lightTextPrimary,
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w500,
-                                height: 1.2,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                      Flexible(
+                        child: Text(
+                          displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.titleSmall.copyWith(
+                            color: textPrimary,
                           ),
-                          if (peer.isVerified) ...[
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.verified_rounded,
-                              color: AppColor.primaryBlue,
-                              size: 13,
-                            ),
-                          ],
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 1.5,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient:
-                                  isTopRank ? AppColor.brandGradient : null,
-                              color:
-                                  isTopRank ? null : AppColor.lightSurfaceMuted,
-                              borderRadius: BorderRadius.circular(5),
-                              border: isTopRank
-                                  ? null
-                                  : Border.all(color: AppColor.lightBorder),
-                            ),
-                            child: Text(
-                              '#${item.rank}',
-                              style: TextStyle(
-                                color: isTopRank
-                                    ? Colors.white
-                                    : AppColor.lightTextSecondary,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      // Row 2: City / Location
-                      if (peer.location.trim().isNotEmpty) ...[
-                        const SizedBox(height: 1.5),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on_rounded,
-                              size: 10,
-                              color: AppColor.lightTextSecondary,
-                            ),
-                            const SizedBox(width: 3),
-                            Expanded(
-                              child: Text(
-                                peer.location.trim(),
-                                style: const TextStyle(
-                                  color: AppColor.lightTextSecondary,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w400,
-                                  height: 1.2,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      // Row 3: Designation · Company
-                      if (designationAndCompany.isNotEmpty) ...[
-                        const SizedBox(height: 1.5),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.business_center_rounded,
-                              size: 10,
-                              color: AppColor.lightTextSecondary,
-                            ),
-                            const SizedBox(width: 3),
-                            Expanded(
-                              child: Text(
-                                designationAndCompany,
-                                style: const TextStyle(
-                                  color: AppColor.lightTextSecondary,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w400,
-                                  height: 1.2,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      // Row 4: Brand Gradient Category Text
-                      if (displayCategory.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        ShaderMask(
-                          shaderCallback: (bounds) =>
-                              AppColor.brandGradient.createShader(
-                            Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                          ),
-                          blendMode: BlendMode.srcIn,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.sell_outlined,
-                                size: 9.0,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 3),
-                              Flexible(
-                                child: Text(
-                                  displayCategory,
-                                  style: const TextStyle(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                    height: 1.2,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
+                      if (peer.isVerified) ...[
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.verified_rounded,
+                          color: AppColor.primary,
+                          size: 14,
                         ),
                       ],
                     ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                // 3. Right Column: Main Section Metric Count Badge
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 3.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColor.lightSurfaceMuted,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: AppColor.lightBorder.withValues(alpha: 0.8),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            metricIcon,
-                            size: 13,
-                            color: AppColor.primaryBlue,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            item.metricDisplay,
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w500,
-                              color: AppColor.primaryBlue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  if (designationAndCompany.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
-                      item.metricLabel,
-                      style: const TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w400,
-                        color: AppColor.lightTextSecondary,
+                      designationAndCompany,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: textSecondary,
                       ),
                     ),
                   ],
-                ),
-              ],
+                  if (peer.location.trim().isNotEmpty ||
+                      displayCategory.isNotEmpty ||
+                      recencyText.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        if (peer.location.trim().isNotEmpty) ...[
+                          Icon(
+                            Icons.place_outlined,
+                            size: 12,
+                            color: textMuted,
+                          ),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              peer.location.trim(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.labelSmall.copyWith(
+                                fontSize: 11,
+                                color: textMuted,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (peer.location.trim().isNotEmpty &&
+                            displayCategory.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            child: Text(
+                              '·',
+                              style: AppTypography.labelSmall.copyWith(
+                                color: textMuted,
+                              ),
+                            ),
+                          ),
+                        if (displayCategory.isNotEmpty)
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColor.primary.withValues(alpha: 0.14)
+                                    : AppColor.primaryContainer,
+                                borderRadius:
+                                    BorderRadius.circular(AppSpacing.radiusXs),
+                              ),
+                              child: Text(
+                                displayCategory,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.labelSmall.copyWith(
+                                  fontSize: 10.5,
+                                  color: isDark
+                                      ? const Color(0xFF93C5FD)
+                                      : AppColor.onPrimaryContainer,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (recencyText.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 11,
+                            color: textMuted,
+                          ),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              recencyText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.labelSmall.copyWith(
+                                fontSize: 10.5,
+                                color: textMuted,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            if (showContributionRank && metricChipLabel.isNotEmpty) ...[
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 104),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColor.primary.withValues(alpha: 0.16)
+                        : AppColor.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
+                  ),
+                  child: Text(
+                    metricChipLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.labelSmall.copyWith(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: isDark
+                          ? const Color(0xFF93C5FD)
+                          : AppColor.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ] else
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: textMuted,
+              ),
+          ],
         ),
       ),
     );
   }
 }
-

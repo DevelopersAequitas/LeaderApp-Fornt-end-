@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/formatting/phone_number_helper.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../core/theme/app_typography.dart';
 
@@ -9,6 +10,7 @@ class LoginInputField extends StatelessWidget {
   final bool isWhatsapp;
   final String dialCode;
   final String flag;
+  final String? countryCode;
   final ValueChanged<String>? onChanged;
   final VoidCallback onCountryTap;
   final VoidCallback onSubmit;
@@ -19,23 +21,11 @@ class LoginInputField extends StatelessWidget {
     required this.isWhatsapp,
     required this.dialCode,
     required this.flag,
+    this.countryCode,
     this.onChanged,
     required this.onCountryTap,
     required this.onSubmit,
   });
-
-  void _handlePhoneChanged(String val) {
-    if (val.startsWith('0')) {
-      final clean = val.replaceFirst(RegExp(r'^0+'), '');
-      controller.value = TextEditingValue(
-        text: clean,
-        selection: TextSelection.collapsed(offset: clean.length),
-      );
-      onChanged?.call(clean);
-      return;
-    }
-    onChanged?.call(val);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +38,10 @@ class LoginInputField extends StatelessWidget {
         isDark ? AppColor.darkTextSecondary : AppColor.lightTextSecondary;
     final disabledTextColor =
         isDark ? AppColor.darkTextDisabled : AppColor.lightTextDisabled;
+
+    final phoneHint = countryCode != null && countryCode!.isNotEmpty
+        ? PhoneNumberHelper.exampleHint(countryCode!)
+        : 'Phone number';
 
     return Container(
       height: 52,
@@ -62,15 +56,15 @@ class LoginInputField extends StatelessWidget {
         textInputAction: TextInputAction.done,
         inputFormatters: isWhatsapp
             ? [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(10),
+                FilteringTextInputFormatter.allow(RegExp(r'[\d\s\-\(\)\+]')),
+                LengthLimitingTextInputFormatter(25),
               ]
             : null,
-        onChanged: isWhatsapp ? _handlePhoneChanged : onChanged,
+        onChanged: onChanged,
         onSubmitted: (_) => onSubmit(),
         style: AppTypography.bodyLarge.copyWith(color: primaryTextColor),
         decoration: InputDecoration(
-          hintText: isWhatsapp ? 'Phone number' : 'Email address',
+          hintText: isWhatsapp ? phoneHint : 'Email address',
           hintStyle: AppTypography.bodyLarge.copyWith(
             color: disabledTextColor,
           ),

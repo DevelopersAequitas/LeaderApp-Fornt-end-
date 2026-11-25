@@ -6,6 +6,8 @@
 // ==============================================================================
 
 import 'package:flutter/material.dart';
+import '../../../core/notifications/notification_highlight_wrapper.dart';
+import '../../../core/notifications/notification_list_focus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/datasources/remote/peers_remote_datasource.dart';
@@ -19,12 +21,14 @@ class PeerCollaborationScreen extends StatefulWidget {
   final PeerModel peer;
   final PeerProfileDetailModel? details;
   final List<PeerCollaborationItemModel>? initialCollaborations;
+  final String? focusAskId;
 
   const PeerCollaborationScreen({
     super.key,
     required this.peer,
     this.details,
     this.initialCollaborations,
+    this.focusAskId,
   });
 
   @override
@@ -40,6 +44,9 @@ class _PeerCollaborationScreenState extends State<PeerCollaborationScreen> {
   String _selectedStatus = 'All'; // 'All', 'Open', 'In Progress', 'Fulfilled', 'Closed'
   String _searchQuery = '';
   List<PeerCollaborationItemModel> _collaborations = [];
+  final NotificationListFocusController _focusController =
+      NotificationListFocusController();
+  final Map<String, GlobalKey> _askKeys = <String, GlobalKey>{};
 
   static const List<String> _statusOptions = [
     'All',
@@ -52,9 +59,17 @@ class _PeerCollaborationScreenState extends State<PeerCollaborationScreen> {
   @override
   void initState() {
     super.initState();
+    final askId = widget.focusAskId?.trim() ?? '';
+    if (askId.isNotEmpty) {
+      _focusController.setTarget(
+        NotificationListFocusRequest(targetId: askId, targetType: 'industry_op'),
+      );
+    }
     if (widget.initialCollaborations != null && widget.initialCollaborations!.isNotEmpty) {
       _collaborations = List.from(widget.initialCollaborations!);
       _isLoading = false;
+    } else {
+      _loadCollaborations();
     }
     _searchController.addListener(() {
       if (mounted) {
@@ -63,7 +78,6 @@ class _PeerCollaborationScreenState extends State<PeerCollaborationScreen> {
         });
       }
     });
-    _loadCollaborations();
   }
 
   @override
@@ -74,9 +88,13 @@ class _PeerCollaborationScreenState extends State<PeerCollaborationScreen> {
 
   @override
   void dispose() {
+    _focusController.dispose();
     _searchController.dispose();
     super.dispose();
   }
+
+  GlobalKey _keyFor(String id) =>
+      _askKeys.putIfAbsent(id, () => GlobalKey());
 
   /// Loads live collaboration data from /leader/asks/collaboration/user/{userId}.
   Future<void> _loadCollaborations() async {
@@ -254,18 +272,80 @@ class _PeerCollaborationScreenState extends State<PeerCollaborationScreen> {
                           ? _buildErrorState()
                           : _filteredList.isEmpty
                               ? _buildEmptyState()
-                              : ListView.separated(
-                                  physics: const AlwaysScrollableScrollPhysics(
-                                    parent: BouncingScrollPhysics(),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  itemCount: _filteredList.length,
-                                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                  itemBuilder: (context, index) {
-                                    return _buildCollaborationCard(_filteredList[index]);
+                              : ListenableBuilder(
+                                  listenable: _focusController,
+                                  builder: (context, _) {
+                                    if (_focusController.pendingRequest != null) {
+                                      final targetId =
+                                          _focusController.pendingRequest!.targetId;
+                                      final inFiltered =
+                                          _filteredList.any((c) => c.id == targetId);
+                                      final inAll =
+                                          _collaborations.any((c) => c.id == targetId);
+                                      if (!inFiltered &&
+                                          inAll &&
+                                          _selectedStatus != 'All') {
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                          if (mounted) {
+                                            setState(() => _selectedStatus = 'All');
+                                          }
+                                        });
+                                      } else {
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) async {
+                                          if (!mounted) return;
+                                          await _focusController
+                                              .resolveTarget<PeerCollaborationItemModel>(
+                                            items: _filteredList,
+                                            idOf: (c) => c.id,
+                                            hasMore: () => false,
+                                            loadMore: () async {},
+                                            keyLookup: (id) => _askKeys[id],
+                                          );
+                                          if (mounted &&
+                                              _focusController.notFound &&
+                                              _focusController.statusMessage != null) {
+                                            ScaffoldMessenger.of(this.context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  _focusController.statusMessage!,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        });
+                                      }
+                                    }
+
+                                    return ListView.separated(
+                                      physics: const AlwaysScrollableScrollPhysics(
+                                        parent: BouncingScrollPhysics(),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      itemCount: _filteredList.length,
+                                      separatorBuilder: (context, index) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final item = _filteredList[index];
+                                        return NotificationHighlightWrapper(
+                                          key: _keyFor(item.id),
+                                          itemId: item.id,
+                                          activeTargetId:
+                                              _focusController.highlightedId,
+                                          onHighlightCompleted: () =>
+                                              _focusController
+                                                  .markHighlightCompleted(item.id),
+                                          borderRadius:
+                                              BorderRadius.circular(14),
+                                          child: _buildCollaborationCard(item),
+                                        );
+                                      },
+                                    );
                                   },
                                 ),
                     ),
@@ -459,7 +539,7 @@ class _PeerCollaborationScreenState extends State<PeerCollaborationScreen> {
                             ? (widget.peer.circle.isNotEmpty
                                 ? '$authorCompany · ${widget.peer.circle}'
                                 : authorCompany)
-                            : (widget.peer.circle.isNotEmpty ? widget.peer.circle : 'Member'),
+                            : (widget.peer.circle.isNotEmpty ? widget.peer.circle : 'Peer'),
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w400,

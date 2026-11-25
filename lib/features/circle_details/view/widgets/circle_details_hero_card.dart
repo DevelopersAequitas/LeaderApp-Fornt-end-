@@ -170,32 +170,54 @@ class CircleDetailsHeroCard extends StatelessWidget {
   }
 
   Widget _buildFallbackBanner() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      alignment: Alignment.centerRight,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Together for\na Better Tomorrow',
-            style: AppTypography.labelMedium.copyWith(
-              color: AppColor.white,
-              fontSize: 13,
-              height: 1.2,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          'assets/images/peers_unity_cover_logo.png',
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => Container(
+            padding: const EdgeInsets.all(16),
+            alignment: Alignment.centerRight,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Together for\na Better Tomorrow',
+                  style: AppTypography.labelMedium.copyWith(
+                    color: AppColor.white,
+                    fontSize: 13,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Connect • Collaborate • Create Impact',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColor.white.withValues(alpha: 0.85),
+                    fontSize: 9,
+                  ),
+                ),
+              ],
             ),
-            textAlign: TextAlign.right,
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Connect • Collaborate • Create Impact',
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColor.white.withValues(alpha: 0.85),
-              fontSize: 9,
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColor.black.withValues(alpha: 0.1),
+                AppColor.transparent,
+                AppColor.black.withValues(alpha: 0.35),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

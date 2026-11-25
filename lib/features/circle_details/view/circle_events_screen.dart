@@ -11,8 +11,13 @@ import 'widgets/circle_events_section.dart';
 /// Dedicated standalone screen for Circle Events & Gatherings.
 class CircleEventsScreen extends StatelessWidget {
   final CircleTeamModel circle;
+  final String? focusEventId;
 
-  const CircleEventsScreen({super.key, required this.circle});
+  const CircleEventsScreen({
+    super.key,
+    required this.circle,
+    this.focusEventId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +51,7 @@ class CircleEventsScreen extends StatelessWidget {
                       bloc.add(FilterCircleEventsEvent(filter)),
                   circle: circle,
                   peers: state.circlePeers,
+                  focusEventId: focusEventId,
                 ),
               );
             },

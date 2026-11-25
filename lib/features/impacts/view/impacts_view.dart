@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/widgets.dart';
-import '../bloc/impacts_bloc.dart';
-import '../bloc/impacts_event.dart';
-import '../bloc/impacts_state.dart';
-import 'widgets/impact_card.dart';
+import '../../leader_activities/view/leader_activities_view.dart';
 
+/// Unified Life Impacts entry screen delegating to [LeaderActivitiesView]
+/// so Pending / Approved / Rejected moderation and filters stay consistent.
 class ImpactsView extends StatelessWidget {
   final String? circleId;
 
@@ -14,132 +10,9 @@ class ImpactsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<ImpactsBloc>(
-      create: (context) =>
-          ImpactsBloc()..add(LoadImpacts(circleId: circleId)),
-      child: _ImpactsContent(circleId: circleId),
-    );
-  }
-}
-
-class _ImpactsContent extends StatefulWidget {
-  final String? circleId;
-
-  const _ImpactsContent({this.circleId});
-
-  @override
-  State<_ImpactsContent> createState() => _ImpactsContentState();
-}
-
-class _ImpactsContentState extends State<_ImpactsContent> {
-  String _searchQuery = '';
-
-  @override
-  Widget build(BuildContext context) {
-    final bloc = context.read<ImpactsBloc>();
-
-    return BlocListener<ImpactsBloc, ImpactsState>(
-      listener: (context, state) {
-        if (state.errorMessage.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage),
-              backgroundColor: AppColors.danger,
-            ),
-          );
-        }
-        if (state.successMessage.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.successMessage),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        }
-      },
-      child: BlocBuilder<ImpactsBloc, ImpactsState>(
-        builder: (context, state) {
-          final q = _searchQuery.trim().toLowerCase();
-          final impacts = q.isEmpty
-              ? state.impacts
-              : state.impacts.where((i) {
-                  return i.peerName.toLowerCase().contains(q) ||
-                      i.businessName.toLowerCase().contains(q) ||
-                      i.title.toLowerCase().contains(q) ||
-                      i.description.toLowerCase().contains(q) ||
-                      i.city.toLowerCase().contains(q);
-                }).toList();
-
-          return Scaffold(
-            backgroundColor: AppColors.background,
-            appBar: CustomAppBar(
-              title: 'Life Impacts',
-              showBackButton: true,
-              showSearch: true,
-              searchHint: 'Search life impacts...',
-              onSearchChanged: (val) => setState(() => _searchQuery = val),
-              onSearchClosed: () => setState(() => _searchQuery = ''),
-            ),
-            body: SafeArea(
-              top: false,
-              child: state.isLoading && state.impacts.isEmpty
-                  ? const ListShimmerSkeleton()
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        bloc.add(LoadImpacts(circleId: widget.circleId));
-                      },
-                      child: impacts.isEmpty
-                          ? ListView(
-                              children: const [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                    vertical: 64,
-                                  ),
-                                  child: Center(
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.volunteer_activism_outlined,
-                                          size: 48,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                        SizedBox(height: 12),
-                                        Text(
-                                          'No life impacts recorded yet',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 15,
-                                            color: AppColors.text,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          'Recorded mentorship and assistance will appear here.',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(0, 8, 0, 80),
-                              itemCount: impacts.length,
-                              itemBuilder: (context, index) {
-                                return ImpactCard(impact: impacts[index]);
-                              },
-                            ),
-                    ),
-            ),
-          );
-        },
-      ),
+    return LeaderActivitiesView(
+      activityType: 'impacts',
+      circleId: circleId,
     );
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/helpers/session_manager.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/gradient_widgets.dart';
+import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_motion.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 
 class _DashboardNavItemData {
   final int index;
@@ -17,8 +20,8 @@ class _DashboardNavItemData {
   });
 }
 
-/// Renders the executive bottom navigation bar with clear semantic icons and max w500 typography.
-/// Dynamically renders all 5 tabs for Super Admin, and permitted tabs for non-super-admin roles.
+/// Enterprise Bottom Navigation Bar with crisp Cobalt indicator, accessible
+/// WCAG AA contrast, tactile press feedback, and role-gated destinations.
 class DashboardBottomNavBar extends StatelessWidget {
   final int activeTab;
   final ValueChanged<int> onTabSelected;
@@ -29,70 +32,17 @@ class DashboardBottomNavBar extends StatelessWidget {
     required this.onTabSelected,
   });
 
-  Widget _buildNavBarItem(
-    int index,
-    IconData activeIcon,
-    IconData inactiveIcon,
-    String label,
-  ) {
-    final isSelected = activeTab == index;
-    return Expanded(
-      child: InkWell(
-        onTap: () => onTabSelected(index),
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedScale(
-              scale: isSelected ? 1.08 : 1.0,
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.fastOutSlowIn,
-              child: isSelected
-                  ? GradientIcon(
-                      icon: activeIcon,
-                      size: 22,
-                      gradient: AppColors.brandGradient,
-                    )
-                  : Icon(
-                      inactiveIcon,
-                      size: 22,
-                      color: const Color(0xFF64748B),
-                    ),
-            ),
-            const SizedBox(height: 4),
-            isSelected
-                ? GradientText(
-                    label,
-                    gradient: AppColors.brandGradient,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  )
-                : Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isSuper = SessionManager().isSuperAdmin;
     final perms = SessionManager().permissions;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final navItems = <_DashboardNavItemData>[
       const _DashboardNavItemData(
         index: 0,
-        activeIcon: Icons.dashboard_rounded,
-        inactiveIcon: Icons.dashboard_outlined,
+        activeIcon: Icons.space_dashboard_rounded,
+        inactiveIcon: Icons.space_dashboard_outlined,
         label: 'Dashboard',
       ),
     ];
@@ -112,8 +62,8 @@ class DashboardBottomNavBar extends StatelessWidget {
       navItems.add(
         const _DashboardNavItemData(
           index: 2,
-          activeIcon: Icons.diversity_3_rounded,
-          inactiveIcon: Icons.diversity_3_outlined,
+          activeIcon: Icons.hub_rounded,
+          inactiveIcon: Icons.hub_outlined,
           label: 'Teams',
         ),
       );
@@ -123,8 +73,8 @@ class DashboardBottomNavBar extends StatelessWidget {
       navItems.add(
         const _DashboardNavItemData(
           index: 3,
-          activeIcon: Icons.credit_card_rounded,
-          inactiveIcon: Icons.credit_card_outlined,
+          activeIcon: Icons.account_balance_wallet_rounded,
+          inactiveIcon: Icons.account_balance_wallet_outlined,
           label: 'Finance',
         ),
       );
@@ -134,34 +84,136 @@ class DashboardBottomNavBar extends StatelessWidget {
       navItems.add(
         const _DashboardNavItemData(
           index: 4,
-          activeIcon: Icons.description_rounded,
-          inactiveIcon: Icons.description_outlined,
+          activeIcon: Icons.analytics_rounded,
+          inactiveIcon: Icons.analytics_outlined,
           label: 'Report',
         ),
       );
     }
 
+    final surface = isDark ? AppColor.darkSurface : AppColor.lightSurface;
+    final border = isDark ? AppColor.darkBorder : AppColor.outline;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1.0)),
+      decoration: BoxDecoration(
+        color: surface,
+        border: Border(
+          top: BorderSide(color: border, width: 1.0),
+        ),
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 62,
+          height: AppSpacing.navBarHeight,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: navItems
                 .map(
-                  (item) => _buildNavBarItem(
-                    item.index,
-                    item.activeIcon,
-                    item.inactiveIcon,
-                    item.label,
+                  (item) => Expanded(
+                    child: _TactileNavBarItem(
+                      item: item,
+                      isSelected: activeTab == item.index,
+                      onTap: () {
+                        if (activeTab != item.index) {
+                          HapticFeedback.selectionClick();
+                        }
+                        onTabSelected(item.index);
+                      },
+                    ),
                   ),
                 )
                 .toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TactileNavBarItem extends StatefulWidget {
+  final _DashboardNavItemData item;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TactileNavBarItem({
+    required this.item,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_TactileNavBarItem> createState() => _TactileNavBarItemState();
+}
+
+class _TactileNavBarItemState extends State<_TactileNavBarItem> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final indicatorDuration = AppMotion.duration(context, AppMotion.indicator);
+    final pressDuration = AppMotion.duration(context, AppMotion.press);
+    final isSelected = widget.isSelected;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final activeColor = isDark ? const Color(0xFF60A5FA) : AppColor.primary;
+    final activePillBg = isDark
+        ? const Color(0xFF1E3A8A).withValues(alpha: 0.55)
+        : AppColor.primaryContainer;
+    final inactiveColor =
+        isDark ? AppColor.darkTextSecondary : AppColor.lightTextSecondary;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: '${widget.item.label} tab',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          if (_isPressed) setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () {
+          if (_isPressed) setState(() => _isPressed = false);
+        },
+        child: AnimatedScale(
+          scale: _isPressed ? 0.94 : 1.0,
+          duration: pressDuration,
+          curve: AppMotion.easeOut,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: indicatorDuration,
+                curve: AppMotion.easeOut,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSelected ? 14 : 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? activePillBg : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                ),
+                child: Icon(
+                  isSelected
+                      ? widget.item.activeIcon
+                      : widget.item.inactiveIcon,
+                  size: 20,
+                  color: isSelected ? activeColor : inactiveColor,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                widget.item.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.labelSmall.copyWith(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? activeColor : inactiveColor,
+                ),
+              ),
+            ],
           ),
         ),
       ),

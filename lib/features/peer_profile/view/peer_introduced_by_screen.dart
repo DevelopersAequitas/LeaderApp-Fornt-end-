@@ -73,7 +73,7 @@ class _PeerIntroducedByScreenState extends State<PeerIntroducedByScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'INTRODUCED MEMBERS',
+                        'INTRODUCED PEERS',
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 11,
@@ -260,7 +260,7 @@ class _PeerIntroducedByScreenState extends State<PeerIntroducedByScreen> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Peers introduced by this member will appear here.',
+              'Peers introduced by this peer will appear here.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.textSecondary,

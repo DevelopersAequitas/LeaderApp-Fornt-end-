@@ -1,7 +1,10 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/api_endpoints.dart';
+import '../../../../core/formatting/phone_number_helper.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/international_phone_field.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../peers/model/peer_model.dart';
 
@@ -40,16 +43,21 @@ class _EditPeerBottomSheetState extends State<EditPeerBottomSheet> {
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
   late final TextEditingController _videoUrlController;
+  late Country _selectedCountry;
+  bool _phoneModified = false;
+  String? _phoneError;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
+    final split = PhoneNumberHelper.splitStoredPhone(widget.peer.phone);
+    _selectedCountry = split.country;
     _nameController = TextEditingController(text: widget.peer.name);
     _companyController = TextEditingController(text: widget.peer.company);
     _designationController =
         TextEditingController(text: widget.peer.designation ?? '');
-    _phoneController = TextEditingController(text: widget.peer.phone ?? '');
+    _phoneController = TextEditingController(text: split.nationalInput);
     _emailController = TextEditingController(text: widget.peer.email ?? '');
     _videoUrlController =
         TextEditingController(text: widget.peer.introVideoUrl ?? '');
@@ -78,29 +86,79 @@ class _EditPeerBottomSheetState extends State<EditPeerBottomSheet> {
       return;
     }
 
-    setState(() => _isSaving = true);
+    // Preserve the existing stored phone value untouched when not edited.
+    String? phoneToSubmit = widget.peer.phone;
+    if (_phoneModified) {
+      final rawPhone = _phoneController.text.trim();
+      if (rawPhone.isEmpty) {
+        phoneToSubmit = '';
+      } else {
+        final validation = PhoneNumberHelper.validate(
+          rawPhone,
+          countryIso: _selectedCountry.countryCode,
+          countryName: _selectedCountry.name,
+          dialCode: '+${_selectedCountry.phoneCode}',
+        );
+        if (!validation.isValid || validation.e164 == null) {
+          setState(() => _phoneError = validation.errorMessage);
+          return;
+        }
+        phoneToSubmit = validation.e164!;
+      }
+    }
+
+    setState(() {
+      _phoneError = null;
+      _isSaving = true;
+    });
     final updated = widget.peer.copyWith(
       name: trimmedName,
       company: _companyController.text.trim(),
       designation: _designationController.text.trim(),
-      phone: _phoneController.text.trim(),
+      phone: phoneToSubmit,
       email: _emailController.text.trim(),
       introVideoUrl: _videoUrlController.text.trim(),
     );
 
     try {
-      if (widget.peer.id.isNotEmpty) {
-        await ApiClient().put(
-          ApiEndpoints.peerDetails(widget.peer.id),
-          body: updated.toJson(),
+      if (widget.peer.id.isEmpty) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Unable to update peer: missing peer ID.')),
+          );
+        }
+        return;
+      }
+
+      final res = await ApiClient().put(
+        ApiEndpoints.peerDetails(widget.peer.id),
+        body: updated.toJson(),
+      );
+
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+
+      if (res.success) {
+        widget.onUpdated(updated);
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              res.message?.isNotEmpty == true
+                  ? res.message!
+                  : 'Failed to update peer profile.',
+            ),
+          ),
         );
       }
-    } catch (_) {}
-
-    if (mounted) {
+    } catch (e) {
+      if (!mounted) return;
       setState(() => _isSaving = false);
-      widget.onUpdated(updated);
-      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update peer profile: $e')),
+      );
     }
   }
 
@@ -156,7 +214,7 @@ class _EditPeerBottomSheetState extends State<EditPeerBottomSheet> {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        'Update member details & contact info',
+                        'Update peer details & contact info',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -211,12 +269,26 @@ class _EditPeerBottomSheetState extends State<EditPeerBottomSheet> {
                 icon: Icons.badge_outlined,
               ),
               const SizedBox(height: 14),
-              _buildField(
+              InternationalPhoneField(
                 controller: _phoneController,
+                selectedCountry: _selectedCountry,
                 label: 'Phone Number',
-                hint: 'e.g. +91 98765 43210',
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
+                errorText: _phoneError,
+                onCountryChanged: (country) {
+                  setState(() {
+                    _selectedCountry = country;
+                    _phoneModified = true;
+                    _phoneError = null;
+                  });
+                },
+                onChanged: (_) {
+                  if (!_phoneModified || _phoneError != null) {
+                    setState(() {
+                      _phoneModified = true;
+                      _phoneError = null;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 14),
               _buildField(

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/monotone_spline.dart';
 import '../../model/report_model.dart';
 
 /// Custom spline chart painter widget for rendering attendance & performance trends in reports with smooth animation.
@@ -293,27 +294,12 @@ class _ReportsSplineChartPainter extends CustomPainter {
 
     // 5. Build spline curve
     final int n = pixelPoints.length;
-    final List<Offset> controlPoints1 = [];
-    final List<Offset> controlPoints2 = [];
-    const double factor = 0.18;
-
-    final List<Offset> tangents = List.filled(n, Offset.zero);
-    for (int i = 0; i < n; i++) {
-      if (n == 1) {
-        tangents[i] = Offset.zero;
-      } else if (i == 0) {
-        tangents[i] = (pixelPoints[1] - pixelPoints[0]) * factor;
-      } else if (i == n - 1) {
-        tangents[i] = (pixelPoints[n - 1] - pixelPoints[n - 2]) * factor;
-      } else {
-        tangents[i] = (pixelPoints[i + 1] - pixelPoints[i - 1]) * factor;
-      }
-    }
-
-    for (int i = 0; i < n - 1; i++) {
-      controlPoints1.add(pixelPoints[i] + tangents[i]);
-      controlPoints2.add(pixelPoints[i + 1] - tangents[i + 1]);
-    }
+    // Monotone interpolation: the curve between two data points never leaves
+    // the vertical range of those two points, so a non-negative series can
+    // never be drawn below the baseline (and never above its own maximum).
+    final controls = monotoneSplineControlPoints(pixelPoints);
+    final List<Offset> controlPoints1 = controls.c1;
+    final List<Offset> controlPoints2 = controls.c2;
 
     // 6. Gradient Fill Path
     if (n > 1) {

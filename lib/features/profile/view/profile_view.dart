@@ -16,6 +16,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/notifications/app_notification_navigator.dart';
 import '../../../core/helpers/session_manager.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
@@ -101,6 +102,8 @@ class _ProfileContent extends StatelessWidget {
           );
         } else if (state.isSignedOut) {
           SessionManager().clearSession();
+          // Drop any notification tap still waiting from the old session.
+          AppNotificationNavigator.instance.reset();
           Navigator.of(
             context,
           ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);

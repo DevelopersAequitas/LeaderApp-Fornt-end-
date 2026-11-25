@@ -1,17 +1,88 @@
 import 'package:flutter/material.dart';
+import '../../../../core/notifications/notification_highlight_wrapper.dart';
+import '../../../../core/notifications/notification_list_focus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../model/finance_model.dart';
 
 /// Renders the Recent Transactions & Collections ledger on the Finance screen.
-class FinanceTransactionsList extends StatelessWidget {
+class FinanceTransactionsList extends StatefulWidget {
   final List<FinanceTransactionModel> transactions;
+  final String? focusTransactionId;
 
-  const FinanceTransactionsList({super.key, required this.transactions});
+  const FinanceTransactionsList({
+    super.key,
+    required this.transactions,
+    this.focusTransactionId,
+  });
+
+  @override
+  State<FinanceTransactionsList> createState() =>
+      _FinanceTransactionsListState();
+}
+
+class _FinanceTransactionsListState extends State<FinanceTransactionsList> {
+  final NotificationListFocusController _focusController =
+      NotificationListFocusController();
+  final Map<String, GlobalKey> _txnKeys = <String, GlobalKey>{};
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.focusTransactionId?.trim() ?? '';
+    if (id.isNotEmpty) {
+      _focusController.setTarget(
+        NotificationListFocusRequest(targetId: id, targetType: 'finance'),
+      );
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant FinanceTransactionsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.focusTransactionId != oldWidget.focusTransactionId) {
+      final id = widget.focusTransactionId?.trim() ?? '';
+      if (id.isNotEmpty) {
+        _focusController.setTarget(
+          NotificationListFocusRequest(targetId: id, targetType: 'finance'),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusController.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _keyFor(String id) =>
+      _txnKeys.putIfAbsent(id, () => GlobalKey());
 
   @override
   Widget build(BuildContext context) {
+    final transactions = widget.transactions;
     if (transactions.isEmpty) return const SizedBox.shrink();
+
+    if (_focusController.pendingRequest != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await _focusController.resolveTarget<FinanceTransactionModel>(
+          items: transactions,
+          idOf: (t) => t.id,
+          hasMore: () => false,
+          loadMore: () async {},
+          keyLookup: (id) => _txnKeys[id],
+        );
+        if (mounted &&
+            _focusController.notFound &&
+            _focusController.statusMessage != null) {
+          ScaffoldMessenger.of(this.context).showSnackBar(
+            SnackBar(content: Text(_focusController.statusMessage!)),
+          );
+        }
+      });
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -72,18 +143,32 @@ class FinanceTransactionsList extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: transactions.length,
-            separatorBuilder: (context, index) => const Divider(
-              height: 16,
-              thickness: 0.8,
-              color: AppColors.border,
-            ),
-            itemBuilder: (context, index) {
-              final txn = transactions[index];
-              return _buildTransactionItem(txn);
+          ListenableBuilder(
+            listenable: _focusController,
+            builder: (context, _) {
+              final activeId = _focusController.highlightedId;
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: transactions.length,
+                separatorBuilder: (context, index) => const Divider(
+                  height: 16,
+                  thickness: 0.8,
+                  color: AppColors.border,
+                ),
+                itemBuilder: (context, index) {
+                  final txn = transactions[index];
+                  return NotificationHighlightWrapper(
+                    key: _keyFor(txn.id),
+                    itemId: txn.id,
+                    activeTargetId: activeId,
+                    onHighlightCompleted: () =>
+                        _focusController.markHighlightCompleted(txn.id),
+                    borderRadius: BorderRadius.circular(10),
+                    child: _buildTransactionItem(txn),
+                  );
+                },
+              );
             },
           ),
         ],

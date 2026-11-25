@@ -27,7 +27,7 @@ class PeerPostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final displayName = post.authorName.isNotEmpty
         ? post.authorName.toUpperCase()
-        : (peerName != null && peerName!.isNotEmpty ? peerName!.toUpperCase() : 'PEER MEMBER');
+        : (peerName != null && peerName!.isNotEmpty ? peerName!.toUpperCase() : 'PEER');
 
     final displayAvatar = post.authorAvatarUrl.isNotEmpty
         ? post.authorAvatarUrl
@@ -417,7 +417,7 @@ class PeerPostCard extends StatelessWidget {
                         separatorBuilder: (context, index) => const Divider(height: 1, indent: 60),
                         itemBuilder: (_, index) {
                           final like = likesList[index];
-                          final name = like.name.isNotEmpty ? like.name : 'Peer Member';
+                          final name = like.name.isNotEmpty ? like.name : 'Peer';
                           final subtitle = [
                             if (like.designation.isNotEmpty) like.designation,
                             if (like.companyName.isNotEmpty) like.companyName,
@@ -566,7 +566,7 @@ class PeerPostCard extends StatelessWidget {
                         separatorBuilder: (context, index) => const SizedBox(height: 12),
                         itemBuilder: (_, index) {
                           final comment = commentsList[index];
-                          final name = comment.authorName.isNotEmpty ? comment.authorName : 'Peer Member';
+                          final name = comment.authorName.isNotEmpty ? comment.authorName : 'Peer';
                           final subtitle = [
                             if (comment.designation.isNotEmpty) comment.designation,
                             if (comment.companyName.isNotEmpty) comment.companyName,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/notifications/notification_highlight_wrapper.dart';
+import '../../../core/notifications/notification_list_focus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/business_deals_bloc.dart';
@@ -9,23 +11,25 @@ import 'widgets/business_deal_card.dart';
 
 class BusinessDealsView extends StatelessWidget {
   final String? circleId;
+  final String? focusDealId;
 
-  const BusinessDealsView({super.key, this.circleId});
+  const BusinessDealsView({super.key, this.circleId, this.focusDealId});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<BusinessDealsBloc>(
       create: (context) =>
           BusinessDealsBloc()..add(LoadBusinessDeals(circleId: circleId)),
-      child: _BusinessDealsContent(circleId: circleId),
+      child: _BusinessDealsContent(circleId: circleId, focusDealId: focusDealId),
     );
   }
 }
 
 class _BusinessDealsContent extends StatefulWidget {
   final String? circleId;
+  final String? focusDealId;
 
-  const _BusinessDealsContent({this.circleId});
+  const _BusinessDealsContent({this.circleId, this.focusDealId});
 
   @override
   State<_BusinessDealsContent> createState() => _BusinessDealsContentState();
@@ -33,6 +37,29 @@ class _BusinessDealsContent extends StatefulWidget {
 
 class _BusinessDealsContentState extends State<_BusinessDealsContent> {
   String _searchQuery = '';
+  final NotificationListFocusController _focusController =
+      NotificationListFocusController();
+  final Map<String, GlobalKey> _itemKeys = <String, GlobalKey>{};
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.focusDealId?.trim() ?? '';
+    if (id.isNotEmpty) {
+      _focusController.setTarget(
+        NotificationListFocusRequest(targetId: id, targetType: 'deal'),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusController.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _keyFor(String id) =>
+      _itemKeys.putIfAbsent(id, () => GlobalKey());
 
   @override
   Widget build(BuildContext context) {
@@ -127,11 +154,44 @@ class _BusinessDealsContentState extends State<_BusinessDealsContent> {
                                 ),
                               ],
                             )
-                          : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(0, 8, 0, 80),
-                              itemCount: deals.length,
-                              itemBuilder: (context, index) {
-                                return BusinessDealCard(deal: deals[index]);
+                          : ListenableBuilder(
+                              listenable: _focusController,
+                              builder: (context, _) {
+                                if (_focusController.pendingRequest != null) {
+                                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                                    if (!mounted) return;
+                                    await _focusController.resolveTarget(
+                                      items: deals,
+                                      idOf: (d) => d.id,
+                                      hasMore: () => false,
+                                      loadMore: () async {},
+                                      keyLookup: (id) => _itemKeys[id],
+                                    );
+                                    if (mounted &&
+                                        _focusController.notFound &&
+                                        _focusController.statusMessage != null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(_focusController.statusMessage!)),
+                                      );
+                                    }
+                                  });
+                                }
+                                final activeId = _focusController.highlightedId;
+                                return ListView.builder(
+                                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 80),
+                                  itemCount: deals.length,
+                                  itemBuilder: (context, index) {
+                                    final deal = deals[index];
+                                    return NotificationHighlightWrapper(
+                                      key: _keyFor(deal.id),
+                                      itemId: deal.id,
+                                      activeTargetId: activeId,
+                                      onHighlightCompleted: () =>
+                                          _focusController.markHighlightCompleted(deal.id),
+                                      child: BusinessDealCard(deal: deal),
+                                    );
+                                  },
+                                );
                               },
                             ),
                     ),

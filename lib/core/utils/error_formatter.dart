@@ -21,7 +21,7 @@ class ErrorFormatter {
     }
 
     if (error is SocketException) {
-      return 'No internet connection. Please check your network and try again.';
+      return 'No internet connection. Please check your connection and try again.';
     }
 
     if (error is TimeoutException) {
@@ -89,9 +89,9 @@ class ErrorFormatter {
       case DioExceptionType.unknown:
       default:
         if (dioError.error is SocketException) {
-          return 'No internet connection. Please check your network and try again.';
+          return 'No internet connection. Please check your connection and try again.';
         }
-        return 'A network error occurred. Please try again.';
+        return 'A connection error occurred. Please try again.';
     }
   }
 
@@ -165,7 +165,7 @@ class ErrorFormatter {
     if (lower.contains('connection refused') ||
         lower.contains('network is unreachable') ||
         lower.contains('failed host lookup')) {
-      return 'No internet connection. Please check your network and try again.';
+      return 'No internet connection. Please check your connection and try again.';
     }
 
     if (lower == 'unauthenticated' ||

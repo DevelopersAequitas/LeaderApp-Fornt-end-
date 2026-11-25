@@ -23,6 +23,9 @@ class CircleDetailsState extends Equatable {
   final String peerSearchQuery;
   final String selectedPeerStatusFilter;
   final String errorMessage;
+  final bool isAssigningRole;
+  final String? roleAssignmentMessage;
+  final bool? roleAssignmentSuccess;
 
   const CircleDetailsState({
     this.circle,
@@ -43,6 +46,9 @@ class CircleDetailsState extends Equatable {
     this.peerSearchQuery = '',
     this.selectedPeerStatusFilter = 'All',
     this.errorMessage = '',
+    this.isAssigningRole = false,
+    this.roleAssignmentMessage,
+    this.roleAssignmentSuccess,
   });
 
   bool get isAnyLoading =>
@@ -91,6 +97,9 @@ class CircleDetailsState extends Equatable {
     String? peerSearchQuery,
     String? selectedPeerStatusFilter,
     String? errorMessage,
+    bool? isAssigningRole,
+    String? roleAssignmentMessage,
+    bool? roleAssignmentSuccess,
   }) {
     return CircleDetailsState(
       circle: circle ?? this.circle,
@@ -111,6 +120,9 @@ class CircleDetailsState extends Equatable {
       peerSearchQuery: peerSearchQuery ?? this.peerSearchQuery,
       selectedPeerStatusFilter: selectedPeerStatusFilter ?? this.selectedPeerStatusFilter,
       errorMessage: errorMessage ?? this.errorMessage,
+      isAssigningRole: isAssigningRole ?? this.isAssigningRole,
+      roleAssignmentMessage: roleAssignmentMessage,
+      roleAssignmentSuccess: roleAssignmentSuccess,
     );
   }
 
@@ -134,5 +146,8 @@ class CircleDetailsState extends Equatable {
         peerSearchQuery,
         selectedPeerStatusFilter,
         errorMessage,
+        isAssigningRole,
+        roleAssignmentMessage,
+        roleAssignmentSuccess,
       ];
 }

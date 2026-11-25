@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/routes/app_page_route.dart';
+import '../../../../core/theme/app_color.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_video_player.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
+import '../../bloc/peer_profile_bloc.dart';
+import '../../bloc/peer_profile_event.dart';
 import '../../model/peer_profile_model.dart';
+import '../../model/peer_profile_sections_model.dart';
+import '../../presenter/peer_profile_presenter.dart';
 import '../peer_business_deals_screen.dart';
 import '../peer_business_referrals_screen.dart';
 import '../peer_coins_screen.dart';
@@ -13,1271 +20,694 @@ import '../peer_events_attendance_screen.dart';
 import '../peer_introduced_by_screen.dart';
 import '../peer_membership_screen.dart';
 import '../peer_testimonials_screen.dart';
-import '../peer_collaboration_screen.dart';
-import '../peer_help_screen.dart';
-import '../peer_referral_screen.dart';
 import 'peer_post_card.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/peer_profile_bloc.dart';
-import '../../bloc/peer_profile_event.dart';
 
-/// Renders the rich Overview tab for Peer Profile:
-/// - Intro video player
-/// - Bio with 2-line expandable Read More
-/// - Direct Contact details & privacy
-/// - Personal Milestones (Birthday, Anniversary, Joined Date)
-/// - Comprehensive 8-Metric Grid (Deals Given/Received/Closed, Referrals Given/Received, P2P, Coins, Attendance)
-/// - Industry & Specialization Tags
-/// - P2P Meetings with 2-line expandable meeting notes
-/// - Recent Activities timeline
+/// Founder-level Overview & Compliance section for Peer Profile.
 class PeerProfileOverviewSection extends StatelessWidget {
   final PeerModel peer;
   final PeerProfileDetailModel details;
+  final ValueChanged<PeerProfileSection>? onSelectSection;
+  final VoidCallback? onRefreshProfile;
 
   const PeerProfileOverviewSection({
     super.key,
     required this.peer,
     required this.details,
+    this.onSelectSection,
+    this.onRefreshProfile,
   });
 
-  String _formatCompactNumber(dynamic value) {
-    if (value == null) return '0';
-    int? numVal;
-    if (value is int) {
-      numVal = value;
-    } else {
-      numVal = int.tryParse(value.toString().replaceAll(',', '').trim());
-    }
-    if (numVal == null) return value.toString();
-    if (numVal >= 1000000) {
-      final double inM = numVal / 1000000.0;
+  String _formatCompactNumber(int value) {
+    if (value >= 1000000) {
+      final inM = value / 1000000.0;
       return '${inM.toStringAsFixed(inM.truncateToDouble() == inM ? 0 : 1)}M';
-    } else if (numVal >= 1000) {
-      final double inK = numVal / 1000.0;
+    }
+    if (value >= 1000) {
+      final inK = value / 1000.0;
       return '${inK.toStringAsFixed(inK.truncateToDouble() == inK ? 0 : 1)}k';
     }
-    return '$numVal';
+    return '$value';
   }
 
-  Future<void> _launchUri(String uriString) async {
-    final uri = Uri.tryParse(uriString);
-    if (uri != null) {
-      try {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } catch (_) {}
+  EnterpriseStatusTone _toneForStatus(String? status) {
+    final s = (status ?? '').toLowerCase().trim();
+    if (s == 'active' || s == 'approved' || s == 'current') {
+      return EnterpriseStatusTone.active;
     }
+    if (s == 'rejected' || s == 'expired' || s == 'suspended' || s == 'inactive') {
+      return EnterpriseStatusTone.rejected;
+    }
+    if (s == 'pending' || s == 'expiring_soon' || s == 'at_risk') {
+      return EnterpriseStatusTone.pending;
+    }
+    return EnterpriseStatusTone.info;
   }
 
   @override
   Widget build(BuildContext context) {
-    final bio = details.bio.isNotEmpty ? details.bio : (peer.bio ?? '');
-    final birthday = details.birthday.isNotEmpty
-        ? details.birthday
-        : (peer.birthday ?? '');
-    final anniversary = details.anniversary.isNotEmpty
-        ? details.anniversary
-        : (peer.anniversary ?? '');
-    final joinedDate = details.joinedDate.isNotEmpty
-        ? details.joinedDate
-        : (peer.joinedDate ?? '');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary =
+        isDark ? AppColor.darkTextPrimary : AppColor.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColor.darkTextSecondary : AppColor.lightTextSecondary;
+    final textMuted =
+        isDark ? AppColor.darkTextTertiary : AppColor.lightTextMuted;
 
-    final tags = details.tags.isNotEmpty
-        ? details.tags
-        : (peer.tags.isNotEmpty
-            ? peer.tags.split(' · ')
-            : <String>[]);
+    final bio = (details.business?.shortBio.isNotEmpty == true
+            ? details.business!.shortBio
+            : (details.bio.isNotEmpty ? details.bio : (peer.bio ?? '')))
+        .trim();
+    final birthday = (details.birthday.isNotEmpty
+            ? details.birthday
+            : (peer.birthday ?? ''))
+        .trim();
+    final anniversary = (details.anniversary.isNotEmpty
+            ? details.anniversary
+            : (peer.anniversary ?? ''))
+        .trim();
+    final joinedDate = (details.organization?.joiningDate.isNotEmpty == true
+            ? details.organization!.joiningDate
+            : (details.joinedDate.isNotEmpty
+                ? details.joinedDate
+                : (peer.joinedDate ?? '')))
+        .trim();
 
-    final phone = details.phone ?? peer.phone;
-    final email = details.email ?? peer.email;
-    final whatsapp = details.whatsapp ?? peer.whatsapp;
-    final linkedin = details.linkedin ?? peer.linkedin;
+    final tags = details.business?.industryTags.isNotEmpty == true
+        ? details.business!.industryTags
+        : (details.tags.isNotEmpty
+            ? details.tags
+            : (peer.tags.trim().isNotEmpty
+                ? peer.tags
+                    .split('·')
+                    .map((e) => e.trim())
+                    .where((e) => e.isNotEmpty)
+                    .toList()
+                : const <String>[]));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 1. Intro Video Pitch (if present)
-        if (peer.introVideoUrl != null &&
-            peer.introVideoUrl!.trim().isNotEmpty &&
-            peer.introVideoUrl!.startsWith('http'))
-          _buildIntroVideoCard(context),
+    final lifeImpact = details.lifeImpact;
+    final pendingImpacts = lifeImpact?.pendingCount ?? 0;
+    final showPendingImpactBanner =
+        pendingImpacts > 0 && (lifeImpact?.canModerateImpacts == true);
 
-        // 2. About / Bio Card (with 2-lines Read More)
-        if (bio.trim().isNotEmpty) _buildBioCard(bio.trim()),
+    final compliance = details.compliance;
+    final showCompliance = compliance != null && compliance.isVisible;
 
-        // 3. Contact & Social Links
-        _buildContactCard(
-          phone: phone,
-          email: email,
-          whatsapp: whatsapp,
-          linkedin: linkedin,
-        ),
-
-        // 4. Personal Milestones (Birthday, Anniversary, Joined Date)
-        if (birthday.isNotEmpty || anniversary.isNotEmpty || joinedDate.isNotEmpty)
-          _buildMilestonesCard(
-            birthday: birthday,
-            anniversary: anniversary,
-            joinedDate: joinedDate,
-          ),
-
-        // 5. 8-Metric Performance Grid
-        _buildPerformanceMetricsCard(context),
-
-        // 7. Industry & Specialization Tags
-        if (tags.isNotEmpty) _buildTagsCard(tags),
-
-        // 8. User Posts & Creatives Section (Below Industry & Specialization tags)
-        _buildUserPostsSection(context),
-
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  // --- 1. Intro Video Pitch ---
-  Widget _buildIntroVideoCard(BuildContext context) {
-    final videoUrl = peer.introVideoUrl!.trim();
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenMargin),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: AppColors.secondaryBg,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
-              ),
-            ),
-            child: const Row(
-              children: [
-                Icon(
-                  Icons.play_circle_outline_rounded,
-                  size: 15,
-                  color: AppColors.primary,
-                ),
-                SizedBox(width: 6),
-                Text(
-                  'INTRO VIDEO & PITCH',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      color: const Color(0xFF0F172A),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.smart_display_rounded,
-                              size: 44,
-                              color: Colors.white.withValues(alpha: 0.3),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Tap to play peer intro pitch',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.7),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => Dialog(
-                                insetPadding: const EdgeInsets.all(16),
-                                backgroundColor: Colors.black,
-                                clipBehavior: Clip.antiAlias,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      color: Colors.black87,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            '${peer.name} · Intro Pitch',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.close_rounded,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                            onPressed: () =>
-                                                Navigator.of(ctx).pop(),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    AspectRatio(
-                                      aspectRatio: 16 / 9,
-                                      child: AppVideoPlayer(videoUrl: videoUrl),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                          child: Center(
-                            child: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.primary,
-                                border: Border.all(color: Colors.white, width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.5),
-                                    blurRadius: 14,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.play_arrow_rounded,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- 2. Bio Card with 2-lines Read More ---
-  Widget _buildBioCard(String bio) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(
-                Icons.person_pin_outlined,
-                size: 15,
-                color: AppColors.primary,
-              ),
-              SizedBox(width: 6),
-              Text(
-                'ABOUT & PROFESSIONAL BIO',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ExpandableText(
-            text: bio,
-            maxLines: 2,
-            style: TextStyle(
-              color: AppColors.text.withValues(alpha: 0.9),
-              fontSize: 12.5,
-              height: 1.5,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- 3. Contact & Social Links ---
-  Widget _buildContactCard({
-    String? phone,
-    String? email,
-    String? whatsapp,
-    String? linkedin,
-  }) {
-    final hasPhone = phone != null && phone.trim().isNotEmpty;
-    final hasEmail = email != null && email.trim().isNotEmpty;
-    final hasWhatsApp = whatsapp != null && whatsapp.trim().isNotEmpty;
-    final hasLinkedIn = linkedin != null && linkedin.trim().isNotEmpty;
-
-    if (!hasPhone && !hasEmail && !hasWhatsApp && !hasLinkedIn) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: AppColors.secondaryBg,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
-              ),
-            ),
-            child: const Row(
-              children: [
-                GradientIcon(
-                  icon: Icons.connect_without_contact_outlined,
-                  size: 16,
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'CONTACT & CONNECTIVITY',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (hasPhone) ...[
-            _buildContactRow(
-              icon: Icons.phone_outlined,
-              label: 'PHONE',
-              value: peer.hidePhone ? 'Hidden by Peer 🔒' : phone,
-              onTap: peer.hidePhone ? null : () => _launchUri('tel:$phone'),
-            ),
-            const Divider(height: 1, color: AppColors.border),
-          ],
-          if (hasEmail) ...[
-            _buildContactRow(
-              icon: Icons.email_outlined,
-              label: 'EMAIL',
-              value: peer.hideEmail ? 'Hidden by Peer 🔒' : email,
-              onTap: peer.hideEmail ? null : () => _launchUri('mailto:$email'),
-            ),
-            if (hasWhatsApp || hasLinkedIn)
-              const Divider(height: 1, color: AppColors.border),
-          ],
-          if (hasWhatsApp) ...[
-            _buildContactRow(
-              icon: Icons.chat_bubble_outline_rounded,
-              label: 'WHATSAPP',
-              value: whatsapp,
-              onTap: () {
-                final cleanWa = whatsapp.replaceAll('+', '').replaceAll(' ', '');
-                _launchUri('https://wa.me/$cleanWa');
+          if (showPendingImpactBanner) ...[
+            _PendingImpactCallout(
+              pendingCount: pendingImpacts,
+              onReviewTap: () {
+                context
+                    .read<PeerProfileBloc>()
+                    .add(const FilterPeerProfileImpacts('pending'));
+                onSelectSection?.call(PeerProfileSection.lifeImpact);
               },
             ),
-            if (hasLinkedIn) const Divider(height: 1, color: AppColors.border),
+            const SizedBox(height: 10),
           ],
-          if (hasLinkedIn) ...[
-            _buildContactRow(
-              icon: Icons.public_rounded,
-              label: 'LINKEDIN',
-              value: linkedin,
-              onTap: () => _launchUri(
-                linkedin.startsWith('http')
-                    ? linkedin
-                    : 'https://$linkedin',
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
 
-  Widget _buildContactRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            GradientIcon(
-              icon: icon,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
+          if (peer.introVideoUrl != null &&
+              peer.introVideoUrl!.trim().isNotEmpty &&
+              peer.introVideoUrl!.trim().startsWith('http')) ...[
+            _buildIntroVideoCard(context, peer.introVideoUrl!.trim(), textMuted),
+            const SizedBox(height: 10),
+          ],
+
+          _buildExecutiveMetricsGrid(context, textMuted),
+          const SizedBox(height: 10),
+
+          _buildQuickJumpCard(context, textMuted, isDark),
+
+          if (bio.isNotEmpty || tags.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            EnterpriseSurfaceCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    label,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.4,
-                    ),
+                    'EXECUTIVE BIO & FOCUS AREAS',
+                    style: AppTypography.labelSmall.copyWith(color: textMuted),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      color: onTap != null
-                          ? const Color(0xFF1E6091)
-                          : AppColors.text,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                  if (bio.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    ExpandableText(
+                      text: bio,
+                      maxLines: 3,
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: textSecondary,
+                        height: 1.45,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  ],
+                  if (tags.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: tags
+                          .map(
+                            (tag) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColor.darkSurfaceElevated
+                                    : AppColor.surfaceContainer,
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusPill,
+                                ),
+                              ),
+                              child: Text(
+                                tag,
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: textPrimary,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+
+          if (birthday.isNotEmpty ||
+              anniversary.isNotEmpty ||
+              joinedDate.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            EnterpriseSurfaceCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'MILESTONES & KEY DATES',
+                    style: AppTypography.labelSmall.copyWith(color: textMuted),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 8,
+                    children: [
+                      if (joinedDate.isNotEmpty)
+                        _MilestoneChip(
+                          icon: Icons.verified_user_outlined,
+                          label: 'Joined',
+                          value: joinedDate,
+                        ),
+                      if (birthday.isNotEmpty)
+                        _MilestoneChip(
+                          icon: Icons.cake_outlined,
+                          label: 'Birthday',
+                          value: birthday,
+                        ),
+                      if (anniversary.isNotEmpty)
+                        _MilestoneChip(
+                          icon: Icons.favorite_outline_rounded,
+                          label: 'Anniversary',
+                          value: anniversary,
+                        ),
+                    ],
                   ),
                 ],
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
 
-  // --- 4. Personal Milestones (Birthday, Anniversary, Joined Date) ---
-  Widget _buildMilestonesCard({
-    required String birthday,
-    required String anniversary,
-    required String joinedDate,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              GradientIcon(
-                icon: Icons.celebration_outlined,
-                size: 16,
-              ),
-              SizedBox(width: 8),
-              Text(
-                'MILESTONES & CELEBRATIONS',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              if (birthday.isNotEmpty)
-                Expanded(
-                  child: _buildMilestoneTile(
-                    icon: Icons.cake_outlined,
-                    title: 'Birthday',
-                    value: birthday,
-                  ),
-                ),
-              if (birthday.isNotEmpty &&
-                  (anniversary.isNotEmpty || joinedDate.isNotEmpty))
-                const SizedBox(width: 8),
-              if (anniversary.isNotEmpty)
-                Expanded(
-                  child: _buildMilestoneTile(
-                    icon: Icons.favorite_outline_rounded,
-                    title: 'Anniversary',
-                    value: anniversary,
-                  ),
-                ),
-              if (anniversary.isNotEmpty && joinedDate.isNotEmpty)
-                const SizedBox(width: 8),
-              if (joinedDate.isNotEmpty)
-                Expanded(
-                  child: _buildMilestoneTile(
-                    icon: Icons.verified_user_outlined,
-                    title: 'Joined Date',
-                    value: joinedDate,
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMilestoneTile({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              GradientIcon(
-                icon: icon,
-                size: 14,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.text,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- 5. Performance Grid (2 Rows of 3 Items: Deals, Referrals, Coins, Membership, Testimonials, Peers Introduced) ---
-  Widget _buildPerformanceMetricsCard(BuildContext context) {
-    final totalRef = details.referralsGiven + details.referralsReceived;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: AppColors.secondaryBg,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
-              ),
-            ),
-            child: const Row(
-              children: [
-                SquareRoundedGradientIcon(
-                  icon: Icons.insights_rounded,
-                  boxSize: 24,
-                  iconSize: 13,
-                  borderRadius: 6,
-                ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'PEER PERFORMANCE & CONTRIBUTION',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                // Row 1: Business Deals, Business Referrals, Coins
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Business Deals',
-                        value: details.dealsClosed,
-                        icon: Icons.monetization_on_outlined,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            AppPageRoute(
-                              builder: (_) => PeerBusinessDealsScreen(
-                                peer: peer,
-                                details: details,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Business Referrals',
-                        value: '$totalRef',
-                        icon: Icons.campaign_outlined,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            AppPageRoute(
-                              builder: (_) => PeerBusinessReferralsScreen(
-                                peer: peer,
-                                details: details,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Coins',
-                        value: _formatCompactNumber(details.coinsEarned),
-                        icon: Icons.stars_rounded,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            AppPageRoute(
-                              builder: (_) => PeerCoinsScreen(
-                                peer: peer,
-                                details: details,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Row 2: Membership, Testimonials, Peers Introduced
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Membership',
-                        value: peer.status.isNotEmpty ? peer.status : 'Active',
-                        icon: Icons.card_membership_rounded,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => PeerMembershipScreen(
-                                peer: peer,
-                                details: details,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Testimonials',
-                        value: '${details.testimonials.length}',
-                        icon: Icons.format_quote_rounded,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => PeerTestimonialsScreen(
-                                peer: peer,
-                                testimonials: details.testimonials,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildMetricTile(
-                        label: 'Peers Introduced',
-                        value: '${details.introducedPeersCount}',
-                        icon: Icons.person_add_alt_1_rounded,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => PeerIntroducedByScreen(
-                                peer: peer,
-                                details: details,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Collaboration Tile (Opens Screen on Tap)
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      AppPageRoute(
-                        builder: (_) => PeerCollaborationScreen(
-                          peer: peer,
-                          details: details,
-                        ),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
-                    ),
-                    child: const Row(
-                      children: [
-                        SquareRoundedGradientIcon(
-                          icon: Icons.handshake_outlined,
-                          boxSize: 32,
-                          iconSize: 16,
-                          borderRadius: 8,
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Collaborations',
-                                style: TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Explore & view collaboration asks',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Need Help Tile (Opens Screen on Tap)
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      AppPageRoute(
-                        builder: (_) => PeerHelpScreen(
-                          peer: peer,
-                          details: details,
-                        ),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFFBEB),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFFDE68A)),
-                    ),
-                    child: const Row(
-                      children: [
-                        SquareRoundedGradientIcon(
-                          icon: Icons.volunteer_activism_outlined,
-                          boxSize: 32,
-                          iconSize: 16,
-                          borderRadius: 8,
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Need Help',
-                                style: TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Explore & view help asks',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: Color(0xFFD97706),
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Referral Tile (Opens Screen on Tap)
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      AppPageRoute(
-                        builder: (_) => PeerReferralScreen(
-                          peer: peer,
-                          details: details,
-                        ),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFBBF7D0)),
-                    ),
-                    child: const Row(
-                      children: [
-                        SquareRoundedGradientIcon(
-                          icon: Icons.swap_horiz_rounded,
-                          boxSize: 32,
-                          iconSize: 16,
-                          borderRadius: 8,
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Referrals',
-                                style: TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Explore & view referral asks',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: Color(0xFF16A34A),
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Row 3: Events, Passes & Meeting Attendance
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => PeerEventsAttendanceScreen(peer: peer),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFBBF7D0)),
-                    ),
-                    child: Row(
-                      children: [
-                        const SquareRoundedGradientIcon(
-                          icon: Icons.event_available_rounded,
-                          boxSize: 32,
-                          iconSize: 16,
-                          borderRadius: 8,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Events, Passes & Meeting Attendance',
-                                style: TextStyle(
-                                  color: AppColors.text,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${details.attendanceRate} Attendance · Registered Events & Passes',
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetricTile({
-    required String label,
-    required String value,
-    required IconData icon,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SquareRoundedGradientIcon(
-              icon: icon,
-              boxSize: 28,
-              iconSize: 14,
-              borderRadius: 8,
-              showBorder: true,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 9.5,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.text,
-                fontSize: 11.5,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (showCompliance) ...[
+            const SizedBox(height: 10),
+            _buildComplianceCard(
+              context,
+              compliance,
+              textPrimary,
+              textSecondary,
+              textMuted,
             ),
           ],
-        ),
+
+          if (details.posts.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.feed_outlined,
+                    size: 18,
+                    color: AppColor.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Posts & Creatives (${details.posts.length})',
+                    style: AppTypography.titleSmall.copyWith(
+                      color: textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            for (final post in details.posts)
+              PeerPostCard(
+                post: post,
+                peerName: peer.name,
+                peerAvatarUrl: peer.avatarUrl,
+                peerDesignation: peer.designation,
+                peerCompany: peer.company,
+                peerCategory: (peer.level4Category != null &&
+                        peer.level4Category!.isNotEmpty)
+                    ? peer.level4Category!
+                    : peer.circle,
+                onDelete: () => _confirmDeletePost(context, post),
+              ),
+          ],
+        ],
       ),
     );
   }
 
-  // --- 6. Industry & Specialization Tags ---
-  Widget _buildTagsCard(List<String> tags) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+  Widget _buildIntroVideoCard(
+    BuildContext context,
+    String videoUrl,
+    Color textMuted,
+  ) {
+    return EnterpriseSurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(
-                Icons.local_offer_outlined,
-                size: 15,
-                color: AppColors.primary,
-              ),
-              SizedBox(width: 6),
-              Text(
-                'INDUSTRY & SPECIALIZATION TAGS',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
+          Text(
+            'INTRO VIDEO PITCH',
+            style: AppTypography.labelSmall.copyWith(color: textMuted),
+          ),
+          const SizedBox(height: 10),
+          InkWell(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (_) => Dialog(
+                  insetPadding: const EdgeInsets.all(16),
+                  backgroundColor: Colors.black,
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: AppVideoPlayer(
+                      videoUrl: videoUrl,
+                      autoPlay: true,
+                    ),
+                  ),
                 ),
+              );
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              child: Container(
+                height: 132,
+                color: const Color(0xFF0F172A),
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.play_circle_fill_rounded,
+                        size: 44,
+                        color: Colors.white,
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'Tap to play intro pitch',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExecutiveMetricsGrid(BuildContext context, Color textMuted) {
+    final collab = details.collaborationsInfo;
+    final perf = details.performance;
+    final life = details.lifeImpact;
+
+    final dealsDisplay = (collab?.dealsTotalValueFormatted.isNotEmpty == true)
+        ? collab!.dealsTotalValueFormatted
+        : (details.dealsClosed.trim().isNotEmpty ? details.dealsClosed : '—');
+    final totalRef = collab != null
+        ? collab.referralsGivenCount + collab.referralsReceivedCount
+        : details.referralsGiven + details.referralsReceived;
+    final lifeDisplay = life != null
+        ? '${life.approvedCount}'
+        : '${details.impactCount}';
+    final p2pCount = perf?.p2pMeetingsCount ?? details.p2pSessions;
+    final attDisplay = perf?.attendanceRatePercent != null
+        ? '${perf!.attendanceRatePercent!.toStringAsFixed(perf.attendanceRatePercent!.truncateToDouble() == perf.attendanceRatePercent ? 0 : 1)}%'
+        : (details.attendanceRate.trim().isNotEmpty
+            ? details.attendanceRate
+            : null);
+
+    return EnterpriseSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'EXECUTIVE OVERVIEW METRICS',
+            style: AppTypography.labelSmall.copyWith(color: textMuted),
+          ),
+          const SizedBox(height: 10),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final tileWidth = (constraints.maxWidth - 8) / 2;
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _OverviewKpiTile(
+                    width: tileWidth,
+                    icon: Icons.monetization_on_outlined,
+                    label: 'Business Deals',
+                    value: dealsDisplay,
+                    onTap: () => Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => PeerBusinessDealsScreen(
+                          peer: peer,
+                          details: details,
+                        ),
+                      ),
+                    ),
+                  ),
+                  _OverviewKpiTile(
+                    width: tileWidth,
+                    icon: Icons.campaign_outlined,
+                    label: 'Business Referrals',
+                    value: '$totalRef',
+                    onTap: () => Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => PeerBusinessReferralsScreen(
+                          peer: peer,
+                          details: details,
+                        ),
+                      ),
+                    ),
+                  ),
+                  _OverviewKpiTile(
+                    width: tileWidth,
+                    icon: Icons.volunteer_activism_outlined,
+                    label: 'Approved Impacts',
+                    value: lifeDisplay,
+                    onTap: onSelectSection != null
+                        ? () => onSelectSection!(PeerProfileSection.lifeImpact)
+                        : null,
+                  ),
+                  _OverviewKpiTile(
+                    width: tileWidth,
+                    icon: Icons.stars_rounded,
+                    label: 'Coins Earned',
+                    value: _formatCompactNumber(details.coinsEarned),
+                    onTap: () => Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => PeerCoinsScreen(
+                          peer: peer,
+                          details: details,
+                        ),
+                      ),
+                    ),
+                  ),
+                  _OverviewKpiTile(
+                    width: tileWidth,
+                    icon: Icons.people_outline_rounded,
+                    label: 'P2P Meetings',
+                    value: '$p2pCount',
+                    onTap: onSelectSection != null
+                        ? () => onSelectSection!(PeerProfileSection.performance)
+                        : null,
+                  ),
+                  if (attDisplay != null)
+                    _OverviewKpiTile(
+                      width: tileWidth,
+                      icon: Icons.event_available_outlined,
+                      label: 'Circle Attendance',
+                      value: attDisplay,
+                      onTap: () => Navigator.of(context).push(
+                        AppPageRoute(
+                          builder: (_) =>
+                              PeerEventsAttendanceScreen(peer: peer),
+                        ),
+                      ),
+                    ),
+                  _OverviewKpiTile(
+                    width: tileWidth,
+                    icon: Icons.format_quote_rounded,
+                    label: 'Testimonials',
+                    value: '${details.testimonials.length}',
+                    onTap: () => Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => PeerTestimonialsScreen(
+                          peer: peer,
+                          testimonials: details.testimonials,
+                        ),
+                      ),
+                    ),
+                  ),
+                  _OverviewKpiTile(
+                    width: tileWidth,
+                    icon: Icons.person_add_alt_1_outlined,
+                    label: 'Peers Introduced',
+                    value: '${details.introducedPeersCount}',
+                    onTap: () => Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => PeerIntroducedByScreen(
+                          peer: peer,
+                          details: details,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickJumpCard(
+    BuildContext context,
+    Color textMuted,
+    bool isDark,
+  ) {
+    final visibleSections =
+        PeerProfilePresenter.resolveVisibleSections(peer, details)
+            .where((s) => s != PeerProfileSection.overview)
+            .toList();
+    if (visibleSections.isEmpty || onSelectSection == null) {
+      return const SizedBox.shrink();
+    }
+
+    return EnterpriseSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PROFILE SECTIONS',
+            style: AppTypography.labelSmall.copyWith(color: textMuted),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: visibleSections
+                .map(
+                  (section) => InkWell(
+                    onTap: () => onSelectSection!(section),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColor.primary
+                            .withValues(alpha: isDark ? 0.16 : 0.07),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
+                        border: Border.all(
+                          color: AppColor.primary.withValues(alpha: 0.22),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            section.icon,
+                            size: 15,
+                            color: AppColor.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              section.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.labelMedium.copyWith(
+                                color: isDark
+                                    ? const Color(0xFF93C5FD)
+                                    : AppColor.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComplianceCard(
+    BuildContext context,
+    PeerComplianceInfoModel compliance,
+    Color textPrimary,
+    Color textSecondary,
+    Color textMuted,
+  ) {
+    return EnterpriseSurfaceCard(
+      onTap: () {
+        Navigator.of(context).push(
+          AppPageRoute(
+            builder: (_) => PeerMembershipScreen(
+              peer: peer,
+              details: details,
+            ),
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.verified_user_outlined,
+                size: 16,
+                color: AppColor.primary,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'ACCOUNT & COMPLIANCE',
+                  style: AppTypography.labelSmall.copyWith(color: textMuted),
+                ),
+              ),
+              EnterpriseStatusBadge(
+                label: (compliance.renewalStatus?.isNotEmpty == true
+                        ? compliance.renewalStatus!
+                        : (compliance.accountStatus.isNotEmpty
+                            ? compliance.accountStatus
+                            : 'Active'))
+                    .toUpperCase(),
+                tone: _toneForStatus(
+                  compliance.renewalStatus ?? compliance.accountStatus,
+                ),
+                compact: true,
               ),
             ],
           ),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: tags.map((tag) {
-              return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppColors.secondaryBg,
-                  borderRadius: BorderRadius.circular(8),
+          if (compliance.approvalStatus != null &&
+              compliance.approvalStatus!.isNotEmpty)
+            _ComplianceRow('Approval Status', compliance.approvalStatus!),
+          if (compliance.membershipStatus != null &&
+              compliance.membershipStatus!.isNotEmpty)
+            _ComplianceRow('Circle Status', compliance.membershipStatus!),
+          if (compliance.planName != null && compliance.planName!.isNotEmpty)
+            _ComplianceRow(
+              'Active Plan',
+              compliance.planPrice != null && compliance.planPrice!.isNotEmpty
+                  ? '${compliance.planName} (${compliance.planPrice})'
+                  : compliance.planName!,
+            ),
+          if (compliance.expiresAt != null && compliance.expiresAt!.isNotEmpty)
+            _ComplianceRow('Valid Until', compliance.expiresAt!),
+          if (compliance.daysRemaining != null)
+            _ComplianceRow(
+              'Days Remaining',
+              '${compliance.daysRemaining} days',
+            ),
+          if (compliance.adminRemarks != null &&
+              compliance.adminRemarks!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Admin Remarks: ${compliance.adminRemarks!}',
+              style: AppTypography.bodySmall.copyWith(color: textSecondary),
+            ),
+          ],
+          if (compliance.pendingActions.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: compliance.pendingActions
+                  .map(
+                    (act) => EnterpriseStatusBadge(
+                      label: act,
+                      tone: EnterpriseStatusTone.pending,
+                      compact: true,
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                'View Subscriptions & Renewal History',
+                style: AppTypography.labelMedium.copyWith(
+                  color: AppColor.primary,
+                  fontWeight: FontWeight.w600,
                 ),
-                child: Text(
-                  tag,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              );
-            }).toList(),
+              ),
+              const SizedBox(width: 2),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 16,
+                color: AppColor.primary,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // --- 8. User Posts & Creatives Section ---
-  Widget _buildUserPostsSection(BuildContext context) {
-    final posts = details.posts;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-          child: Row(
-            children: [
-              const Icon(Icons.feed_outlined, size: 20, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Posts & Creatives (${posts.length})',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (posts.isEmpty)
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Center(
-              child: Text(
-                'No posts or creatives available',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade500,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-          )
-        else
-          ...posts.map((post) {
-            final peerCat = (peer.level4Category != null && peer.level4Category!.isNotEmpty)
-                ? peer.level4Category!
-                : peer.circle;
-
-            return PeerPostCard(
-              post: post,
-              peerName: peer.name,
-              peerAvatarUrl: peer.avatarUrl,
-              peerDesignation: peer.designation,
-              peerCompany: peer.company,
-              peerCategory: peerCat,
-              onDelete: () => _confirmDelete(context, post),
-            );
-          }),
-      ],
-    );
-  }
-
-  void _confirmDelete(BuildContext context, PeerPostModel post) {
-    final memberId = peer.id.trim();
-    if (memberId.isEmpty || post.id.isEmpty) return;
+  void _confirmDeletePost(BuildContext context, PeerPostModel post) {
+    final peerId = peer.id.trim();
+    if (peerId.isEmpty || post.id.isEmpty) return;
 
     final isCreative = post.isCreative;
     final itemType = isCreative ? 'creative' : 'post';
@@ -1286,71 +716,274 @@ class PeerProfileOverviewSection extends StatelessWidget {
       context: context,
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.danger.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.delete_outline,
-                color: AppColors.danger,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Delete ${isCreative ? 'Creative' : 'Post'}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-          ],
-        ),
+        title: Text('Delete ${isCreative ? 'Creative' : 'Post'}'),
         content: Text(
           'Are you sure you want to delete this $itemType? This action cannot be undone.',
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Color(0xFF64748B),
-          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: Color(0xFF64748B),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.danger,
               foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
             onPressed: () {
               Navigator.pop(dialogCtx);
               final bloc = context.read<PeerProfileBloc>();
               if (isCreative) {
-                bloc.add(DeletePeerCreative(memberId: memberId, creativeId: post.id));
+                bloc.add(
+                  DeletePeerCreative(memberId: peerId, creativeId: post.id),
+                );
               } else {
-                bloc.add(DeletePeerPost(memberId: memberId, postId: post.id));
+                bloc.add(DeletePeerPost(memberId: peerId, postId: post.id));
               }
             },
-            child: const Text(
-              'Delete',
-              style: TextStyle(
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingImpactCallout extends StatelessWidget {
+  final int pendingCount;
+  final VoidCallback onReviewTap;
+
+  const _PendingImpactCallout({
+    required this.pendingCount,
+    required this.onReviewTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return EnterpriseSurfaceCard(
+      backgroundColor:
+          AppColor.warning.withValues(alpha: isDark ? 0.14 : 0.08),
+      borderColor: AppColor.warning.withValues(alpha: 0.4),
+      onTap: onReviewTap,
+      child: Row(
+        children: [
+          const Icon(
+            Icons.pending_actions_rounded,
+            color: AppColor.warning,
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$pendingCount Pending Life Impact Submission${pendingCount == 1 ? '' : 's'}',
+                  style: AppTypography.labelLarge.copyWith(
+                    color: isDark
+                        ? AppColor.darkTextPrimary
+                        : AppColor.lightTextPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Eligible for verification review',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: isDark
+                        ? AppColor.darkTextSecondary
+                        : AppColor.lightTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            'Review',
+            style: AppTypography.labelLarge.copyWith(
+              color: AppColor.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: AppColor.primary,
+            size: 18,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OverviewKpiTile extends StatelessWidget {
+  final double width;
+  final IconData icon;
+  final String label;
+  final String value;
+  final VoidCallback? onTap;
+
+  const _OverviewKpiTile({
+    required this.width,
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isDark ? AppColor.darkSurfaceElevated : AppColor.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(
+              color: isDark ? AppColor.darkBorder : AppColor.outline,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 15, color: AppColor.primary),
+                  const Spacer(),
+                  if (onTap != null)
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 15,
+                      color: isDark
+                          ? AppColor.darkTextTertiary
+                          : AppColor.lightTextMuted,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.titleMedium.copyWith(
+                  color: isDark
+                      ? AppColor.darkTextPrimary
+                      : AppColor.lightTextPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.labelSmall.copyWith(
+                  color: isDark
+                      ? AppColor.darkTextSecondary
+                      : AppColor.lightTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MilestoneChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _MilestoneChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: isDark ? AppColor.darkSurfaceElevated : AppColor.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(
+          color: isDark ? AppColor.darkBorder : AppColor.outline,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColor.primary),
+          const SizedBox(width: 6),
+          Text(
+            '$label: ',
+            style: AppTypography.labelSmall.copyWith(
+              color: isDark
+                  ? AppColor.darkTextSecondary
+                  : AppColor.lightTextSecondary,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.labelMedium.copyWith(
+                color: isDark
+                    ? AppColor.darkTextPrimary
+                    : AppColor.lightTextPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ComplianceRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _ComplianceRow(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: AppTypography.bodySmall.copyWith(
+                color: isDark
+                    ? AppColor.darkTextTertiary
+                    : AppColor.lightTextMuted,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: AppTypography.bodyMedium.copyWith(
+                color: isDark
+                    ? AppColor.darkTextPrimary
+                    : AppColor.lightTextPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),

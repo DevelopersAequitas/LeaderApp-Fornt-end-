@@ -35,30 +35,36 @@ class NotificationCard extends StatelessWidget {
 
   Color _getCategoryColor(String cat) {
     final lower = cat.toLowerCase();
-    if (lower.contains('milestone')) return const Color(0xFFF59E0B);
-    if (lower.contains('circle') || lower.contains('team')) {
+    if (lower.contains('security') || lower.contains('critical')) return const Color(0xFFDC2626);
+    if (lower.contains('finance') || lower.contains('payment')) return const Color(0xFFE11D48);
+    if (lower.contains('governance') || lower.contains('circle') || lower.contains('team')) {
       return AppColor.primaryBlue;
     }
-    if (lower.contains('peer') || lower.contains('member')) {
+    if (lower.contains('membership') || lower.contains('peer') || lower.contains('member')) {
       return const Color(0xFF10B981);
     }
-    if (lower.contains('report') || lower.contains('audit')) {
+    if (lower.contains('compliance') || lower.contains('report') || lower.contains('audit')) {
       return const Color(0xFF8B5CF6);
     }
-    if (lower.contains('finance') || lower.contains('payment')) {
-      return const Color(0xFFE11D48);
-    }
+    if (lower.contains('performance') || lower.contains('milestone')) return const Color(0xFFF59E0B);
+    if (lower.contains('event')) return const Color(0xFF0EA5E9);
+    if (lower.contains('industry') || lower.contains('business')) return const Color(0xFF6366F1);
     return const Color(0xFF64748B);
   }
 
   IconData _getCategoryIcon(String cat) {
     final lower = cat.toLowerCase();
-    if (lower.contains('milestone')) return Icons.emoji_events_rounded;
+    if (lower.contains('security')) return Icons.security_rounded;
+    if (lower.contains('governance')) return Icons.gavel_rounded;
+    if (lower.contains('compliance')) return Icons.verified_user_rounded;
+    if (lower.contains('performance') || lower.contains('milestone')) return Icons.trending_up_rounded;
+    if (lower.contains('event')) return Icons.event_available_rounded;
+    if (lower.contains('industry') || lower.contains('business')) return Icons.business_center_rounded;
     if (lower.contains('circle') || lower.contains('team')) {
       return Icons.groups_rounded;
     }
-    if (lower.contains('peer') || lower.contains('member')) {
-      return Icons.person_search_rounded;
+    if (lower.contains('membership') || lower.contains('peer') || lower.contains('member')) {
+      return Icons.people_alt_rounded;
     }
     if (lower.contains('report') || lower.contains('audit')) {
       return Icons.assessment_rounded;

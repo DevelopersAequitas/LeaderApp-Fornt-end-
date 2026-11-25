@@ -13,6 +13,8 @@ class ImpactModel {
   final String city;
   final String businessName;
   final String categoryLevel4;
+  /// Backend status field: 'pending', 'approved', 'rejected', etc.
+  final String status;
 
   const ImpactModel({
     this.id = '',
@@ -26,6 +28,7 @@ class ImpactModel {
     this.city = '',
     this.businessName = '',
     this.categoryLevel4 = '',
+    this.status = 'approved',
   });
 
   factory ImpactModel.fromJson(Map<String, dynamic> json) {
@@ -71,6 +74,11 @@ class ImpactModel {
         peerMap?['category_level4']?.toString() ??
         '';
 
+    final rawStatus =
+        json['status']?.toString() ??
+        json['approval_status']?.toString() ??
+        'approved';
+
     return ImpactModel(
       id: json['id']?.toString() ?? '',
       impactType: json['impact_type']?.toString() ?? 'mentor',
@@ -83,6 +91,7 @@ class ImpactModel {
       city: city,
       businessName: businessName,
       categoryLevel4: catLevel4,
+      status: rawStatus.toLowerCase().trim(),
     );
   }
 
@@ -121,5 +130,6 @@ class ImpactModel {
         'city': city,
         'business_name': businessName,
         'category_level4': categoryLevel4,
+        'status': status,
       };
 }

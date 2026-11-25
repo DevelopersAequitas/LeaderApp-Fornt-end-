@@ -93,6 +93,13 @@ class ReportSubmitSection extends StatefulWidget {
 class _ReportSubmitSectionState extends State<ReportSubmitSection> {
   String _peerSearchQuery = '';
 
+  /// With "All Circles" selected the roster endpoint (per Circle) is not
+  /// queried, so an empty list means "not loaded", not "zero Peers".
+  bool get _rosterNotLoadedForAllCircles =>
+      widget.circleName == 'All Circles' &&
+      widget.availableCirclePeers.isEmpty &&
+      !widget.isLoadingPeers;
+
   static const List<Map<String, dynamic>> _activityDefs = [
     {
       'key': 'p2p_meetings',
@@ -135,6 +142,9 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
   String _getUpperRecipientLabel() {
     final role = SessionManager().currentRole;
     switch (role) {
+      case UserRole.secretary:
+      case UserRole.viceChair:
+      case UserRole.committeeLeader:
       case UserRole.chairBusinessGrowth:
       case UserRole.chairMembership:
       case UserRole.chairEvents:
@@ -149,6 +159,7 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
         return 'To: Country Director ➔ Super Admin';
       case UserRole.countryDirector:
         return 'To: Super Admin & National Council';
+      case UserRole.globalFounder:
       case UserRole.superAdmin:
         return 'Global Executive Submission ➔ Platform-wide Records';
     }
@@ -629,16 +640,18 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
             children: [
               const Icon(Icons.people_outline_rounded, size: 18, color: AppColors.primary),
               const SizedBox(width: 8),
-              const Text(
-                'PEER ROSTER SCOPE',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.text,
-                  letterSpacing: 0.4,
+              const Expanded(
+                child: Text(
+                  'PEER ROSTER SCOPE',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.text,
+                    letterSpacing: 0.4,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -646,7 +659,9 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  isSpecific ? '$selectedCount / $totalPeers selected' : 'All $totalPeers peers',
+                  _rosterNotLoadedForAllCircles
+                      ? 'Roster not loaded'
+                      : (isSpecific ? '$selectedCount / $totalPeers selected' : 'All $totalPeers peers'),
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -663,7 +678,7 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
             children: [
               Expanded(
                 child: _buildScopeOptionPill(
-                  title: 'All Peers ($totalPeers)',
+                  title: _rosterNotLoadedForAllCircles ? 'All Peers' : 'All Peers ($totalPeers)',
                   icon: Icons.groups_rounded,
                   isSelected: !isSpecific,
                   onTap: () => widget.onPeersScopeModeChanged('all'),
@@ -885,16 +900,20 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
             children: [
               const Icon(Icons.bolt_rounded, size: 18, color: Color(0xFFE11D48)),
               const SizedBox(width: 8),
-              const Text(
-                'REPORT ACTIVITY INCLUSION',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.text,
-                  letterSpacing: 0.4,
+              // Expanded (not Spacer) so the title wraps instead of overflowing
+              // on narrow screens / larger text scales.
+              const Expanded(
+                child: Text(
+                  'REPORT ACTIVITY INCLUSION',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.text,
+                    letterSpacing: 0.4,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -943,9 +962,11 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '$selectedCount activities selected for inclusion',
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                Expanded(
+                  child: Text(
+                    '$selectedCount activities selected for inclusion',
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: () => widget.onSelectAllActivities(!allSelected),
@@ -995,12 +1016,16 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
                       children: [
                         Icon(icon, size: 16, color: isChecked ? color : AppColors.textSecondary),
                         const SizedBox(width: 6),
-                        Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: isChecked ? FontWeight.w600 : FontWeight.w400,
-                            color: isChecked ? color : AppColors.text,
+                        // Flexible: a long label wraps instead of overflowing
+                        // when the chip is as wide as the card.
+                        Flexible(
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: isChecked ? FontWeight.w600 : FontWeight.w400,
+                              color: isChecked ? color : AppColors.text,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -1089,7 +1114,9 @@ class _ReportSubmitSectionState extends State<ReportSubmitSection> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Roster matrix will be attached for ${effectivePeers.length} peers.',
+                      _rosterNotLoadedForAllCircles
+                          ? 'Peer roster for All Circles is not available yet. Select a specific Circle, or turn this breakdown off, to submit.'
+                          : 'Roster matrix will be attached for ${effectivePeers.length} peers.',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,

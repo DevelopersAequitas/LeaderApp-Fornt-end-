@@ -1,16 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/constants/api_endpoints.dart';
+import '../../../core/helpers/session_manager.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/network/api_response.dart';
+import '../../../core/utils/error_formatter.dart';
 import '../../../data/repositories/dashboard_repository.dart';
 import '../../../data/repositories/teams_repository.dart';
-import '../../../core/network/api_response.dart';
 import '../../../features/dashboard/model/dashboard_circle_option.dart';
 import '../../../features/dashboard/model/dashboard_metrics_model.dart';
 import '../../../features/dashboard/model/impacter_model.dart';
 import '../../../features/teams/model/teams_model.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';
-import '../../../core/constants/api_endpoints.dart';
-import '../../../core/helpers/session_manager.dart';
-import '../../../core/network/api_client.dart';
 
 /// Business Logic Component for managing Executive Dashboard state.
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
@@ -39,6 +40,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   ) async {
     if (state.metrics == null && !event.isRefresh) {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
+    } else if (event.isRefresh) {
+      emit(state.copyWith(errorMessage: ''));
     }
 
     // Role-based scoping is enforced by the backend. The selected circle is only
@@ -54,7 +57,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           ApiEndpoints.profile,
           fromJsonT: (json) => json is Map<String, dynamic>
               ? json
-              : (json is Map ? Map<String, dynamic>.from(json) : <String, dynamic>{}),
+              : (json is Map
+                  ? Map<String, dynamic>.from(json)
+                  : <String, dynamic>{}),
         )
         .then((res) async {
           if (res.success && res.data != null) {
@@ -70,7 +75,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             .getMetrics(circleId: activeCircle)
             .catchError((e) => ApiResponse<DashboardMetricsModel>(
                   success: false,
-                  message: e.toString(),
+                  message: ErrorFormatter.format(e),
                 )),
         _dashboardRepository
             .getTopImpacters(circleId: activeCircle)
@@ -104,13 +109,33 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         industries = List<String>.from(industriesRes.data!);
       }
 
-      var circles = state.availableCircles;
+      var circleOptions = state.availableCircles;
+      var fullCircles = state.circles;
       if (circlesRes.success && circlesRes.data != null) {
-        circles = circlesRes.data!
+        fullCircles = List<CircleTeamModel>.from(circlesRes.data!);
+        circleOptions = fullCircles
             .where((c) => _uuidRegex.hasMatch(c.id.trim()))
-            .map((c) => DashboardCircleOption(id: c.id.trim(), name: c.name))
+            .map(
+              (c) => DashboardCircleOption(
+                id: c.id.trim(),
+                name: c.name,
+                country: c.country.trim(),
+                district: c.district.trim().isNotEmpty
+                    ? c.district.trim()
+                    : c.location.trim(),
+                industry: c.category.trim(),
+                peersCount: c.peersCount,
+                status: c.status.trim(),
+              ),
+            )
             .toList();
       }
+
+      final resolvedError = metricsRes.success
+          ? ''
+          : ErrorFormatter.format(
+              metricsRes.message ?? 'Unable to load dashboard metrics.',
+            );
 
       emit(
         state.copyWith(
@@ -120,12 +145,18 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           selectedCircle: activeCircle,
           clearSelectedCircle: activeCircle == null,
           dynamicIndustries: industries,
-          availableCircles: circles,
-          errorMessage: metricsRes.success ? '' : (metricsRes.message ?? ''),
+          availableCircles: circleOptions,
+          circles: fullCircles,
+          errorMessage: resolvedError,
         ),
       );
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: ErrorFormatter.format(e),
+        ),
+      );
     }
   }
 

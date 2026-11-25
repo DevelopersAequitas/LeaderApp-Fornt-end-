@@ -245,7 +245,7 @@ class ProfileMilestonesCard extends StatelessWidget {
   Widget _buildMilestoneRow(LeaderMilestoneItemModel milestone) {
     final progress = (milestone.progressPercentage / 100).clamp(0.0, 1.0);
     final targetLabel =
-        milestone.ruleCode.contains('CIRCLES') ? 'Circles' : 'Members';
+        milestone.ruleCode.contains('CIRCLES') ? 'Circles' : 'Peers';
     final currentVal = milestone.currentMetricValue.toInt();
     final targetVal = milestone.targetMetricValue.toInt();
 

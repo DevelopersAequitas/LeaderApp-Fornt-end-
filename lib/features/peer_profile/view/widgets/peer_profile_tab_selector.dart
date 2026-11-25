@@ -1,106 +1,117 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/gradient_widgets.dart';
+import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../presenter/peer_profile_presenter.dart';
 
-/// Renders the segmented sub-tab selector for the Peer Profile screen.
+/// Responsive scrollable section selector for the Founder-Level Peer Profile.
 class PeerProfileTabSelector extends StatelessWidget {
-  final int activeIndex;
-  final ValueChanged<int> onTabSelected;
-  final int activityCount;
-  final int testimonialCount;
+  final List<PeerProfileSection> sections;
+  final PeerProfileSection activeSection;
+  final ValueChanged<PeerProfileSection> onSectionSelected;
 
   const PeerProfileTabSelector({
     super.key,
-    required this.activeIndex,
-    required this.onTabSelected,
-    this.activityCount = 0,
-    this.testimonialCount = 0,
+    required this.sections,
+    required this.activeSection,
+    required this.onSectionSelected,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? AppColor.darkBorder : AppColor.outline;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.all(3),
+      margin: const EdgeInsets.only(top: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F4F9),
-        borderRadius: BorderRadius.circular(12),
-        border: const GradientBoxBorder(
-          gradient: AppColors.subtleCardBorderGradient,
-          width: 1.0,
+        color: isDark ? AppColor.darkSurface : AppColor.lightSurface,
+        border: Border(
+          top: BorderSide(color: borderColor, width: 0.8),
+          bottom: BorderSide(color: borderColor, width: 0.8),
         ),
       ),
-      child: Row(
-        children: [
-          _buildSegmentTab(0, 'Overview', null),
-          _buildSegmentTab(
-            1,
-            'Activity',
-            activityCount > 0 ? '$activityCount' : null,
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screenMargin,
+          vertical: 8,
+        ),
+        child: Row(
+          children: [
+            for (var i = 0; i < sections.length; i++) ...[
+              if (i > 0) const SizedBox(width: 6),
+              _SectionChip(
+                section: sections[i],
+                selected: sections[i] == activeSection,
+                onTap: () => onSectionSelected(sections[i]),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildSegmentTab(int index, String label, String? countBadge) {
-    final isSelected = activeIndex == index;
-    return Expanded(
+class _SectionChip extends StatelessWidget {
+  final PeerProfileSection section;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SectionChip({
+    required this.section,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: selected
+          ? AppColor.primary
+          : (isDark
+              ? AppColor.darkSurfaceElevated
+              : AppColor.surfaceContainerLow),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
       child: InkWell(
-        onTap: () => onTabSelected(index),
-        borderRadius: BorderRadius.circular(9),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(
-            gradient: isSelected ? AppColors.brandGradient : null,
-            color: isSelected ? null : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.2),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+            border: Border.all(
+              color: selected
+                  ? AppColor.primary
+                  : (isDark ? AppColor.darkBorder : AppColor.outline),
+            ),
           ),
-          alignment: Alignment.center,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
+              Icon(
+                section.icon,
+                size: 14,
+                color: selected
+                    ? Colors.white
+                    : (isDark
+                        ? AppColor.darkTextSecondary
+                        : AppColor.lightTextSecondary),
+              ),
+              const SizedBox(width: 6),
               Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                section.label,
+                style: AppTypography.labelMedium.copyWith(
+                  color: selected
+                      ? Colors.white
+                      : (isDark
+                          ? AppColor.darkTextPrimary
+                          : AppColor.lightTextPrimary),
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
-              if (countBadge != null) ...[
-                const SizedBox(width: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? Colors.white.withValues(alpha: 0.25)
-                        : const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    countBadge,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.text,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

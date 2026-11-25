@@ -254,30 +254,46 @@ class TeamsCircleCard extends StatelessWidget {
   }
 
   Widget _buildDefaultGradientBanner({bool isLoading = false}) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.brandGradient,
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          'assets/images/peers_unity_cover_logo.png',
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.brandGradient,
+            ),
             child: CustomPaint(
               painter: _CoverPatternPainter(),
             ),
           ),
-          if (isLoading)
-            const Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
-                ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withValues(alpha: 0.15),
+                Colors.transparent,
+                Colors.black.withValues(alpha: 0.35),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+        if (isLoading)
+          const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

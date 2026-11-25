@@ -1,3 +1,4 @@
+import '../../../../core/formatting/event_time_display.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import '../../peers/model/peer_model.dart';
 
@@ -11,6 +12,10 @@ class CircleEventModel {
   final String startTime;
   final String endTime;
   final String timeRange;
+  final DateTime? startAtUtc;
+  final DateTime? endAtUtc;
+  final String? timezone;
+  final Duration? utcOffset;
   final String location;
   final String mode; // "In-Person", "Online", "Hybrid"
   final String status; // "Upcoming", "Completed"
@@ -31,6 +36,10 @@ class CircleEventModel {
     this.startTime = '',
     this.endTime = '',
     this.timeRange = '',
+    this.startAtUtc,
+    this.endAtUtc,
+    this.timezone,
+    this.utcOffset,
     required this.location,
     required this.mode,
     required this.status,
@@ -70,8 +79,29 @@ class CircleEventModel {
         '';
     String parsedTimeRange = json['time_range']?.toString() ?? '';
 
-    // Date & Time conversion
-    final rawStart = json['start_at'] ?? json['start_time'] ?? json['event_date'] ?? json['date'];
+    final rawTimezone = (json['timezone'] ??
+            json['time_zone'] ??
+            json['iana_timezone'] ??
+            json['tz'])
+        ?.toString()
+        .trim();
+    final parsedTimezone =
+        (rawTimezone != null && rawTimezone.isNotEmpty) ? rawTimezone : null;
+
+    // Preserve exact UTC instants when backend supplies ISO timestamps.
+    final rawStart = json['starts_at_utc'] ??
+        json['start_at'] ??
+        json['start_time'] ??
+        json['event_date'] ??
+        json['date'];
+    final DateTime? parsedStartUtc = EventTimeDisplay.parseIsoUtcInstant(rawStart);
+    final rawEnd = json['ends_at_utc'] ?? json['end_at'] ?? json['end_time'];
+    final DateTime? parsedEndUtc = EventTimeDisplay.parseIsoUtcInstant(rawEnd);
+    final Duration? parsedUtcOffset =
+        EventTimeDisplay.parseOffsetMinutes(json['utc_offset_minutes']) ??
+            EventTimeDisplay.parseIsoOffset(rawStart);
+
+    // Date & Time conversion (legacy string fallbacks preserved unchanged)
     DateTime? dt;
     if (rawStart != null && rawStart.toString().trim().isNotEmpty) {
       dt = DateTimeUtils.parseUtc(rawStart);
@@ -85,7 +115,6 @@ class CircleEventModel {
       }
     }
 
-    final rawEnd = json['end_at'] ?? json['end_time'];
     if (rawEnd != null && rawEnd.toString().trim().isNotEmpty) {
       final endDt = DateTimeUtils.parseUtc(rawEnd);
       if (endDt != null && parsedEndTime.isEmpty) {
@@ -161,6 +190,10 @@ class CircleEventModel {
       startTime: parsedStartTime,
       endTime: parsedEndTime,
       timeRange: parsedTimeRange,
+      startAtUtc: parsedStartUtc,
+      endAtUtc: parsedEndUtc,
+      timezone: parsedTimezone,
+      utcOffset: parsedUtcOffset,
       location: parsedLocation,
       mode: json['mode'] as String? ?? 'In-Person',
       status: json['status'] as String? ?? 'Upcoming',
@@ -215,6 +248,30 @@ class CircleEventModel {
       return '$date ($cadenceSummary)';
     }
     return date;
+  }
+
+  /// Formats this event's schedule through the shared timezone-aware
+  /// [EventTimeDisplay] formatter.
+  FormattedEventSchedule formattedSchedule({
+    String? fallbackTimezone,
+    bool showZoneId = false,
+    bool showViewerTime = false,
+    Duration? viewerOffset,
+    String localeName = 'en',
+  }) {
+    return EventTimeDisplay.format(
+      startAtUtc: startAtUtc,
+      endAtUtc: endAtUtc,
+      ianaZone: timezone ?? fallbackTimezone,
+      zoneOffset: utcOffset,
+      rawDate: date,
+      rawTime: effectiveTimeRange,
+      cadenceSummary: cadenceSummary,
+      showZoneId: showZoneId,
+      showViewerTime: showViewerTime,
+      viewerOffset: viewerOffset,
+      localeName: localeName,
+    );
   }
 
   Map<String, dynamic> toJson() => {

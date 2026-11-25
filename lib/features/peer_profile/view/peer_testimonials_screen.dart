@@ -68,7 +68,7 @@ class PeerTestimonialsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'When members write a testimonial, it will appear here.',
+              'When peers write a testimonial, it will appear here.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),

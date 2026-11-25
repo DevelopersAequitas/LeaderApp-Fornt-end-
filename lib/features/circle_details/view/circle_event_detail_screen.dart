@@ -30,56 +30,8 @@ class CircleEventDetailScreen extends StatefulWidget {
 }
 
 class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
-  // 0 = Circle Members, 1 = Registered Visitors & Guests
+  // 0 = Circle Peers, 1 = Registered Visitors & Guests
   int _selectedAttendeeTab = 0;
-
-  static Map<String, String> _formatDateTimeParts(
-    String rawDate,
-    String rawTime,
-  ) {
-    final trimmedDate = rawDate.trim();
-    final trimmedTime = rawTime.trim();
-
-    if (trimmedDate.isEmpty && trimmedTime.isEmpty) {
-      return {'date': 'Date TBD', 'time': ''};
-    }
-
-    final dt = DateTime.tryParse(trimmedDate);
-    if (dt != null) {
-      final local = dt.toLocal();
-      const months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
-      final dateStr =
-          '${local.day.toString().padLeft(2, '0')} ${months[local.month - 1]} ${local.year}';
-
-      String timeStr = trimmedTime;
-      if (timeStr.isEmpty &&
-          (trimmedDate.contains('T') || trimmedDate.contains(':'))) {
-        final hour12 = local.hour % 12 == 0 ? 12 : local.hour % 12;
-        final minuteStr = local.minute.toString().padLeft(2, '0');
-        final period = local.hour >= 12 ? 'PM' : 'AM';
-        timeStr = '$hour12:$minuteStr $period';
-      }
-      return {'date': dateStr, 'time': timeStr};
-    }
-
-    return {
-      'date': trimmedDate.isNotEmpty ? trimmedDate : 'Date TBD',
-      'time': trimmedTime,
-    };
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,8 +58,10 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
         ? widget.event.attendeesCount
         : allUnique.length;
 
-    final dtParts =
-        _formatDateTimeParts(widget.event.date, widget.event.time);
+    final schedule = widget.event.formattedSchedule(
+      showZoneId: true,
+      showViewerTime: true,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -251,14 +205,11 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
                     const Divider(height: 1, color: AppColors.border),
                     const SizedBox(height: 14),
 
-                    // Date & Time Row with SquareRoundedGradientIcon
+                    // Date & Time Row with timezone-aware formatting
                     _buildDetailRow(
                       icon: Icons.calendar_month_rounded,
                       label: 'DATE & TIME',
-                      value: widget.event.effectiveDateWithCadence +
-                          (widget.event.effectiveTimeRange.isNotEmpty
-                              ? '  ·  ${widget.event.effectiveTimeRange}'
-                              : (dtParts['time']!.isNotEmpty ? '  ·  ${dtParts['time']!}' : '')),
+                      value: schedule.fullLabel,
                     ),
 
                     // Recurring Cadence
@@ -321,7 +272,7 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
                 child: Row(
                   children: [
                     _buildAttendeeTabButton(
-                      label: 'Circle Members',
+                      label: 'Circle Peers',
                       count: members.length,
                       isSelected: _selectedAttendeeTab == 0,
                       onTap: () => setState(() => _selectedAttendeeTab = 0),
@@ -425,7 +376,7 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Registered Circle Members',
+              'Registered Circle Peers',
               style: TextStyle(
                 color: AppColors.text,
                 fontSize: 14.5,
@@ -448,7 +399,9 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
                   ],
                 ),
                 child: Text(
-                  '${members.length} Members',
+                  members.length == 1
+                      ? '1 Peer'
+                      : '${members.length} Peers',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10.5,
@@ -480,7 +433,7 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    'No Circle Members Registered Yet',
+                    'No Circle Peers Registered Yet',
                     style: TextStyle(
                       color: AppColors.text,
                       fontSize: 14,
@@ -489,7 +442,7 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Members of this circle will appear here when registered.',
+                    'Peers of this circle will appear here when registered.',
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 12,
@@ -592,7 +545,7 @@ class _CircleEventDetailScreenState extends State<CircleEventDetailScreen> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Guests and external visitors registered for this gathering will appear in this dedicated section separate from members.',
+                    'Guests and external visitors registered for this gathering will appear in this dedicated section separate from Circle peers.',
                     style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 12,

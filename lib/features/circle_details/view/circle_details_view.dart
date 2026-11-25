@@ -12,12 +12,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/helpers/session_manager.dart';
 import '../../../core/theme/app_color.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../teams/model/teams_model.dart';
 import '../bloc/circle_details_bloc.dart';
 import '../bloc/circle_details_event.dart';
 import '../bloc/circle_details_state.dart';
+import 'widgets/assign_circle_role_bottom_sheet.dart';
 import 'widgets/circle_about_card.dart';
 import 'widgets/circle_category_status_card.dart';
 import 'widgets/circle_details_hero_card.dart';
@@ -54,9 +56,22 @@ class _CircleDetailsContent extends StatelessWidget {
 
     return BlocListener<CircleDetailsBloc, CircleDetailsState>(
       listenWhen: (prev, curr) =>
-          prev.errorMessage != curr.errorMessage &&
-          curr.errorMessage.isNotEmpty,
+          (prev.errorMessage != curr.errorMessage &&
+              curr.errorMessage.isNotEmpty) ||
+          (prev.roleAssignmentMessage != curr.roleAssignmentMessage &&
+              curr.roleAssignmentMessage != null),
       listener: (context, state) {
+        if (state.roleAssignmentMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.roleAssignmentMessage!),
+              backgroundColor: state.roleAssignmentSuccess == true
+                  ? AppColor.success
+                  : AppColor.danger,
+            ),
+          );
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(state.errorMessage),
@@ -67,12 +82,44 @@ class _CircleDetailsContent extends StatelessWidget {
       child: BlocBuilder<CircleDetailsBloc, CircleDetailsState>(
         builder: (context, state) {
           final activeCircle = state.circle ?? initialCircle;
+          final canAssignRole =
+              SessionManager().isSuperAdmin ||
+              SessionManager().permissions.canAssignCircleChair;
 
           return Scaffold(
             backgroundColor: AppColor.background,
             appBar: CustomAppBar(
               title: activeCircle.name,
               showBackButton: true,
+              actions: [
+                if (canAssignRole)
+                  IconButton(
+                    icon: const Icon(Icons.manage_accounts_outlined),
+                    tooltip: 'Assign Circle Role',
+                    onPressed: state.isAssigningRole
+                        ? null
+                        : () {
+                            AssignCircleRoleBottomSheet.show(
+                              context,
+                              peers: state.circlePeers,
+                              onSubmit: ({
+                                required String userId,
+                                required String role,
+                                String? committeeName,
+                              }) {
+                                bloc.add(
+                                  AssignCircleRoleEvent(
+                                    circleId: activeCircle.id,
+                                    userId: userId,
+                                    role: role,
+                                    committeeName: committeeName,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                  ),
+              ],
             ),
             body: SafeArea(
               top: false,

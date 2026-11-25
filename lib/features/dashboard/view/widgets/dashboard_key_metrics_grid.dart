@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_motion.dart';
 import '../../../../core/widgets/three_d_number_display.dart';
 import '../../model/dashboard_metrics_model.dart';
 
@@ -344,13 +346,19 @@ class _DashboardKeyMetricsGridState extends State<DashboardKeyMetricsGrid> {
         ? Colors.white12
         : const Color(0xFF334155).withValues(alpha: 0.18);
 
+    final domeDuration = AppMotion.duration(
+      context,
+      const Duration(milliseconds: 200),
+    );
+    final gridDuration = AppMotion.duration(context, AppMotion.tabSwitch);
+
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(
         begin: safeIndex.toDouble(),
         end: safeIndex.toDouble(),
       ),
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeInOutCubic,
+      duration: domeDuration,
+      curve: AppMotion.easeOut,
       builder: (context, animatedIndex, _) {
         return CustomPaint(
           painter: _SwiggyDomePainter(
@@ -386,23 +394,13 @@ class _DashboardKeyMetricsGridState extends State<DashboardKeyMetricsGrid> {
                   }),
                 ),
               ),
-              // Animated 4-per-row Subsections Grid inside the Dome
+              // Crisp in-place crossfade for the 4-per-row subsections grid
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 260),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.03),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                },
+                duration: gridDuration,
+                switchInCurve: AppMotion.easeOut,
+                switchOutCurve: AppMotion.easeIn,
+                transitionBuilder: (child, animation) =>
+                    FadeTransition(opacity: animation, child: child),
                 child: KeyedSubtree(
                   key: ValueKey<String>(activeTab.id),
                   child: Padding(
@@ -438,13 +436,18 @@ class _DashboardKeyMetricsGridState extends State<DashboardKeyMetricsGrid> {
         right: isLast ? 0 : 1.5,
       ),
       child: InkWell(
-        onTap: () => setState(() => _selectedTabIndex = index),
+        onTap: () {
+          if (_selectedTabIndex != index) {
+            HapticFeedback.selectionClick();
+            setState(() => _selectedTabIndex = index);
+          }
+        },
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(isSelected ? 16 : 14),
         ),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeInOutCubic,
+          duration: AppMotion.duration(context, AppMotion.indicator),
+          curve: AppMotion.easeOut,
           padding: EdgeInsets.only(
             top: isSelected ? 4 : 8,
             bottom: 4,

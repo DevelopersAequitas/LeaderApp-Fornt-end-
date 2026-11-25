@@ -5,6 +5,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
 import '../../../features/business_deals/model/business_deal_model.dart';
 import '../../../features/impacts/model/impact_model.dart';
+import '../../../features/impacts/model/life_impact_detail_model.dart';
 import '../../../features/p2p_meetings/model/p2p_meeting_model.dart';
 import '../../../features/peers_by_coins/model/coin_balance_model.dart';
 import '../../../features/referrals/model/referral_model.dart';
@@ -38,12 +39,67 @@ class ActivitiesRemoteDataSource {
       fromJsonT: (json) {
         if (json is List) {
           return json
-              .map((item) => ImpactModel.fromJson(item as Map<String, dynamic>))
+              .whereType<Map>()
+              .map((item) => ImpactModel.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+        }
+        if (json is Map && json['items'] is List) {
+          return (json['items'] as List)
+              .whereType<Map>()
+              .map((item) => ImpactModel.fromJson(Map<String, dynamic>.from(item)))
               .toList();
         }
         return <ImpactModel>[];
       },
     );
+  }
+
+  Future<ApiResponse<LifeImpactDetailModel>> getImpactDetail(String id) async {
+    if (!_isValidUuid(id)) {
+      return const ApiResponse<LifeImpactDetailModel>(
+        success: false,
+        message: 'Invalid Life Impact identifier.',
+      );
+    }
+    return _apiClient.get<LifeImpactDetailModel>(
+      ApiEndpoints.impactDetail(id.trim()),
+      fromJsonT: (json) =>
+          LifeImpactDetailModel.fromJson(_asMap(json)),
+    );
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> approveImpact({
+    required String id,
+    String? remarks,
+  }) async {
+    final cleanRemarks = remarks?.trim();
+    final body = <String, dynamic>{
+      'id': id,
+      if (cleanRemarks != null && cleanRemarks.isNotEmpty) ...{
+        'review_remarks': cleanRemarks,
+        'remarks': cleanRemarks,
+      },
+    };
+    return _postFirstSuccess([
+      ApiEndpoints.approveImpact(id.trim()),
+      ApiEndpoints.leaderApprovePendingRequest(id.trim(), category: 'pending_impacts'),
+    ], body);
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> rejectImpact({
+    required String id,
+    required String reason,
+  }) async {
+    final cleanReason = reason.trim();
+    final body = <String, dynamic>{
+      'id': id,
+      'reason': cleanReason,
+      'review_remarks': cleanReason,
+    };
+    return _postFirstSuccess([
+      ApiEndpoints.rejectImpact(id.trim()),
+      ApiEndpoints.leaderRejectPendingRequest(id.trim(), category: 'pending_impacts'),
+    ], body);
   }
 
   Future<ApiResponse<ImpactModel>> createImpact({
@@ -355,6 +411,7 @@ class ActivitiesRemoteDataSource {
                 items.add(
                   LeaderActivityItemModel.fromJson(
                     Map<String, dynamic>.from(raw),
+                    fallbackType: config.type,
                   ),
                 );
               }
@@ -366,6 +423,7 @@ class ActivitiesRemoteDataSource {
               items.add(
                 LeaderActivityItemModel.fromJson(
                   Map<String, dynamic>.from(raw),
+                  fallbackType: config.type,
                 ),
               );
             }
@@ -468,6 +526,9 @@ class ActivitiesRemoteDataSource {
         final flow = normalizedType.replaceAll('-asks', '');
         final res = await _apiClient.get<List<LeaderActivityItemModel>>(
           ApiEndpoints.leaderAsksGlobal(flow),
+          queryParameters: {
+            if (_isValidUuid(circleId)) 'circle_id': circleId!,
+          },
           fromJsonT: (json) {
             List<dynamic> list = [];
             if (json is List) {
@@ -511,7 +572,7 @@ class ActivitiesRemoteDataSource {
                 status: (map['status'] ?? 'Published').toString(),
                 date: (map['created_at'] ?? '').toString(),
                 peerId: (map['user_id'] ?? user['id'] ?? '').toString(),
-                peerName: peerName.isNotEmpty ? peerName : 'Peer Member',
+                peerName: peerName.isNotEmpty ? peerName : 'Peer',
                 avatarUrl:
                     (user['avatar'] ??
                             user['profile_photo_url'] ??
@@ -519,7 +580,7 @@ class ActivitiesRemoteDataSource {
                         ?.toString(),
                 city: (user['city'] ?? map['city'] ?? '').toString(),
                 designation:
-                    (user['designation'] ?? map['designation'] ?? 'Member')
+                    (user['designation'] ?? map['designation'] ?? 'Peer')
                         .toString(),
                 company: (user['company_name'] ?? map['company'] ?? '')
                     .toString(),
@@ -539,14 +600,15 @@ class ActivitiesRemoteDataSource {
       // outside their scope, so only global roles may use these fallbacks.
       final fallbackRole = SessionManager().currentSession.role;
       if (fallbackRole != UserRole.superAdmin &&
+          fallbackRole != UserRole.globalFounder &&
           fallbackRole != UserRole.countryDirector) {
         return <LeaderActivityItemModel>[];
       }
 
-      // 2. Timeline Posts & Activity Creatives -> `/admin/posts`
+      // 2. Timeline Posts & Activity Creatives -> `/leader/posts`
       if (normalizedType == 'posts' || normalizedType == 'creatives') {
         final res = await _apiClient.get<List<LeaderActivityItemModel>>(
-          ApiEndpoints.adminPosts,
+          ApiEndpoints.leaderPosts,
           queryParameters: {
             'per_page': '50',
             if (_isValidUuid(circleId)) 'circle_id': circleId!,
@@ -607,10 +669,10 @@ class ActivitiesRemoteDataSource {
                     status: (map['status'] ?? 'Active').toString(),
                     date: (map['created_at'] ?? '').toString(),
                     peerId: (map['user_id'] ?? user['id'] ?? '').toString(),
-                    peerName: peerName.isNotEmpty ? peerName : 'Peer Member',
+                    peerName: peerName.isNotEmpty ? peerName : 'Peer',
                     avatarUrl: user['profile_photo_url']?.toString(),
                     city: (user['city'] ?? '').toString(),
-                    designation: (user['designation'] ?? 'Member').toString(),
+                    designation: (user['designation'] ?? 'Peer').toString(),
                     company: (user['company_name'] ?? '').toString(),
                     category: 'Community',
                     circleName:
@@ -695,6 +757,7 @@ class ActivitiesRemoteDataSource {
         'introduced-peers': 'introduction_requests',
         'certifications': 'certifications',
         'entrepreneur-certifications': 'certifications',
+        'impacts': 'pending_impacts', // Life Impact moderation queue
       };
       if (pendingCategoryMap.containsKey(normalizedType)) {
         final categorySlug = pendingCategoryMap[normalizedType]!;
@@ -705,11 +768,12 @@ class ActivitiesRemoteDataSource {
           String statusVal,
         ) async {
           final res = await _apiClient.get<List<LeaderActivityItemModel>>(
-            ApiEndpoints.adminPendingRequests,
+            ApiEndpoints.leaderPendingRequests,
             queryParameters: {
               'category': categorySlug,
               'status': statusVal,
               'per_page': '100',
+              if (_isValidUuid(circleId)) 'circle_id': circleId!,
             },
             fromJsonT: (json) {
               List<dynamic> list = [];
@@ -728,7 +792,7 @@ class ActivitiesRemoteDataSource {
                     (map['applicant_name'] ??
                             map['peer_name'] ??
                             map['name'] ??
-                            'Peer Member')
+                            'Peer')
                         .toString()
                         .trim();
                 final company =
@@ -759,9 +823,9 @@ class ActivitiesRemoteDataSource {
                       ? targetEntity
                       : null,
                   peerId: (map['user_id'] ?? map['peer_id'] ?? '').toString(),
-                  peerName: name.isNotEmpty ? name : 'Peer Member',
+                  peerName: name.isNotEmpty ? name : 'Peer',
                   city: (map['city'] ?? '').toString(),
-                  designation: 'Member',
+                  designation: 'Peer',
                   company: company,
                   category: (map['category_label'] ?? 'Community').toString(),
                   circleName: '',
@@ -796,7 +860,7 @@ class ActivitiesRemoteDataSource {
             try {
               final leadRes = await _apiClient
                   .get<List<LeaderActivityItemModel>>(
-                    ApiEndpoints.adminLeadsByType(leadSlug),
+                    ApiEndpoints.leaderLeadsByType(leadSlug),
                     fromJsonT: (json) =>
                         _parseLeadItems(json, normalizedType: normalizedType),
                   );
@@ -826,7 +890,7 @@ class ActivitiesRemoteDataSource {
       if (leadsMap.containsKey(normalizedType)) {
         final leadSlug = leadsMap[normalizedType]!;
         final res = await _apiClient.get<List<LeaderActivityItemModel>>(
-          ApiEndpoints.adminLeadsByType(leadSlug),
+          ApiEndpoints.leaderLeadsByType(leadSlug),
           fromJsonT: (json) =>
               _parseLeadItems(json, normalizedType: normalizedType),
         );
@@ -880,9 +944,9 @@ class ActivitiesRemoteDataSource {
         status: (map['status'] ?? 'Submitted').toString(),
         date: (map['created_at'] ?? '').toString(),
         peerId: (map['user_id'] ?? '').toString(),
-        peerName: name.isNotEmpty ? name : 'Peer Member',
+        peerName: name.isNotEmpty ? name : 'Peer',
         city: (map['city'] ?? '').toString(),
-        designation: 'Member',
+        designation: 'Peer',
         company: company,
         category: (map['industry'] ?? 'Business').toString(),
         circleName: '',
@@ -921,10 +985,11 @@ class ActivitiesRemoteDataSource {
         // answers (403 scope guard, 422 wrong stage, 500 server error) must be shown as-is
         // instead of being retried through the admin route.
         final message = (res.message ?? '').toLowerCase();
+        final errCode = (res.errorCode ?? '').toUpperCase();
         final routeMissing =
-            message.isEmpty ||
+            errCode == 'NOT_FOUND' ||
             message.contains('could not be found') ||
-            message.contains('route') && message.contains('not');
+            (message.contains('route') && message.contains('not'));
         if (!routeMissing) return res;
       } catch (_) {
         // try next candidate

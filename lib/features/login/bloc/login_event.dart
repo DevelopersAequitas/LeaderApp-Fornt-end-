@@ -19,7 +19,12 @@ class LoginChannelChanged extends LoginEvent {
 class LoginCountryChanged extends LoginEvent {
   final String dialCode;
   final String flag;
-  const LoginCountryChanged({required this.dialCode, required this.flag});
+  final String? countryCode;
+  const LoginCountryChanged({
+    required this.dialCode,
+    required this.flag,
+    this.countryCode,
+  });
 }
 
 /// Event triggered when the user submits the sign-in form.

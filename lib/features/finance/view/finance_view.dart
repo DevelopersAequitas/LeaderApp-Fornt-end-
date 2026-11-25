@@ -34,8 +34,13 @@ import 'widgets/record_payment_bottom_sheet.dart';
 /// Pure StatelessWidget powered 100% by BLoC state machine.
 class FinanceView extends StatelessWidget {
   final String? selectedCircle;
+  final String? focusTransactionId;
 
-  const FinanceView({super.key, this.selectedCircle});
+  const FinanceView({
+    super.key,
+    this.selectedCircle,
+    this.focusTransactionId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,15 +48,19 @@ class FinanceView extends StatelessWidget {
       key: ValueKey(selectedCircle),
       create: (context) =>
           FinanceBloc()..add(LoadFinanceData(selectedCircle: selectedCircle)),
-      child: _FinanceContent(selectedCircle: selectedCircle),
+      child: _FinanceContent(
+        selectedCircle: selectedCircle,
+        focusTransactionId: focusTransactionId,
+      ),
     );
   }
 }
 
 class _FinanceContent extends StatelessWidget {
   final String? selectedCircle;
+  final String? focusTransactionId;
 
-  const _FinanceContent({this.selectedCircle});
+  const _FinanceContent({this.selectedCircle, this.focusTransactionId});
 
   Widget _buildFounderFinanceView(
     BuildContext context,
@@ -121,7 +130,10 @@ class _FinanceContent extends StatelessWidget {
             },
           ),
         if (transactions.isNotEmpty)
-          FinanceTransactionsList(transactions: transactions),
+          FinanceTransactionsList(
+            transactions: transactions,
+            focusTransactionId: focusTransactionId,
+          ),
         const SizedBox(
           height: 48,
         ), // Generous bottom spacing for navigation bar clearance

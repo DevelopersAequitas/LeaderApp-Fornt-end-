@@ -6,10 +6,13 @@ class LoginState {
   /// Active verification channel ('email' or 'whatsapp').
   final String channel;
 
-  /// Selected country dial code for WhatsApp phone login (e.g., '+91').
+  /// Selected ISO 3166-1 alpha-2 country code for WhatsApp phone login (e.g., 'US', 'GB', 'IN').
+  final String countryCode;
+
+  /// Selected country dial code for WhatsApp phone login (e.g., '+1', '+44', '+91').
   final String dialCode;
 
-  /// Selected country flag emoji (e.g., '🇮🇳').
+  /// Selected country flag emoji.
   final String flag;
 
   /// True if the current input is a valid email or phone format.
@@ -40,8 +43,9 @@ class LoginState {
   const LoginState({
     this.emailOrPhone = '',
     this.channel = 'email',
-    this.dialCode = '+91',
-    this.flag = '🇮🇳',
+    this.countryCode = 'US',
+    this.dialCode = '+1',
+    this.flag = '🇺🇸',
     this.isFormValid = false,
     this.isLoading = false,
     this.errorMessage = '',
@@ -56,6 +60,7 @@ class LoginState {
   LoginState copyWith({
     String? emailOrPhone,
     String? channel,
+    String? countryCode,
     String? dialCode,
     String? flag,
     bool? isFormValid,
@@ -70,6 +75,7 @@ class LoginState {
     return LoginState(
       emailOrPhone: emailOrPhone ?? this.emailOrPhone,
       channel: channel ?? this.channel,
+      countryCode: countryCode ?? this.countryCode,
       dialCode: dialCode ?? this.dialCode,
       flag: flag ?? this.flag,
       isFormValid: isFormValid ?? this.isFormValid,

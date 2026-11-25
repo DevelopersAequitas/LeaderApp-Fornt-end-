@@ -11,6 +11,11 @@ class LeaderNotificationModel {
   final String type;
   final bool isUnread;
   final String screen;
+  final String priority;
+  final String deliveryTier;
+  final bool requiresAction;
+  final String audience;
+  final String eventKey;
   final Map<String, dynamic> data;
   final DateTime createdAt;
 
@@ -22,6 +27,11 @@ class LeaderNotificationModel {
     required this.type,
     required this.isUnread,
     required this.screen,
+    this.priority = 'medium',
+    this.deliveryTier = 'important',
+    this.requiresAction = false,
+    this.audience = '',
+    this.eventKey = '',
     this.data = const {},
     required this.createdAt,
   });
@@ -42,6 +52,10 @@ class LeaderNotificationModel {
       isUnreadVal = false;
     }
 
+    final dataMap = json['data'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(json['data'] as Map)
+        : const <String, dynamic>{};
+
     return LeaderNotificationModel(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? 'Leader Notification',
@@ -52,9 +66,12 @@ class LeaderNotificationModel {
       type: json['type']?.toString() ?? 'general',
       isUnread: isUnreadVal,
       screen: json['screen']?.toString() ?? '/dashboard',
-      data: json['data'] is Map<String, dynamic>
-          ? Map<String, dynamic>.from(json['data'] as Map)
-          : const {},
+      priority: (json['priority'] ?? dataMap['priority'] ?? 'medium').toString().toLowerCase(),
+      deliveryTier: (json['delivery_tier'] ?? dataMap['delivery_tier'] ?? 'important').toString().toLowerCase(),
+      requiresAction: json['requires_action'] == true || dataMap['requires_action'] == true,
+      audience: (json['audience'] ?? dataMap['audience'] ?? '').toString().toLowerCase(),
+      eventKey: (json['event_key'] ?? dataMap['event_key'] ?? '').toString().toLowerCase(),
+      data: dataMap,
       createdAt: parsedDate,
     );
   }
@@ -67,6 +84,11 @@ class LeaderNotificationModel {
     String? type,
     bool? isUnread,
     String? screen,
+    String? priority,
+    String? deliveryTier,
+    bool? requiresAction,
+    String? audience,
+    String? eventKey,
     Map<String, dynamic>? data,
     DateTime? createdAt,
   }) {
@@ -78,33 +100,34 @@ class LeaderNotificationModel {
       type: type ?? this.type,
       isUnread: isUnread ?? this.isUnread,
       screen: screen ?? this.screen,
+      priority: priority ?? this.priority,
+      deliveryTier: deliveryTier ?? this.deliveryTier,
+      requiresAction: requiresAction ?? this.requiresAction,
+      audience: audience ?? this.audience,
+      eventKey: eventKey ?? this.eventKey,
       data: data ?? this.data,
       createdAt: createdAt ?? this.createdAt,
     );
   }
 
-  /// Returns true if this notification belongs in the executive Leader App.
-  /// Filters out consumer member-app notifications (social feed posts, member event reminders, etc.)
-  bool get isLeaderNotification {
-    final t = type.toLowerCase().trim();
-    final c = category.toLowerCase().trim();
-    final s = screen.toLowerCase().trim();
+  bool get isCritical =>
+      deliveryTier == 'critical' || priority == 'urgent' || priority == 'critical';
 
-    // Consumer event / social feed screens that do not exist in Leader App
-    if (s == 'event_detail' ||
-        s == 'event_details' ||
-        s == 'live_meeting' ||
-        s.contains('post_detail') ||
-        s.contains('/post-detail') ||
-        s == 'feed' ||
-        s == '/feed' ||
-        s.contains('chat_conversation') ||
-        s == 'connections' ||
-        s == 'member_feed') {
+  /// Returns true if this notification belongs in the executive Leader App.
+  /// Checks explicit `audience` metadata first, then rejects consumer social types/screens.
+  bool get isLeaderNotification {
+    if (audience == 'member' || audience == 'consumer') {
       return false;
     }
 
-    // Consumer social & feed notification types
+    final t = type.toLowerCase().trim();
+    final c = category.toLowerCase().trim();
+    final s = screen.toLowerCase().trim();
+    final innerType = (data['notification_type'] ?? data['activity_type'] ?? '')
+        .toString()
+        .toLowerCase()
+        .trim();
+
     const consumerTypes = {
       'new_post',
       'post_created',
@@ -137,6 +160,7 @@ class LeaderNotificationModel {
       'streak_reminder',
       'streak',
       'badge_earned',
+      'badge_unlocked',
       'profile_view',
       'profile_viewed',
       'chat_message',
@@ -144,13 +168,74 @@ class LeaderNotificationModel {
       'direct_message',
       'connection_request',
       'connection_accepted',
+      'birthday_anniversary',
+      'peer_wish',
+      'wish_received',
+      'p2p_meeting_request',
+      'p2p_meeting_confirmed',
+      'p2p_meeting_declined',
+      'p2p_post_meeting_outcome',
+      'coin_milestone',
+      'unclaimed_coins',
+      'non_pro_upsell',
+      'pro_expiry',
+      'leaderboard_rank_change',
+      'weekly_digest',
     };
 
     if (consumerTypes.contains(t) || consumerTypes.contains(c)) {
       return false;
     }
 
+    if (audience == 'leadership' ||
+        data['app'] == 'leader' ||
+        data['app_name'] == 'leader_app') {
+      return true;
+    }
+
+    const leaderKeywords = [
+      'requirement',
+      'lead',
+      'referral',
+      'deal',
+      'ask',
+      'circle',
+      'leader',
+      'report',
+      'finance',
+      'payment',
+      'commission',
+      'payout',
+      'approval',
+      'pending',
+      'role',
+      'circular',
+      'milestone',
+      'governance',
+      'compliance',
+      'security',
+      'membership',
+      'performance',
+      'industry',
+    ];
+    final combinedType = '$t $c $innerType $eventKey';
+    if (leaderKeywords.any(combinedType.contains)) {
+      return true;
+    }
+
+    if (s == 'event_detail' ||
+        s == 'event_details' ||
+        s == 'live_meeting' ||
+        s.contains('post_detail') ||
+        s.contains('/post-detail') ||
+        s == 'feed' ||
+        s == '/feed' ||
+        s.contains('chat_conversation') ||
+        s == 'connections' ||
+        s == 'member_feed') {
+      return false;
+    }
+
     return true;
   }
 }
-

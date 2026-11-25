@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/notifications/notification_highlight_wrapper.dart';
+import '../../../../core/notifications/notification_list_focus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
@@ -8,7 +10,7 @@ import '../circle_event_detail_screen.dart';
 
 /// Renders the Events list with interactive gradient filter tabs, theme-consistent
 /// assembly cards, and navigation to the dedicated event detail screen.
-class CircleEventsSection extends StatelessWidget {
+class CircleEventsSection extends StatefulWidget {
   final List<CircleEventModel> events;
   final List<CircleEventModel> allEvents;
   final bool isLoading;
@@ -16,6 +18,7 @@ class CircleEventsSection extends StatelessWidget {
   final ValueChanged<String> onFilterChanged;
   final CircleTeamModel? circle;
   final List<PeerModel> peers;
+  final String? focusEventId;
 
   const CircleEventsSection({
     super.key,
@@ -26,62 +29,94 @@ class CircleEventsSection extends StatelessWidget {
     required this.onFilterChanged,
     this.circle,
     this.peers = const [],
+    this.focusEventId,
   });
 
-  static Map<String, String> _formatDateTimeParts(
-    String rawDate,
-    String rawTime,
-  ) {
-    final trimmedDate = rawDate.trim();
-    final trimmedTime = rawTime.trim();
+  @override
+  State<CircleEventsSection> createState() => _CircleEventsSectionState();
+}
 
-    if (trimmedDate.isEmpty && trimmedTime.isEmpty) {
-      return {'date': 'Date TBD', 'time': ''};
+class _CircleEventsSectionState extends State<CircleEventsSection> {
+  final NotificationListFocusController _focusController =
+      NotificationListFocusController();
+  final Map<String, GlobalKey> _eventKeys = <String, GlobalKey>{};
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.focusEventId?.trim() ?? '';
+    if (id.isNotEmpty) {
+      _focusController.setTarget(
+        NotificationListFocusRequest(targetId: id, targetType: 'event'),
+      );
     }
-
-    final dt = DateTime.tryParse(trimmedDate);
-    if (dt != null) {
-      final local = dt.toLocal();
-      const months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
-      final dateStr =
-          '${local.day.toString().padLeft(2, '0')} ${months[local.month - 1]} ${local.year}';
-
-      String timeStr = trimmedTime;
-      if (timeStr.isEmpty &&
-          (trimmedDate.contains('T') || trimmedDate.contains(':'))) {
-        final hour12 = local.hour % 12 == 0 ? 12 : local.hour % 12;
-        final minuteStr = local.minute.toString().padLeft(2, '0');
-        final period = local.hour >= 12 ? 'PM' : 'AM';
-        timeStr = '$hour12:$minuteStr $period';
-      }
-      return {'date': dateStr, 'time': timeStr};
-    }
-
-    return {
-      'date': trimmedDate.isNotEmpty ? trimmedDate : 'Date TBD',
-      'time': trimmedTime,
-    };
   }
 
   @override
+  void didUpdateWidget(covariant CircleEventsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.focusEventId != oldWidget.focusEventId) {
+      final id = widget.focusEventId?.trim() ?? '';
+      if (id.isNotEmpty) {
+        _focusController.setTarget(
+          NotificationListFocusRequest(targetId: id, targetType: 'event'),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusController.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _keyFor(String id) =>
+      _eventKeys.putIfAbsent(id, () => GlobalKey());
+
+  @override
   Widget build(BuildContext context) {
+    final events = widget.events;
+    final allEvents = widget.allEvents;
+    final isLoading = widget.isLoading;
+    final selectedFilter = widget.selectedFilter;
+    final onFilterChanged = widget.onFilterChanged;
+    final circle = widget.circle;
+    final peers = widget.peers;
+
     final sourceEvents = allEvents.isNotEmpty ? allEvents : events;
     final allCount = sourceEvents.length;
     final upcomingCount = sourceEvents.where((e) => e.isUpcoming).length;
     final completedCount = sourceEvents.where((e) => e.isCompleted).length;
+
+    if (!isLoading && _focusController.pendingRequest != null) {
+      final targetId = _focusController.pendingRequest!.targetId;
+      final inFiltered = events.any((e) => e.id == targetId);
+      final inAll = allEvents.any((e) => e.id == targetId);
+      if (!inFiltered && inAll && selectedFilter != 'All') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) onFilterChanged('All');
+        });
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
+          await _focusController.resolveTarget<CircleEventModel>(
+            items: events,
+            idOf: (e) => e.id,
+            hasMore: () => false,
+            loadMore: () async {},
+            keyLookup: (id) => _eventKeys[id],
+          );
+          if (mounted &&
+              _focusController.notFound &&
+              _focusController.statusMessage != null) {
+            ScaffoldMessenger.of(this.context).showSnackBar(
+              SnackBar(content: Text(_focusController.statusMessage!)),
+            );
+          }
+        });
+      }
+    }
 
     final filterItems = [
       {'label': 'All', 'count': allCount},
@@ -283,14 +318,18 @@ class CircleEventsSection extends StatelessWidget {
           )
         else
           Expanded(
-            child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: events.length,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              itemBuilder: (context, idx) {
+            child: ListenableBuilder(
+              listenable: _focusController,
+              builder: (context, _) {
+                final activeId = _focusController.highlightedId;
+                return ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: events.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  itemBuilder: (context, idx) {
               final ev = events[idx];
               final isUpcoming = ev.isUpcoming;
-              final dtParts = _formatDateTimeParts(ev.date, ev.time);
+              final schedule = ev.formattedSchedule();
 
               IconData icon = Icons.event_available_rounded;
               if (ev.title.contains('Summit') || ev.title.contains('Assembly')) {
@@ -304,7 +343,14 @@ class CircleEventsSection extends StatelessWidget {
                 icon = Icons.handshake_rounded;
               }
 
-              return Container(
+              return NotificationHighlightWrapper(
+                key: _keyFor(ev.id),
+                itemId: ev.id,
+                activeTargetId: activeId,
+                onHighlightCompleted: () =>
+                    _focusController.markHighlightCompleted(ev.id),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -454,7 +500,7 @@ class CircleEventsSection extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
 
-                          // Date & Time Row with Gradient Icons & Cadence Display
+                          // Date & Time Row with timezone-aware formatting
                           Row(
                             children: [
                               const GradientIcon(
@@ -465,7 +511,7 @@ class CircleEventsSection extends StatelessWidget {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  ev.effectiveDateWithCadence,
+                                  schedule.dateLabel,
                                   style: const TextStyle(
                                     color: AppColors.text,
                                     fontSize: 12,
@@ -482,14 +528,18 @@ class CircleEventsSection extends StatelessWidget {
                                 gradient: AppColors.brandGradient,
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                ev.effectiveTimeRange.isNotEmpty
-                                    ? ev.effectiveTimeRange
-                                    : (dtParts['time']!.isNotEmpty ? dtParts['time']! : 'Time TBD'),
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w500,
+                              Flexible(
+                                child: Text(
+                                  schedule.timeLabel.isNotEmpty
+                                      ? schedule.timeLabel
+                                      : 'Time TBD',
+                                  style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -580,9 +630,12 @@ class CircleEventsSection extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
               );
             },
-          ),
+          );
+              },
+            ),
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import '../../../../core/utils/date_time_utils.dart';
+import 'peer_profile_sections_model.dart';
 /// Model representing a P2P or circle meeting item in peer profile.
 class PeerMeetingModel {
   final String id;
@@ -487,20 +488,29 @@ class PeerProfileDetailModel {
   final List<PeerCollaborationItemModel> collaborations;
   final PeerSubscriptionModel? appSubscription;
   final PeerCircleSubscriptionModel? circleSubscription;
+  final PeerIdentityHeaderModel? identity;
+  final PeerBusinessInfoModel? business;
+  final PeerOrganizationInfoModel? organization;
+  final PeerLeadershipHistoryModel? leadership;
+  final PeerCollaborationGrowthModel? collaborationsInfo;
+  final PeerLifeImpactSummaryModel? lifeImpact;
+  final PeerPerformanceInfoModel? performance;
+  final PeerComplianceInfoModel? compliance;
+  final List<PeerTimelineEventModel> timeline;
 
   const PeerProfileDetailModel({
     this.bio = '',
     this.birthday = '',
     this.anniversary = '',
     this.joinedDate = '',
-    this.dealsClosed = '₹0.0',
-    this.dealsGiven = '₹0.0',
-    this.dealsReceived = '₹0.0',
+    this.dealsClosed = '₹0',
+    this.dealsGiven = '₹0',
+    this.dealsReceived = '₹0',
     this.referralsGiven = 0,
     this.referralsReceived = 0,
     this.p2pSessions = 0,
     this.coinsEarned = 0,
-    this.attendanceRate = '0%',
+    this.attendanceRate = '',
     this.impactCount = 0,
     this.introducedPeersCount = 0,
     this.collaborationsCount = 0,
@@ -516,6 +526,15 @@ class PeerProfileDetailModel {
     this.collaborations = const [],
     this.appSubscription,
     this.circleSubscription,
+    this.identity,
+    this.business,
+    this.organization,
+    this.leadership,
+    this.collaborationsInfo,
+    this.lifeImpact,
+    this.performance,
+    this.compliance,
+    this.timeline = const [],
   });
 
   factory PeerProfileDetailModel.fromJson(Map<String, dynamic> json) {
@@ -650,18 +669,70 @@ class PeerProfileDetailModel {
       }
     }
 
+    final root = dataMap ?? json;
+    final identityObj = root['identity'] is Map
+        ? PeerIdentityHeaderModel.fromJson(
+            Map<String, dynamic>.from(root['identity'] as Map),
+          )
+        : null;
+    final businessObj = root['business'] is Map
+        ? PeerBusinessInfoModel.fromJson(
+            Map<String, dynamic>.from(root['business'] as Map),
+          )
+        : null;
+    final organizationObj = root['organization'] is Map
+        ? PeerOrganizationInfoModel.fromJson(
+            Map<String, dynamic>.from(root['organization'] as Map),
+          )
+        : null;
+    final leadershipObj = root['leadership'] is Map
+        ? PeerLeadershipHistoryModel.fromJson(
+            Map<String, dynamic>.from(root['leadership'] as Map),
+          )
+        : null;
+    final collabGrowthObj = root['collaborations'] is Map
+        ? PeerCollaborationGrowthModel.fromJson(
+            Map<String, dynamic>.from(root['collaborations'] as Map),
+          )
+        : null;
+    final lifeImpactObj = root['life_impact'] is Map
+        ? PeerLifeImpactSummaryModel.fromJson(
+            Map<String, dynamic>.from(root['life_impact'] as Map),
+          )
+        : null;
+    final performanceObj = root['performance'] is Map
+        ? PeerPerformanceInfoModel.fromJson(
+            Map<String, dynamic>.from(root['performance'] as Map),
+          )
+        : null;
+    final complianceObj = root['compliance'] is Map
+        ? PeerComplianceInfoModel.fromJson(
+            Map<String, dynamic>.from(root['compliance'] as Map),
+          )
+        : null;
+    final timelineList = root['timeline'] is List
+        ? (root['timeline'] as List)
+            .whereType<Map>()
+            .map(
+              (e) =>
+                  PeerTimelineEventModel.fromJson(Map<String, dynamic>.from(e)),
+            )
+            .toList()
+        : const <PeerTimelineEventModel>[];
+
     return PeerProfileDetailModel(
       bio: parseString(['bio', 'about']),
       birthday: parseString(['birthday', 'birth_date', 'date_of_birth']),
       anniversary: parseString(['anniversary', 'anniversary_date']),
       joinedDate: parseString(['joined_date', 'created_at', 'joined_at']),
-      dealsClosed: parseString(['deals_closed', 'closed_deals', 'total_deals_value'], fallback: '₹0.0'),
-      dealsGiven: parseString(['deals_given', 'given_deals'], fallback: '₹0.0'),
-      dealsReceived: parseString(['deals_received', 'received_deals'], fallback: '₹0.0'),
+      dealsClosed: parseString(['deals_closed', 'closed_deals', 'total_deals_value']),
+      dealsGiven: parseString(['deals_given', 'given_deals']),
+      dealsReceived: parseString(['deals_received', 'received_deals']),
       referralsGiven: parseInt(['referrals_given', 'given_referrals', 'referral_given_count']),
       referralsReceived: parseInt(['referrals_received', 'received_referrals', 'referral_received_count']),
       p2pSessions: parseInt(['p2p_sessions', 'p2p_meetings', 'p2p_count', 'p2p_meeting_count', 'p2p']),
       coinsEarned: parseInt(['coins_earned', 'coins', 'total_coins', 'coins_count']),
+      attendanceRate: parseString(['attendance_rate', 'attendance_percentage']),
       impactCount: parseInt([
         'life_impacted_count',
         'life_impact',
@@ -682,12 +753,14 @@ class PeerProfileDetailModel {
         'peers_introduced',
         'introduced_peers_list',
       ]),
-      collaborationsCount: parseInt([
-        'collaborations_count',
-        'collaborations',
-        'total_collaborations',
-        'collaborations_closed',
-      ]),
+      collaborationsCount: collabGrowthObj != null
+          ? collabGrowthObj.collaborationAsksCount
+          : parseInt([
+              'collaborations_count',
+              'collaborations',
+              'total_collaborations',
+              'collaborations_closed',
+            ]),
       tags: tagsList,
       phone: contact?['phone']?.toString() ?? parseString(['phone', 'mobile']),
       email: contact?['email']?.toString() ?? parseString(['email']),
@@ -700,6 +773,15 @@ class PeerProfileDetailModel {
       collaborations: const [],
       appSubscription: appSub,
       circleSubscription: circleSub,
+      identity: identityObj,
+      business: businessObj,
+      organization: organizationObj,
+      leadership: leadershipObj,
+      collaborationsInfo: collabGrowthObj,
+      lifeImpact: lifeImpactObj,
+      performance: performanceObj,
+      compliance: complianceObj,
+      timeline: timelineList,
     );
   }
 
@@ -731,6 +813,15 @@ class PeerProfileDetailModel {
     List<PeerCollaborationItemModel>? collaborations,
     PeerSubscriptionModel? appSubscription,
     PeerCircleSubscriptionModel? circleSubscription,
+    PeerIdentityHeaderModel? identity,
+    PeerBusinessInfoModel? business,
+    PeerOrganizationInfoModel? organization,
+    PeerLeadershipHistoryModel? leadership,
+    PeerCollaborationGrowthModel? collaborationsInfo,
+    PeerLifeImpactSummaryModel? lifeImpact,
+    PeerPerformanceInfoModel? performance,
+    PeerComplianceInfoModel? compliance,
+    List<PeerTimelineEventModel>? timeline,
   }) {
     return PeerProfileDetailModel(
       bio: bio ?? this.bio,
@@ -760,6 +851,15 @@ class PeerProfileDetailModel {
       collaborations: collaborations ?? this.collaborations,
       appSubscription: appSubscription ?? this.appSubscription,
       circleSubscription: circleSubscription ?? this.circleSubscription,
+      identity: identity ?? this.identity,
+      business: business ?? this.business,
+      organization: organization ?? this.organization,
+      leadership: leadership ?? this.leadership,
+      collaborationsInfo: collaborationsInfo ?? this.collaborationsInfo,
+      lifeImpact: lifeImpact ?? this.lifeImpact,
+      performance: performance ?? this.performance,
+      compliance: compliance ?? this.compliance,
+      timeline: timeline ?? this.timeline,
     );
   }
 
@@ -975,7 +1075,7 @@ class PeerPostLikeModel {
         userMap?['name']?.toString() ??
         userMap?['peer_name']?.toString() ??
         userMap?['display_name']?.toString() ??
-        'Peer Member';
+        'Peer';
 
     final avatarUrl = json['profile_photo_url']?.toString() ??
         json['avatar_url']?.toString() ??
@@ -1041,7 +1141,7 @@ class PeerPostCommentModel {
         userMap?['name']?.toString() ??
         userMap?['peer_name']?.toString() ??
         userMap?['display_name']?.toString() ??
-        'Peer Member';
+        'Peer';
 
     final authorAvatarUrl = json['author_avatar']?.toString() ??
         json['profile_photo_url']?.toString() ??

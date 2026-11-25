@@ -32,10 +32,23 @@ class SwitchLeaderActivitiesTab extends LeaderActivitiesEvent {
   const SwitchLeaderActivitiesTab(this.tabIndex);
 }
 
+class ChangeLeaderActivitiesFilter extends LeaderActivitiesEvent {
+  final bool? sortByRecent;
+  final String? selectedFilterType;
+  final bool clearFilterType;
+
+  const ChangeLeaderActivitiesFilter({
+    this.sortByRecent,
+    this.selectedFilterType,
+    this.clearFilterType = false,
+  });
+}
+
 class ApproveLeaderActivityItem extends LeaderActivitiesEvent {
   final LeaderActivityItemModel item;
+  final String? remarks;
 
-  const ApproveLeaderActivityItem(this.item);
+  const ApproveLeaderActivityItem(this.item, {this.remarks});
 }
 
 class RejectLeaderActivityItem extends LeaderActivitiesEvent {

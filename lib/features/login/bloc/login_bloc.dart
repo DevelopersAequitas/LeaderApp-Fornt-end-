@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/formatting/phone_number_helper.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/error_formatter.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -10,14 +11,27 @@ import 'login_state.dart';
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final AuthRepository _authRepository;
 
-  LoginBloc({AuthRepository? authRepository})
-      : _authRepository = authRepository ?? AuthRepositoryImpl(),
-        super(const LoginState()) {
+  LoginBloc({
+    AuthRepository? authRepository,
+    String? initialCountryCode,
+  })  : _authRepository = authRepository ?? AuthRepositoryImpl(),
+        super(_initialState(initialCountryCode)) {
     on<EmailOrPhoneChanged>(_onEmailOrPhoneChanged);
     on<LoginChannelChanged>(_onChannelChanged);
     on<LoginCountryChanged>(_onCountryChanged);
     on<SubmitLogin>(_onSubmitLogin);
     on<DismissNotLeaderNotice>(_onDismissNotLeaderNotice);
+  }
+
+  static LoginState _initialState(String? initialCountryCode) {
+    final country = PhoneNumberHelper.resolveCountry(
+      countryIso: initialCountryCode,
+    );
+    return LoginState(
+      countryCode: country.countryCode,
+      dialCode: '+${country.phoneCode}',
+      flag: country.flagEmoji,
+    );
   }
 
   void _onEmailOrPhoneChanged(
@@ -28,7 +42,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(
       state.copyWith(
         emailOrPhone: value,
-        isFormValid: _isValidForChannel(value, state.channel),
+        isFormValid: _isValidForChannel(
+          value,
+          state.channel,
+          countryCode: state.countryCode,
+        ),
         errorMessage: '',
         successMessage: '',
         isOtpSent: false,
@@ -45,7 +63,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(
       state.copyWith(
         channel: event.channel,
-        isFormValid: _isValidForChannel(state.emailOrPhone, event.channel),
+        isFormValid: _isValidForChannel(
+          state.emailOrPhone,
+          event.channel,
+          countryCode: state.countryCode,
+        ),
         errorMessage: '',
         successMessage: '',
         isOtpSent: false,
@@ -59,10 +81,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginCountryChanged event,
     Emitter<LoginState> emit,
   ) {
+    final resolvedIso = event.countryCode?.trim().toUpperCase() ??
+        PhoneNumberHelper.isoCodeFromDialCode(event.dialCode) ??
+        state.countryCode;
     emit(
       state.copyWith(
+        countryCode: resolvedIso,
         dialCode: event.dialCode,
         flag: event.flag,
+        isFormValid: _isValidForChannel(
+          state.emailOrPhone,
+          state.channel,
+          countryCode: resolvedIso,
+        ),
         errorMessage: '',
         successMessage: '',
         isOtpSent: false,
@@ -88,26 +119,52 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     SubmitLogin event,
     Emitter<LoginState> emit,
   ) async {
-    final identifier = (event.identifier ?? state.emailOrPhone).trim();
+    final rawIdentifier = (event.identifier ?? state.emailOrPhone).trim();
+    String identifierToSubmit = rawIdentifier;
 
-    if (identifier.isEmpty || !_isValidForChannel(identifier, state.channel)) {
-      final invalidMsg = state.channel == 'whatsapp'
-          ? 'Please enter a valid mobile number.'
-          : 'Please enter a valid email address.';
-      emit(
-        state.copyWith(
-          errorMessage: invalidMsg,
-          isOtpSent: false,
-          isNotLeader: false,
-          isAccountUnregistered: false,
-        ),
+    if (state.channel == 'whatsapp') {
+      final phoneResult = PhoneNumberHelper.validate(
+        rawIdentifier,
+        countryIso: state.countryCode,
+        dialCode: state.dialCode,
       );
-      return;
+      if (!phoneResult.isValid || phoneResult.e164 == null) {
+        emit(
+          state.copyWith(
+            errorMessage: phoneResult.errorMessage ??
+                'Please enter a valid mobile number.',
+            isOtpSent: false,
+            isNotLeader: false,
+            isAccountUnregistered: false,
+          ),
+        );
+        return;
+      }
+      // Backend contract (`POST /leader/auth/send-otp` & `verify-otp`) expects
+      // E.164 format (`+<countryCode><nsn>`).
+      identifierToSubmit = phoneResult.e164!;
+    } else {
+      if (rawIdentifier.isEmpty ||
+          !_isValidForChannel(
+            rawIdentifier,
+            state.channel,
+            countryCode: state.countryCode,
+          )) {
+        emit(
+          state.copyWith(
+            errorMessage: 'Please enter a valid email address.',
+            isOtpSent: false,
+            isNotLeader: false,
+            isAccountUnregistered: false,
+          ),
+        );
+        return;
+      }
     }
 
     emit(
       state.copyWith(
-        emailOrPhone: identifier,
+        emailOrPhone: identifierToSubmit,
         isLoading: true,
         errorMessage: '',
         successMessage: '',
@@ -118,7 +175,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     );
 
     try {
-      final response = await _authRepository.sendOtp(identifier);
+      final response = await _authRepository.sendOtp(identifierToSubmit);
       final data = response.data;
       final errorCode = (response.errorCode ?? '').toUpperCase();
       final resultModel = data != null
@@ -248,17 +305,31 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
   /// Validates whether the string is valid for the selected channel.
-  bool _isValidForChannel(String value, String channel) {
+  bool _isValidForChannel(
+    String value,
+    String channel, {
+    required String countryCode,
+  }) {
     final cleanValue = value.trim();
     if (cleanValue.isEmpty) return false;
 
     if (channel == 'whatsapp') {
-      final digits = cleanValue.replaceAll(RegExp(r'[^\d]'), '');
-      return digits.length >= 7 && digits.length <= 15;
+      return PhoneNumberHelper.validate(
+        cleanValue,
+        countryIso: countryCode,
+      ).isValid;
     }
 
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,6}$');
-    final phoneRegex = RegExp(r'^\+?[0-9]{7,15}$');
-    return emailRegex.hasMatch(cleanValue) || phoneRegex.hasMatch(cleanValue);
+    if (emailRegex.hasMatch(cleanValue)) return true;
+
+    // Also allow international phone entry when user explicitly provides '+'.
+    if (cleanValue.startsWith('+')) {
+      return PhoneNumberHelper.validate(
+        cleanValue,
+        countryIso: countryCode,
+      ).isValid;
+    }
+    return false;
   }
 }

@@ -44,6 +44,7 @@ abstract class ApiEndpoints {
   // --- 1. Authentication & Profile ---
   static String get sendOtp => '$baseUrl/leader/auth/send-otp';
   static String get verifyOtp => '$baseUrl/leader/auth/verify-otp';
+  static String get logout => '$baseUrl/leader/auth/logout';
   static String get profile => '$baseUrl/leader/profile';
   static String get updateProfile => '$baseUrl/leader/profile';
   static String get uploadAvatar => '$baseUrl/leader/auth/profile/avatar';
@@ -70,6 +71,11 @@ abstract class ApiEndpoints {
           : '$baseUrl/admin/pending-requests/$id/reject';
   static String get leaderPendingRequestsSummary =>
       '$baseUrl/leader/pending-requests/summary';
+  static String get leaderPendingRequests => '$baseUrl/leader/pending-requests';
+  static String get leaderLeadsCounts => '$baseUrl/leader/leads/counts';
+  static String leaderLeadsByType(String type) =>
+      '$baseUrl/leader/leads/$type';
+  static String get leaderPosts => '$baseUrl/leader/posts';
   static String leaderApprovePendingRequest(String id, {String? category}) =>
       category != null && category.isNotEmpty && category != 'all'
           ? '$baseUrl/leader/pending-requests/$category/$id/approve'
@@ -98,6 +104,9 @@ abstract class ApiEndpoints {
   static String memberSpecificActivity(String memberId, String path) =>
       '$baseUrl/leader/members/$memberId/$path';
   static String get impacts => '$baseUrl/leader/impacts';
+  static String impactDetail(String id) => '$baseUrl/leader/impacts/$id';
+  static String approveImpact(String id) => '$baseUrl/leader/impacts/$id/approve';
+  static String rejectImpact(String id) => '$baseUrl/leader/impacts/$id/reject';
   static String get p2pMeetings => '$baseUrl/leader/p2p-meetings';
   static String get logP2pMeeting => '$baseUrl/leader/p2p-meetings';
   static String get businessDeals => '$baseUrl/leader/business-deals';
@@ -118,6 +127,8 @@ abstract class ApiEndpoints {
       '$baseUrl/leader/teams/circles/$id/refer-category';
   static String circleEvents(String id) =>
       '$baseUrl/leader/teams/circles/$id/events';
+  static String assignCircleRole(String id) =>
+      '$baseUrl/leader/teams/circles/$id/assign-role';
   static String get leaderContacts => '$baseUrl/leader/contacts';
   static String get contactPosts => '$baseUrl/contact-posts';
   static String get recommendPeerForm => '$baseUrl/forms/recommend-peer';

@@ -1,6 +1,9 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/formatting/phone_number_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/gradient_widgets.dart';
+import '../../../../core/widgets/international_phone_field.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../model/profile_model.dart';
 
@@ -44,13 +47,18 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   late final TextEditingController _phoneCtrl;
   late final TextEditingController _bioCtrl;
   late final TextEditingController _companyCtrl;
+  late Country _selectedCountry;
+  bool _phoneModified = false;
+  String? _phoneError;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
+    final split = PhoneNumberHelper.splitStoredPhone(widget.profile.phone);
+    _selectedCountry = split.country;
     _nameCtrl = TextEditingController(text: widget.profile.name);
-    _phoneCtrl = TextEditingController(text: widget.profile.phone);
+    _phoneCtrl = TextEditingController(text: split.nationalInput);
     _bioCtrl = TextEditingController(text: widget.profile.bio);
     _companyCtrl = TextEditingController(
       text: widget.profile.companyName.isNotEmpty
@@ -80,11 +88,36 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
       return;
     }
 
-    setState(() => _isSaving = true);
+    // Preserve the existing stored phone value untouched when the user did not
+    // edit the phone field, avoiding silent data migration.
+    String phoneToSubmit = widget.profile.phone;
+    if (_phoneModified) {
+      final rawPhone = _phoneCtrl.text.trim();
+      if (rawPhone.isEmpty) {
+        phoneToSubmit = '';
+      } else {
+        final validation = PhoneNumberHelper.validate(
+          rawPhone,
+          countryIso: _selectedCountry.countryCode,
+          countryName: _selectedCountry.name,
+          dialCode: '+${_selectedCountry.phoneCode}',
+        );
+        if (!validation.isValid || validation.e164 == null) {
+          setState(() => _phoneError = validation.errorMessage);
+          return;
+        }
+        phoneToSubmit = validation.e164!;
+      }
+    }
+
+    setState(() {
+      _phoneError = null;
+      _isSaving = true;
+    });
     try {
       final res = await AuthRepositoryImpl().updateProfile(
         name: _nameCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim(),
+        phone: phoneToSubmit,
         bio: _bioCtrl.text.trim(),
         companyName: _companyCtrl.text.trim(),
       );
@@ -242,20 +275,27 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
               ),
               const SizedBox(height: 12),
 
-              // Phone Number Field
-              TextField(
+              // Phone Number Field (international)
+              InternationalPhoneField(
                 controller: _phoneCtrl,
-                keyboardType: TextInputType.phone,
-                style: const TextStyle(
-                  color: AppColors.text,
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w500,
-                ),
-                decoration: _buildInputDecoration(
-                  labelText: 'Phone Number',
-                  prefixIcon: Icons.phone_outlined,
-                  hintText: '+91 98765 43210',
-                ),
+                selectedCountry: _selectedCountry,
+                label: 'Phone Number',
+                errorText: _phoneError,
+                onCountryChanged: (country) {
+                  setState(() {
+                    _selectedCountry = country;
+                    _phoneModified = true;
+                    _phoneError = null;
+                  });
+                },
+                onChanged: (_) {
+                  if (!_phoneModified || _phoneError != null) {
+                    setState(() {
+                      _phoneModified = true;
+                      _phoneError = null;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
 

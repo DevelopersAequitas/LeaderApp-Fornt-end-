@@ -1,3 +1,5 @@
+import '../../../core/formatting/event_time_display.dart';
+
 /// Model representing an event associated with a member (as creator, organizer, or attendee).
 class MemberEventItemModel {
   final String id;
@@ -7,6 +9,10 @@ class MemberEventItemModel {
   final String locationText;
   final String startAt;
   final String endAt;
+  final DateTime? startAtUtc;
+  final DateTime? endAtUtc;
+  final String? timezone;
+  final Duration? utcOffset;
   final String status;
   final List<String> memberRoles;
   final String registrationStatus;
@@ -24,6 +30,10 @@ class MemberEventItemModel {
     this.locationText = '',
     this.startAt = '',
     this.endAt = '',
+    this.startAtUtc,
+    this.endAtUtc,
+    this.timezone,
+    this.utcOffset,
     this.status = 'upcoming',
     this.memberRoles = const [],
     this.registrationStatus = 'registered',
@@ -51,14 +61,29 @@ class MemberEventItemModel {
       }
     }
 
+    final rawStart =
+        json['starts_at_utc']?.toString() ?? json['start_at'] as String? ?? json['date'] as String? ?? '';
+    final rawEnd = json['ends_at_utc']?.toString() ?? json['end_at'] as String? ?? '';
+    final rawTz = (json['timezone'] ??
+            json['time_zone'] ??
+            json['iana_timezone'] ??
+            json['tz'])
+        ?.toString()
+        .trim();
+
     return MemberEventItemModel(
       id: json['id']?.toString() ?? '',
       title: json['title'] as String? ?? 'Event',
       eventType: json['event_type'] as String? ?? '',
       mode: json['mode'] as String? ?? 'In-Person',
       locationText: json['location_text'] as String? ?? json['location'] as String? ?? '',
-      startAt: json['start_at'] as String? ?? json['date'] as String? ?? '',
-      endAt: json['end_at'] as String? ?? '',
+      startAt: rawStart,
+      endAt: rawEnd,
+      startAtUtc: EventTimeDisplay.parseIsoUtcInstant(rawStart),
+      endAtUtc: EventTimeDisplay.parseIsoUtcInstant(rawEnd),
+      timezone: (rawTz != null && rawTz.isNotEmpty) ? rawTz : null,
+      utcOffset: EventTimeDisplay.parseOffsetMinutes(json['utc_offset_minutes']) ??
+          EventTimeDisplay.parseIsoOffset(rawStart),
       status: json['status'] as String? ?? 'upcoming',
       memberRoles: roles,
       registrationStatus: json['registration_status'] as String? ?? 'registered',
@@ -67,6 +92,26 @@ class MemberEventItemModel {
       isPaid: json['is_paid'] as bool? ?? false,
       ticketPrice: price,
       createdAt: json['created_at'] as String? ?? '',
+    );
+  }
+
+  /// Formats this event's schedule through the shared timezone-aware formatter.
+  FormattedEventSchedule formattedSchedule({
+    bool showZoneId = false,
+    bool showViewerTime = false,
+    Duration? viewerOffset,
+    String localeName = 'en',
+  }) {
+    return EventTimeDisplay.format(
+      startAtUtc: startAtUtc,
+      endAtUtc: endAtUtc,
+      ianaZone: timezone,
+      zoneOffset: utcOffset,
+      rawDate: startAt,
+      showZoneId: showZoneId,
+      showViewerTime: showViewerTime,
+      viewerOffset: viewerOffset,
+      localeName: localeName,
     );
   }
 

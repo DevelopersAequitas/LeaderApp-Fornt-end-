@@ -12,6 +12,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/notifications/notification_highlight_wrapper.dart';
+import '../../../core/notifications/notification_list_focus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/role_management_bloc.dart';
@@ -29,20 +31,57 @@ import 'widgets/role_selector_bar.dart';
 /// The View component of the Role Management feature for Super Admin.
 /// 100% Pure StatelessWidget powered by BLoC state machine.
 class RoleManagementView extends StatelessWidget {
-  const RoleManagementView({super.key});
+  final String? focusRoleId;
+
+  const RoleManagementView({super.key, this.focusRoleId});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<RoleManagementBloc>(
       create: (context) =>
           RoleManagementBloc()..add(const LoadRoleManagementData()),
-      child: const _RoleManagementContent(),
+      child: _RoleManagementContent(focusRoleId: focusRoleId),
     );
   }
 }
 
-class _RoleManagementContent extends StatelessWidget {
-  const _RoleManagementContent();
+class _RoleManagementContent extends StatefulWidget {
+  final String? focusRoleId;
+
+  const _RoleManagementContent({this.focusRoleId});
+
+  @override
+  State<_RoleManagementContent> createState() =>
+      _RoleManagementContentState();
+}
+
+class _RoleManagementContentState extends State<_RoleManagementContent> {
+  final NotificationListFocusController _focusController =
+      NotificationListFocusController();
+  final Map<String, GlobalKey> _roleKeys = <String, GlobalKey>{};
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.focusRoleId?.trim() ?? '';
+    if (id.isNotEmpty) {
+      _focusController.setTarget(
+        NotificationListFocusRequest(
+          targetId: id,
+          targetType: 'role_assignment',
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusController.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _keyFor(String id) =>
+      _roleKeys.putIfAbsent(id, () => GlobalKey());
 
   void _showAddRoleModal(BuildContext context) {
     final bloc = context.read<RoleManagementBloc>();
@@ -200,27 +239,76 @@ class _RoleManagementContent extends StatelessWidget {
 
                 // Role Header Card & Capabilities List
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    children: [
-                      RoleHeaderCard(
-                        rolePermission: selectedRole,
-                        totalCapabilities: state.capabilities.length,
-                        onEdit: () =>
-                            _showEditRoleModal(context, selectedRole),
-                        onDelete: () =>
-                            _showDeleteConfirmModal(context, selectedRole),
-                        onToggleAll: (enable) {
-                          bloc.add(
-                            BulkToggleAllRoleCapabilities(
-                              roleId: selectedRole.role.id,
-                              allCapabilityIds:
-                                  state.capabilities.map((c) => c.id).toList(),
-                              enable: enable,
+                  child: ListenableBuilder(
+                    listenable: _focusController,
+                    builder: (context, _) {
+                      if (!state.isLoading &&
+                          state.rolesPermissions.isNotEmpty &&
+                          _focusController.pendingRequest != null) {
+                        final targetId =
+                            _focusController.pendingRequest!.targetId;
+                        final match = state.rolesPermissions.where(
+                          (r) => r.role.id.toLowerCase() == targetId.toLowerCase(),
+                        );
+                        if (match.isNotEmpty &&
+                            state.selectedRoleId != match.first.role.id) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              bloc.add(SelectRole(match.first.role.id));
+                            }
+                          });
+                        } else {
+                          WidgetsBinding.instance.addPostFrameCallback((_) async {
+                            if (!mounted) return;
+                            await _focusController.resolveTarget<RolePermissionModel>(
+                              items: state.rolesPermissions,
+                              idOf: (r) => r.role.id,
+                              hasMore: () => false,
+                              loadMore: () async {},
+                              keyLookup: (id) => _roleKeys[id],
+                            );
+                            if (mounted &&
+                                _focusController.notFound &&
+                                _focusController.statusMessage != null) {
+                              ScaffoldMessenger.of(this.context).showSnackBar(
+                                SnackBar(
+                                  content: Text(_focusController.statusMessage!),
+                                ),
+                              );
+                            }
+                          });
+                        }
+                      }
+
+                      return ListView(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        children: [
+                          NotificationHighlightWrapper(
+                            key: _keyFor(selectedRole.role.id),
+                            itemId: selectedRole.role.id,
+                            activeTargetId: _focusController.highlightedId,
+                            onHighlightCompleted: () => _focusController
+                                .markHighlightCompleted(selectedRole.role.id),
+                            child: RoleHeaderCard(
+                              rolePermission: selectedRole,
+                              totalCapabilities: state.capabilities.length,
+                              onEdit: () =>
+                                  _showEditRoleModal(context, selectedRole),
+                              onDelete: () =>
+                                  _showDeleteConfirmModal(context, selectedRole),
+                              onToggleAll: (enable) {
+                                bloc.add(
+                                  BulkToggleAllRoleCapabilities(
+                                    roleId: selectedRole.role.id,
+                                    allCapabilityIds: state.capabilities
+                                        .map((c) => c.id)
+                                        .toList(),
+                                    enable: enable,
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
+                          ),
                       const SizedBox(height: 6),
                       if (groupedByCategory.isEmpty)
                         Container(
@@ -280,6 +368,8 @@ class _RoleManagementContent extends StatelessWidget {
                           );
                         }),
                     ],
+                  );
+                    },
                   ),
                 ),
 

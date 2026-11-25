@@ -20,6 +20,7 @@ import 'package:leaderapp/app.dart';
 import 'package:lottie/lottie.dart';
 import 'firebase_options.dart';
 import 'core/constants/api_endpoints.dart';
+import 'core/formatting/app_formatters.dart';
 import 'core/helpers/session_manager.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/storage/hive_cache_service.dart';
@@ -33,9 +34,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 2. Initialize Hive offline document cache and pre-load splash Lottie animation concurrently
+  // 2. Initialize Hive cache, locale/timezone formatters, and splash Lottie concurrently
   await Future.wait([
     HiveCacheService().init(),
+    AppFormatters.initialize(),
     AssetLottie('assets/animations/splash.json').load(),
   ]);
 

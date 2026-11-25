@@ -30,27 +30,33 @@ class PeerProfileBottomActions extends StatelessWidget {
         ],
       ),
       child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: PrimaryButton(
-                label: 'Log P2P',
-                leadingIcon: Icons.handshake_outlined,
-                isOutlined: true,
-                height: 44,
-                onPressed: onLogP2PTap,
+        // IntrinsicHeight + stretch: if one label wraps at a large font scale or
+        // on a narrow screen, both buttons grow to the same height instead of
+        // sitting at different heights (PrimaryButton wraps; it never overflows).
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: PrimaryButton(
+                  label: 'Log P2P',
+                  leadingIcon: Icons.handshake_outlined,
+                  isOutlined: true,
+                  height: 44,
+                  onPressed: onLogP2PTap,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: PrimaryButton(
-                label: 'Send Referral',
-                leadingIcon: Icons.send_rounded,
-                height: 44,
-                onPressed: onSendReferralTap,
+              const SizedBox(width: 10),
+              Expanded(
+                child: PrimaryButton(
+                  label: 'Send Referral',
+                  leadingIcon: Icons.send_rounded,
+                  height: 44,
+                  onPressed: onSendReferralTap,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

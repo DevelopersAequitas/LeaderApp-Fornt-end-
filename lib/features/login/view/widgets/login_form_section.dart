@@ -68,6 +68,7 @@ class LoginFormSection extends StatelessWidget {
           isWhatsapp: isWhatsapp,
           dialCode: dialCode,
           flag: flag,
+          countryCode: selectedCountry.countryCode,
           onChanged: onInputChanged,
           onCountryTap: () => _openCountryPicker(context),
           onSubmit: onSendOtp,

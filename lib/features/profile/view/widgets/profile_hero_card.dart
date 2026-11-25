@@ -308,7 +308,7 @@ class ProfileHeroCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          'Member since ${profile.memberSince}',
+                          'Peer since ${profile.memberSince}',
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary,

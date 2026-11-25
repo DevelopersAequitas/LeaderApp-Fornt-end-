@@ -17,7 +17,9 @@ import '../../features/referrals/view/referrals_view.dart';
 import '../../features/peers_by_coins/model/coin_balance_model.dart';
 import '../../features/peers_by_coins/view/peers_by_coins_view.dart';
 import '../../features/impacts/model/impact_model.dart';
+import '../../features/impacts/model/life_impact_detail_model.dart';
 import '../../features/impacts/view/impacts_view.dart';
+import '../../features/impacts/view/life_impact_detail_view.dart';
 import '../../features/p2p_meetings/model/p2p_meeting_model.dart';
 import '../../features/p2p_meetings/view/p2p_meetings_view.dart';
 import '../../features/business_deals/model/business_deal_model.dart';
@@ -84,6 +86,9 @@ abstract class AppRoutes {
   /// Impacts route
   static const String impacts = '/impacts';
 
+  /// Life Impact Detail route
+  static const String lifeImpactDetail = '/life-impact-detail';
+
   /// P2P Meetings route
   static const String p2pMeetings = '/p2p-meetings';
 
@@ -130,21 +135,31 @@ abstract class AppRoutes {
         return AppPageRoute(
           builder: (_) => const SplashView(),
           settings: settings,
+          transitionStyle: AppRouteTransitionStyle.rootFade,
         );
       case login:
         return AppPageRoute(
           builder: (_) => const LoginView(),
           settings: settings,
+          transitionStyle: AppRouteTransitionStyle.rootFade,
         );
       case '/dashboard':
       case home:
         int tab = 0;
+        String? focusTransactionId;
         if (settings.arguments is Map) {
-          tab = (settings.arguments as Map)['tab'] as int? ?? 0;
+          final map = settings.arguments as Map;
+          tab = map['tab'] as int? ?? 0;
+          focusTransactionId = map['transaction_id']?.toString() ??
+              map['target_record_id']?.toString();
         }
         return AppPageRoute(
-          builder: (_) => DashboardView(initialTab: tab),
+          builder: (_) => DashboardView(
+            initialTab: tab,
+            focusTransactionId: focusTransactionId,
+          ),
           settings: settings,
+          transitionStyle: AppRouteTransitionStyle.rootFade,
         );
       case '/teams':
       case '/circles':
@@ -153,8 +168,17 @@ abstract class AppRoutes {
           settings: settings,
         );
       case '/finance':
+        String? focusTransactionId;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          focusTransactionId = map['transaction_id']?.toString() ??
+              map['target_record_id']?.toString();
+        }
         return AppPageRoute(
-          builder: (_) => const DashboardView(initialTab: 3),
+          builder: (_) => DashboardView(
+            initialTab: 3,
+            focusTransactionId: focusTransactionId,
+          ),
           settings: settings,
         );
       case '/reports':
@@ -286,6 +310,38 @@ abstract class AppRoutes {
           builder: (_) => ImpactsView(circleId: circleId),
           settings: settings,
         );
+      case lifeImpactDetail:
+        String impactId = '';
+        LifeImpactDetailModel? initialDetail;
+        if (settings.arguments is LifeImpactDetailModel) {
+          initialDetail = settings.arguments as LifeImpactDetailModel;
+          impactId = initialDetail.id;
+        } else if (settings.arguments is LeaderActivityItemModel) {
+          initialDetail = LifeImpactDetailModel.fromActivityItem(
+            settings.arguments as LeaderActivityItemModel,
+          );
+          impactId = initialDetail.id;
+        } else if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          impactId = (map['id'] ?? map['impact_id'] ?? '').toString();
+          if (map['initialDetail'] is LifeImpactDetailModel) {
+            initialDetail = map['initialDetail'] as LifeImpactDetailModel;
+          } else if (map['initialItem'] is LeaderActivityItemModel) {
+            initialDetail = LifeImpactDetailModel.fromActivityItem(
+              map['initialItem'] as LeaderActivityItemModel,
+            );
+            if (impactId.isEmpty) impactId = initialDetail.id;
+          }
+        } else if (settings.arguments is String) {
+          impactId = settings.arguments as String;
+        }
+        return AppPageRoute(
+          builder: (_) => LifeImpactDetailView(
+            impactId: impactId,
+            initialDetail: initialDetail,
+          ),
+          settings: settings,
+        );
       case p2pMeetings:
         final circleId = settings.arguments as String?;
         return AppPageRoute(
@@ -293,9 +349,21 @@ abstract class AppRoutes {
           settings: settings,
         );
       case businessDeals:
-        final circleId = settings.arguments as String?;
+        String? circleId;
+        String? focusDealId;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          circleId = map['circle_id']?.toString() ?? map['circleId']?.toString();
+          focusDealId =
+              map['deal_id']?.toString() ?? map['target_record_id']?.toString();
+        } else if (settings.arguments is String) {
+          circleId = settings.arguments as String;
+        }
         return AppPageRoute(
-          builder: (_) => BusinessDealsView(circleId: circleId),
+          builder: (_) => BusinessDealsView(
+            circleId: circleId,
+            focusDealId: focusDealId,
+          ),
           settings: settings,
         );
       case requirements:
@@ -307,12 +375,16 @@ abstract class AppRoutes {
       case leaderActivities:
         String activityType = 'visitor-registrations';
         String? circleId;
+        String? focusItemId;
         if (settings.arguments is Map) {
           final map = settings.arguments as Map;
           activityType =
               (map['type'] ?? map['activityType'] ?? 'visitor-registrations')
                   .toString();
           circleId = map['circleId']?.toString() ?? map['circle_id']?.toString();
+          focusItemId = map['approval_id']?.toString() ??
+              map['target_record_id']?.toString() ??
+              map['entity_id']?.toString();
         } else if (settings.arguments is String) {
           activityType = settings.arguments as String;
         }
@@ -320,6 +392,7 @@ abstract class AppRoutes {
           builder: (_) => LeaderActivitiesView(
             activityType: activityType,
             circleId: circleId,
+            focusItemId: focusItemId,
           ),
           settings: settings,
         );
@@ -354,9 +427,21 @@ abstract class AppRoutes {
           settings: settings,
         );
       case circleEvents:
-        final circle = settings.arguments as CircleTeamModel;
+        CircleTeamModel circle;
+        String? focusEventId;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          circle = map['circle'] as CircleTeamModel;
+          focusEventId = map['event_id']?.toString() ??
+              map['target_record_id']?.toString();
+        } else {
+          circle = settings.arguments as CircleTeamModel;
+        }
         return AppPageRoute(
-          builder: (_) => CircleEventsScreen(circle: circle),
+          builder: (_) => CircleEventsScreen(
+            circle: circle,
+            focusEventId: focusEventId,
+          ),
           settings: settings,
         );
       case circleOverview:
@@ -366,19 +451,32 @@ abstract class AppRoutes {
           settings: settings,
         );
       case roleManagement:
+        String? focusRoleId;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          focusRoleId = map['role_id']?.toString() ??
+              map['target_record_id']?.toString();
+        }
         return AppPageRoute(
-          builder: (_) => const RoleManagementView(),
+          builder: (_) => RoleManagementView(focusRoleId: focusRoleId),
           settings: settings,
         );
       case circulars:
+        String? focusCircularId;
+        if (settings.arguments is Map) {
+          final map = settings.arguments as Map;
+          focusCircularId = map['circular_id']?.toString() ??
+              map['target_record_id']?.toString();
+        }
         return AppPageRoute(
-          builder: (_) => const CircularsView(),
+          builder: (_) => CircularsView(focusCircularId: focusCircularId),
           settings: settings,
         );
       case maintenance:
         return AppPageRoute(
           builder: (_) => const MaintenanceView(),
           settings: settings,
+          transitionStyle: AppRouteTransitionStyle.rootFade,
         );
       case notifications:
         return AppPageRoute(
@@ -388,10 +486,13 @@ abstract class AppRoutes {
       case peerCollaboration:
         PeerModel peerModel;
         PeerProfileDetailModel? detailModel;
+        String? focusAskId;
         if (settings.arguments is PeerModel) {
           peerModel = settings.arguments as PeerModel;
         } else if (settings.arguments is Map) {
           final map = settings.arguments as Map;
+          focusAskId = map['ask_id']?.toString() ??
+              map['target_record_id']?.toString();
           peerModel =
               map['peer'] as PeerModel? ??
               const PeerModel(
@@ -424,8 +525,11 @@ abstract class AppRoutes {
           );
         }
         return AppPageRoute(
-          builder: (_) =>
-              PeerCollaborationScreen(peer: peerModel, details: detailModel),
+          builder: (_) => PeerCollaborationScreen(
+            peer: peerModel,
+            details: detailModel,
+            focusAskId: focusAskId,
+          ),
           settings: settings,
         );
       case reportDetails:

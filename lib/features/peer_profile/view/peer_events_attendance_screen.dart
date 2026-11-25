@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/formatting/event_time_display.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/date_time_utils.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../peers/model/peer_model.dart';
 import '../bloc/peer_events_bloc.dart';
@@ -33,17 +33,15 @@ class _PeerEventsAttendanceContent extends StatelessWidget {
   static Map<String, String> _formatDateTimeParts(String raw) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) return {'date': '', 'time': ''};
-    final dt = DateTimeUtils.parseUtc(trimmed);
-    if (dt == null) {
-      return {'date': trimmed, 'time': ''};
-    }
-    final dateStr = DateTimeUtils.formatDate(dt);
-    final hasTime = trimmed.contains('T') || trimmed.contains(':');
-    if (!hasTime) {
-      return {'date': dateStr, 'time': ''};
-    }
-    final timeStr = DateTimeUtils.formatTime(dt);
-    return {'date': dateStr, 'time': timeStr};
+    final schedule = EventTimeDisplay.format(
+      startAtUtc: EventTimeDisplay.parseIsoUtcInstant(trimmed),
+      zoneOffset: EventTimeDisplay.parseIsoOffset(trimmed),
+      rawDate: trimmed,
+    );
+    return {
+      'date': schedule.dateLabel == 'Date TBD' ? '' : schedule.dateLabel,
+      'time': schedule.timeLabel,
+    };
   }
 
   @override
@@ -458,8 +456,8 @@ class _PeerEventsAttendanceContent extends StatelessWidget {
     if (events.isEmpty) {
       return _buildEmptyState(
         icon: Icons.event_note_outlined,
-        title: 'No Member Events',
-        message: 'No summits or conclaves registered for this member.',
+        title: 'No Peer Events',
+        message: 'No summits or conclaves registered for this peer.',
       );
     }
 
@@ -469,7 +467,7 @@ class _PeerEventsAttendanceContent extends StatelessWidget {
       itemBuilder: (context, index) {
         final ev = events[index];
         final isUpcoming = ev.isUpcoming;
-        final dtParts = _formatDateTimeParts(ev.startAt);
+        final schedule = ev.formattedSchedule(showZoneId: true);
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -586,8 +584,9 @@ class _PeerEventsAttendanceContent extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
 
-              // Date & Timing Row with Gradient Icons
-              if (dtParts['date']!.isNotEmpty) ...[
+              // Date & Timing Row with timezone-aware formatting
+              if (schedule.dateLabel.isNotEmpty &&
+                  schedule.dateLabel != 'Date TBD') ...[
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -597,15 +596,19 @@ class _PeerEventsAttendanceContent extends StatelessWidget {
                       gradient: AppColors.brandGradient,
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      dtParts['date']!,
-                      style: const TextStyle(
-                        color: AppColors.text,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                    Flexible(
+                      child: Text(
+                        schedule.dateLabel,
+                        style: const TextStyle(
+                          color: AppColors.text,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (dtParts['time']!.isNotEmpty) ...[
+                    if (schedule.timeLabel.isNotEmpty) ...[
                       const SizedBox(width: 10),
                       const GradientIcon(
                         icon: Icons.schedule_rounded,
@@ -613,12 +616,16 @@ class _PeerEventsAttendanceContent extends StatelessWidget {
                         gradient: AppColors.brandGradient,
                       ),
                       const SizedBox(width: 5),
-                      Text(
-                        dtParts['time']!,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                      Flexible(
+                        child: Text(
+                          schedule.timeLabel,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

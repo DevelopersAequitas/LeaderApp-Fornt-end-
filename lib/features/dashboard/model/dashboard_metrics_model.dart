@@ -3,8 +3,10 @@ class DashboardMetricsModel {
   /// General impact rating count.
   final int impact;
 
-  /// Monetary value of deals formatted as a string (e.g. ₹1.34Cr).
-  final String deals;
+  /// Monetary value of business deals formatted as a string (e.g. ₹1.34Cr).
+  /// `null` means the API did not supply it ("unavailable"); a supplied zero
+  /// (e.g. `₹0`) is a real value. Never defaulted to zero.
+  final String? deals;
 
   /// Count of business deals recorded.
   final int dealsCount;
@@ -170,7 +172,7 @@ class DashboardMetricsModel {
   factory DashboardMetricsModel.fromJson(Map<dynamic, dynamic> json) {
     return DashboardMetricsModel(
       impact: _parseInt(json['impact'] ?? json['impact_count']),
-      deals: json['deals']?.toString() ?? '₹0',
+      deals: json['deals']?.toString(),
       dealsCount: _parseInt(json['deals_count'] ?? json['business_deals_count']),
       p2pMeetings: _parseInt(json['p2p_meetings'] ?? json['p2p_sessions']),
       totalPeers: _parseInt(json['total_peers']),

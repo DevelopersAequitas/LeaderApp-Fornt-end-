@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/helpers/session_manager.dart';
+import '../../../core/notifications/notification_highlight_wrapper.dart';
+import '../../../core/notifications/notification_list_focus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/widgets.dart';
 import '../bloc/circulars_bloc.dart';
@@ -13,19 +15,52 @@ import 'widgets/publish_circular_bottom_sheet.dart';
 /// Screen component rendering role-targeted official circulars and announcements.
 /// Pure StatelessWidget powered 100% by BLoC state machine.
 class CircularsView extends StatelessWidget {
-  const CircularsView({super.key});
+  final String? focusCircularId;
+
+  const CircularsView({super.key, this.focusCircularId});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<CircularsBloc>(
       create: (context) => CircularsBloc()..add(const LoadCirculars()),
-      child: const _CircularsContent(),
+      child: _CircularsContent(focusCircularId: focusCircularId),
     );
   }
 }
 
-class _CircularsContent extends StatelessWidget {
-  const _CircularsContent();
+class _CircularsContent extends StatefulWidget {
+  final String? focusCircularId;
+
+  const _CircularsContent({this.focusCircularId});
+
+  @override
+  State<_CircularsContent> createState() => _CircularsContentState();
+}
+
+class _CircularsContentState extends State<_CircularsContent> {
+  final NotificationListFocusController _focusController =
+      NotificationListFocusController();
+  final Map<String, GlobalKey> _itemKeys = <String, GlobalKey>{};
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.focusCircularId?.trim() ?? '';
+    if (id.isNotEmpty) {
+      _focusController.setTarget(
+        NotificationListFocusRequest(targetId: id, targetType: 'circular'),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusController.dispose();
+    super.dispose();
+  }
+
+  GlobalKey _keyFor(String id) =>
+      _itemKeys.putIfAbsent(id, () => GlobalKey());
 
   bool get _canPublishCircular {
     final role = SessionManager().currentRole;
@@ -47,27 +82,64 @@ class _CircularsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CircularsBloc, CircularsState>(
-      listenWhen: (prev, curr) =>
-          (prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty) ||
-          (prev.successMessage != curr.successMessage && curr.successMessage != null),
-      listener: (context, state) {
-        if (state.errorMessage.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage),
-              backgroundColor: AppColors.danger,
-            ),
-          );
-        } else if (state.successMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.successMessage!),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CircularsBloc, CircularsState>(
+          listenWhen: (prev, curr) =>
+              (prev.errorMessage != curr.errorMessage && curr.errorMessage.isNotEmpty) ||
+              (prev.successMessage != curr.successMessage && curr.successMessage != null),
+          listener: (context, state) {
+            if (state.errorMessage.isNotEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage),
+                  backgroundColor: AppColors.danger,
+                ),
+              );
+            } else if (state.successMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.successMessage!),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<CircularsBloc, CircularsState>(
+          listenWhen: (prev, curr) =>
+              !curr.isLoading && curr.filteredCirculars.isNotEmpty,
+          listener: (context, state) {
+            final req = _focusController.pendingRequest;
+            if (req == null) return;
+            final inFiltered =
+                state.filteredCirculars.any((c) => c.id == req.targetId);
+            if (!inFiltered && state.selectedPriority != 'All') {
+              context
+                  .read<CircularsBloc>()
+                  .add(const FilterCircularsByPriority('All'));
+              return;
+            }
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              if (!mounted) return;
+              await _focusController.resolveTarget(
+                items: state.filteredCirculars,
+                idOf: (c) => c.id,
+                hasMore: () => false,
+                loadMore: () async {},
+                keyLookup: (id) => _itemKeys[id],
+              );
+              if (mounted &&
+                  _focusController.notFound &&
+                  _focusController.statusMessage != null) {
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  SnackBar(content: Text(_focusController.statusMessage!)),
+                );
+              }
+            });
+          },
+        ),
+      ],
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: CustomAppBar(
@@ -249,10 +321,26 @@ class _CircularsContent extends StatelessWidget {
                       onRefresh: () async => context
                           .read<CircularsBloc>()
                           .add(const LoadCirculars(isRefresh: true)),
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        itemCount: state.filteredCirculars.length,
-                        itemBuilder: (ctx, i) => CircularCard(circular: state.filteredCirculars[i]),
+                      child: ListenableBuilder(
+                        listenable: _focusController,
+                        builder: (context, _) {
+                          final activeId = _focusController.highlightedId;
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            itemCount: state.filteredCirculars.length,
+                            itemBuilder: (ctx, i) {
+                              final circular = state.filteredCirculars[i];
+                              return NotificationHighlightWrapper(
+                                key: _keyFor(circular.id),
+                                itemId: circular.id,
+                                activeTargetId: activeId,
+                                onHighlightCompleted: () =>
+                                    _focusController.markHighlightCompleted(circular.id),
+                                child: CircularCard(circular: circular),
+                              );
+                            },
+                          );
+                        },
                       ),
                     );
                   },

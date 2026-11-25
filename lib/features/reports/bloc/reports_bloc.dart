@@ -45,6 +45,27 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
     on<DownloadReportPdf>(_onDownloadReportPdf);
   }
 
+  /// Returns a user-facing message when submitting must be blocked because the
+  /// Peer roster would be incomplete, otherwise `null`.
+  ///
+  /// With "All Circles" selected the roster for the leader's whole authorised
+  /// scope is not loaded by the app yet (the roster endpoint is per Circle), so
+  /// attaching "0 peers" would silently produce an incomplete report. See
+  /// `documents/audit/LEADER_APP_ARCHITECTURE_PROPOSALS.md` §2 for the required
+  /// backend support.
+  static String? rosterSubmitBlocker({
+    required bool isAllCircles,
+    required bool includeRoster,
+    required int rosterCount,
+  }) {
+    if (includeRoster && isAllCircles && rosterCount == 0) {
+      return 'The Peer roster for "All Circles" is not available yet, so this '
+          'report was not submitted with an incomplete roster. Select a '
+          'specific Circle, or turn off "Peer with activities breakdown".';
+    }
+    return null;
+  }
+
   static bool _isValidUuid(String? str) {
     if (str == null || str.isEmpty) return false;
     final uuidRegex = RegExp(
@@ -130,32 +151,16 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
         status: event.status ?? state.filterStatus,
         districtId: event.districtId,
       );
-      final trendResponse = await _reportsRepository.getAttendanceTrend(
-        circleId: resolvedCircleId.isNotEmpty ? resolvedCircleId : null,
-      );
 
       final reportsList = (reportsResponse.data ?? const <ReportModel>[])
           .where((r) => !ReportModel.isDummyReport(r))
           .toList();
-      List<ReportsChartPoint> trendList = trendResponse.data ?? const <ReportsChartPoint>[];
 
-      // If remote attendance trend is empty, derive live points from submitted reports
-      if (trendList.isEmpty && reportsList.isNotEmpty) {
-        final Map<String, List<double>> monthToAtt = {};
-        for (final r in reportsList) {
-          if (r.attendancePercentage != null && r.attendancePercentage! > 0) {
-            final m = (r.period?.isNotEmpty == true ? r.period! : r.date).trim();
-            final shortM = m.length > 3 ? m.substring(0, 3) : m;
-            monthToAtt.putIfAbsent(shortM, () => []).add(r.attendancePercentage!);
-          }
-        }
-        if (monthToAtt.isNotEmpty) {
-          trendList = monthToAtt.entries.map((e) {
-            final avg = e.value.reduce((a, b) => a + b) / e.value.length;
-            return ReportsChartPoint(month: e.key, value: avg);
-          }).toList();
-        }
-      }
+      // ReportsTrendCard is preserved for the future Attendance Trend chart
+      // feature (store listing requirement), but is currently unmounted while
+      // the backend returns empty trend data (`data: []`). Skip the unused
+      // `getAttendanceTrend` network call and never synthesize fallback points.
+      const List<ReportsChartPoint> trendList = <ReportsChartPoint>[];
 
       emit(
         state.copyWith(
@@ -472,6 +477,17 @@ class ReportsBloc extends Bloc<ReportsEvent, ReportsState> {
               .where((p) => state.selectedPeerIds.contains(p.peerId))
               .toList()
           : state.availableCirclePeers;
+
+      // Never submit a report whose roster is known to be incomplete.
+      final rosterBlocker = rosterSubmitBlocker(
+        isAllCircles: state.circleName == 'All Circles',
+        includeRoster: state.includePeerWithActivities,
+        rosterCount: effectivePeers.length,
+      );
+      if (rosterBlocker != null) {
+        emit(state.copyWith(isSubmitting: false, errorMessage: rosterBlocker));
+        return;
+      }
 
       // Filter activities based on scope mode & manual selection
       final List<String> effectiveActivities = state.activitiesScopeMode == 'specific'

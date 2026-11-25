@@ -7,7 +7,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../routes/app_routes.dart';
 import 'push_notification_service.dart';
 
 /// Top-level background tap handler for local notifications (must be entry-point)
@@ -24,10 +23,12 @@ class LocalNotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
-  static const String channelId = 'leader_high_importance_channel';
+  static const String channelId = 'leader_high_importance_channel_v2';
   static const String channelName = 'Leader App Notifications';
   static const String channelDescription =
       'Real-time leadership updates, approvals, performance, and circular alerts';
+  static const String customSoundResource = 'peers_woodblock';
+  static const String iosSoundFile = 'peers_woodblock.wav';
 
   bool _isInitialized = false;
 
@@ -79,6 +80,7 @@ class LocalNotificationService {
             importance: Importance.max,
             enableVibration: true,
             playSound: true,
+            sound: RawResourceAndroidNotificationSound(customSoundResource),
           ),
         );
 
@@ -91,6 +93,7 @@ class LocalNotificationService {
             importance: Importance.max,
             enableVibration: true,
             playSound: true,
+            sound: RawResourceAndroidNotificationSound(customSoundResource),
           ),
         );
 
@@ -103,6 +106,7 @@ class LocalNotificationService {
             importance: Importance.max,
             enableVibration: true,
             playSound: true,
+            sound: RawResourceAndroidNotificationSound(customSoundResource),
           ),
         );
       }
@@ -136,6 +140,7 @@ class LocalNotificationService {
         icon: '@mipmap/ic_launcher',
         enableVibration: true,
         playSound: true,
+        sound: const RawResourceAndroidNotificationSound(customSoundResource),
         ticker: title,
         category: AndroidNotificationCategory.message,
         visibility: NotificationVisibility.public,
@@ -145,6 +150,7 @@ class LocalNotificationService {
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        sound: iosSoundFile,
       );
 
       final notificationDetails = NotificationDetails(
@@ -182,6 +188,6 @@ class LocalNotificationService {
     }
 
     // Default route
-    AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.notifications);
+    PushNotificationService.instance.routeFromNotificationData(const {});
   }
 }

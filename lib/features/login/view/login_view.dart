@@ -2,6 +2,7 @@ import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/formatting/phone_number_helper.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_color.dart';
 import '../bloc/login_bloc.dart';
@@ -18,15 +19,19 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final defaultCountry = PhoneNumberHelper.resolveCountry();
     return BlocProvider<LoginBloc>(
-      create: (context) => LoginBloc(),
-      child: const _LoginContent(),
+      create: (context) =>
+          LoginBloc(initialCountryCode: defaultCountry.countryCode),
+      child: _LoginContent(initialCountry: defaultCountry),
     );
   }
 }
 
 class _LoginContent extends StatefulWidget {
-  const _LoginContent();
+  final Country initialCountry;
+
+  const _LoginContent({required this.initialCountry});
 
   @override
   State<_LoginContent> createState() => _LoginContentState();
@@ -35,13 +40,14 @@ class _LoginContent extends StatefulWidget {
 class _LoginContentState extends State<_LoginContent> {
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
-  Country _selectedCountry = Country.parse('IN');
+  late Country _selectedCountry;
 
   @override
   void initState() {
     super.initState();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
+    _selectedCountry = widget.initialCountry;
   }
 
   @override
@@ -53,13 +59,7 @@ class _LoginContentState extends State<_LoginContent> {
 
   String _currentIdentifier(LoginState state) {
     if (state.channel == 'whatsapp') {
-      final rawDigits =
-          _phoneController.text.replaceAll(RegExp(r'[^\d]'), '');
-      if (rawDigits.isEmpty) return '';
-      final code = state.dialCode.startsWith('+')
-          ? state.dialCode
-          : '+${state.dialCode}';
-      return '$code$rawDigits';
+      return _phoneController.text.trim();
     }
     return _emailController.text.trim();
   }
@@ -84,9 +84,19 @@ class _LoginContentState extends State<_LoginContent> {
     });
     final dialCode = '+${country.phoneCode}';
     final flag = country.flagEmoji;
-    final nextState = state.copyWith(dialCode: dialCode, flag: flag);
+    final nextState = state.copyWith(
+      countryCode: country.countryCode,
+      dialCode: dialCode,
+      flag: flag,
+    );
     context.read<LoginBloc>()
-      ..add(LoginCountryChanged(dialCode: dialCode, flag: flag))
+      ..add(
+        LoginCountryChanged(
+          countryCode: country.countryCode,
+          dialCode: dialCode,
+          flag: flag,
+        ),
+      )
       ..add(EmailOrPhoneChanged(_currentIdentifier(nextState)));
   }
 

@@ -16,7 +16,7 @@ import '../../firebase_options.dart';
 import '../constants/api_endpoints.dart';
 import '../helpers/session_manager.dart';
 import '../network/api_client.dart';
-import '../routes/app_routes.dart';
+import '../notifications/app_notification_navigator.dart';
 import '../storage/secure_storage_service.dart';
 import 'local_notification_service.dart';
 import 'notification_count_service.dart';
@@ -314,32 +314,11 @@ class PushNotificationService {
     routeFromNotificationData(message.data);
   }
 
-  /// Routes to target screen based on notification payload
+  /// Routes a notification tap. Delegates to the single typed navigator, which
+  /// waits for authentication and for the home shell before navigating
+  /// (cold start, background and foreground taps all end up here).
   void routeFromNotificationData(Map<String, dynamic> data) {
-    final rawTarget = (data['route'] ?? data['screen'] ?? data['click_action'])?.toString().trim();
-    if (rawTarget == null || rawTarget.isEmpty) {
-      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.notifications);
-      return;
-    }
-
-    final target = rawTarget.toLowerCase();
-    if (target.contains('team') || target.contains('circle')) {
-      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 2});
-    } else if (target.contains('finance')) {
-      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 3});
-    } else if (target.contains('report')) {
-      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 4});
-    } else if (target.contains('peer')) {
-      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 1});
-    } else if (target.contains('profile')) {
-      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.profile);
-    } else if (target.contains('notification')) {
-      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.notifications);
-    } else if (target == '/dashboard' || target == 'dashboard') {
-      AppRoutes.navigatorKey.currentState?.pushNamed(AppRoutes.home, arguments: {'tab': 0});
-    } else {
-      AppRoutes.navigatorKey.currentState?.pushNamed(rawTarget);
-    }
+    AppNotificationNavigator.instance.handle(data);
   }
 
   /// Generates or retrieves a persistent device identifier

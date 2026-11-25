@@ -1,7 +1,10 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/formatting/phone_number_helper.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/international_phone_field.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../data/repositories/teams_repository.dart';
 import '../../../teams/model/teams_model.dart';
@@ -36,10 +39,13 @@ class _ReferCategoryContactTabState extends State<ReferCategoryContactTab> {
   bool _isLoadingContacts = true;
   bool _isSubmitting = false;
   String? _selectedContactId;
+  late Country _selectedCountry;
+  String? _phoneError;
 
   @override
   void initState() {
     super.initState();
+    _selectedCountry = PhoneNumberHelper.resolveCountry();
     _nameController = TextEditingController();
     _phoneController = TextEditingController();
     _companyController = TextEditingController();
@@ -68,10 +74,13 @@ class _ReferCategoryContactTabState extends State<ReferCategoryContactTab> {
   }
 
   void _selectContact(ReferralContactModel contact) {
+    final split = PhoneNumberHelper.splitStoredPhone(contact.phone);
     setState(() {
       _selectedContactId = contact.id;
+      _selectedCountry = split.country;
+      _phoneError = null;
       _nameController.text = contact.name;
-      _phoneController.text = contact.phone;
+      _phoneController.text = split.nationalInput;
       if (contact.company.isNotEmpty) {
         _companyController.text = contact.company;
       }
@@ -83,8 +92,8 @@ class _ReferCategoryContactTabState extends State<ReferCategoryContactTab> {
 
   Future<void> _submitContactReferral() async {
     final name = _nameController.text.trim();
-    final phone = _phoneController.text.trim();
-    if (name.isEmpty || phone.isEmpty) {
+    final rawPhone = _phoneController.text.trim();
+    if (name.isEmpty || rawPhone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter contact name and phone number'),
@@ -95,13 +104,27 @@ class _ReferCategoryContactTabState extends State<ReferCategoryContactTab> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
+    final validation = PhoneNumberHelper.validate(
+      rawPhone,
+      countryIso: _selectedCountry.countryCode,
+      countryName: _selectedCountry.name,
+      dialCode: '+${_selectedCountry.phoneCode}',
+    );
+    if (!validation.isValid || validation.e164 == null) {
+      setState(() => _phoneError = validation.errorMessage);
+      return;
+    }
+
+    setState(() {
+      _phoneError = null;
+      _isSubmitting = true;
+    });
     final res = await _teamsRepo.referCategory(
       widget.circle.id,
       {
         'source_type': 'contact',
         'peer_name': name,
-        'peer_phone': phone,
+        'peer_phone': validation.e164!,
         'peer_company': _companyController.text.trim(),
         'peer_city': _cityController.text.trim(),
         'category_id': widget.category.id,
@@ -131,7 +154,13 @@ class _ReferCategoryContactTabState extends State<ReferCategoryContactTab> {
 
   Future<void> _inviteViaWhatsApp() async {
     final name = _nameController.text.trim();
-    final rawPhone = _phoneController.text.replaceAll(RegExp(r'[^0-9+]'), '');
+    final validation = PhoneNumberHelper.validate(
+      _phoneController.text.trim(),
+      countryIso: _selectedCountry.countryCode,
+    );
+    final rawPhone = (validation.isValid && validation.e164 != null)
+        ? validation.e164!.replaceAll(RegExp(r'[^\d]'), '')
+        : _phoneController.text.replaceAll(RegExp(r'[^\d]'), '');
     final greeting = name.isNotEmpty ? 'Hi $name,' : 'Hi,';
     final msg =
         '$greeting I would like to refer you for the open "${widget.category.name}" category in ${widget.circle.name} on Peers Global Unity.';
@@ -233,12 +262,20 @@ class _ReferCategoryContactTabState extends State<ReferCategoryContactTab> {
             icon: Icons.person_outline_rounded,
           ),
           const SizedBox(height: 10),
-          _buildInput(
+          InternationalPhoneField(
             controller: _phoneController,
-            label: 'Mobile / WhatsApp Number *',
-            hint: '+91 98765 43210',
-            icon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
+            selectedCountry: _selectedCountry,
+            label: 'Mobile / WhatsApp Number',
+            isRequired: true,
+            isDense: true,
+            errorText: _phoneError,
+            onCountryChanged: (c) => setState(() {
+              _selectedCountry = c;
+              _phoneError = null;
+            }),
+            onChanged: (_) {
+              if (_phoneError != null) setState(() => _phoneError = null);
+            },
           ),
           const SizedBox(height: 10),
           Row(

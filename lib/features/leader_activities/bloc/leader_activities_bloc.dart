@@ -27,6 +27,7 @@ class LeaderActivitiesBloc
     on<LoadMoreLeaderActivities>(_onLoadMoreLeaderActivities);
     on<SearchLeaderActivities>(_onSearchLeaderActivities);
     on<SwitchLeaderActivitiesTab>(_onSwitchLeaderActivitiesTab);
+    on<ChangeLeaderActivitiesFilter>(_onChangeLeaderActivitiesFilter);
     on<ApproveLeaderActivityItem>(_onApproveLeaderActivityItem);
     on<RejectLeaderActivityItem>(_onRejectLeaderActivityItem);
   }
@@ -39,6 +40,10 @@ class LeaderActivitiesBloc
       isLoading: true,
       type: event.type,
       circleId: event.circleId,
+      activeTab: 0,
+      sortByRecent: false,
+      clearSelectedFilterType: true,
+      availableFilterTypes: const [],
       errorMessage: '',
     ));
 
@@ -76,20 +81,40 @@ class LeaderActivitiesBloc
         );
       }
 
-      // 3. If activityItems is empty, fetch from dedicated section endpoints
-      if (activityItems.isEmpty) {
-        activityItems = await _loadLegacyActivityItemsFallback(
+      // 3. If activityItems is empty (or peers list lacks activity participants), fetch from dedicated endpoints
+      if (activityItems.isEmpty ||
+          (rankedPeers.isEmpty && config.type != 'pending-requests')) {
+        final fallbackItems = await _loadLegacyActivityItemsFallback(
           config.type,
           event.circleId,
         );
-        // Ensure rankedPeers matches the fallback activityItems rather than stale server peers
-        if (activityItems.isNotEmpty &&
-            config.type != 'peers' &&
-            config.type != 'impacts' &&
-            config.type != 'coins' &&
-            config.type != 'top-contributors') {
-          rankedPeers = [];
+        if (activityItems.isEmpty) {
+          activityItems = fallbackItems;
         }
+      }
+
+      // 3b. For Life Impacts, ensure pending moderation impacts are also loaded
+      // from /leader/pending-requests?category=pending_impacts even when the
+      // primary /leader/activities/impacts endpoint only returned approved items.
+      if (config.type == 'impacts' &&
+          !activityItems.any((e) => e.isActionablePending)) {
+        try {
+          final pendingImpacts = await _activitiesRepository
+              .getExtendedActivitiesFallback(
+            normalizedType: 'impacts',
+            circleId: event.circleId,
+          );
+          if (pendingImpacts.isNotEmpty) {
+            final existingIds = activityItems.map((e) => e.id).toSet();
+            final merged = List<LeaderActivityItemModel>.from(activityItems);
+            for (final item in pendingImpacts) {
+              if (item.id.isNotEmpty && !existingIds.contains(item.id)) {
+                merged.add(item);
+              }
+            }
+            activityItems = merged;
+          }
+        } catch (_) {}
       }
 
       // 4. Build activity-specific ranked peers list if empty
@@ -146,7 +171,7 @@ class LeaderActivitiesBloc
                 peerName: rp.peer.name,
                 avatarUrl: rp.peer.avatarUrl,
                 city: rp.peer.location,
-                designation: rp.peer.designation ?? 'Member',
+                designation: rp.peer.designation ?? 'Peer',
                 company: rp.peer.company,
                 category: rp.peer.level4Category ?? rp.peer.tags,
                 circleName: rp.peer.circle,
@@ -175,7 +200,7 @@ class LeaderActivitiesBloc
             city: item.city.isNotEmpty ? item.city : matched.location,
             designation: item.designation.isNotEmpty
                 ? item.designation
-                : (matched.designation ?? 'Member'),
+                : (matched.designation ?? 'Peer'),
             company: item.company.isNotEmpty ? item.company : matched.company,
             category: item.category.isNotEmpty
                 ? item.category
@@ -187,10 +212,39 @@ class LeaderActivitiesBloc
         }).toList();
       }
 
-      final filteredPeers =
-          _presenter.filterPeers(rankedPeers, state.searchQuery);
-      final filteredItems =
-          _presenter.filterItems(activityItems, state.searchQuery);
+      rankedPeers = _presenter.enrichPeersWithItems(
+        type: config.type,
+        peers: rankedPeers,
+        items: activityItems,
+      );
+
+      final availableFilterTypes = _presenter.extractFilterTypes(
+        type: config.type,
+        items: activityItems,
+        peers: rankedPeers,
+      );
+      final normalizedQuery = (event.search ?? state.searchQuery).trim();
+      final isSameStreamRefresh = state.type == event.type && state.allItems.isNotEmpty;
+      final effectiveSort = isSameStreamRefresh ? state.sortByRecent : false;
+      final effectiveFilter =
+          isSameStreamRefresh ? state.selectedFilterType : null;
+      final filteredPeers = _presenter.applyPeerFilters(
+        peers: rankedPeers,
+        query: normalizedQuery,
+        sortByRecent: effectiveSort,
+        selectedFilterType: effectiveFilter,
+      );
+      final filteredItems = _presenter.applyItemFilters(
+        type: config.type,
+        items: activityItems,
+        query: normalizedQuery,
+        sortByRecent: effectiveSort,
+        selectedFilterType: effectiveFilter,
+      );
+      final topContributors = _presenter.buildTopContributors(
+        peers: rankedPeers,
+        query: normalizedQuery,
+      );
 
       final totalActivities = payload?.totalActivities ??
           (activityItems.isNotEmpty
@@ -207,6 +261,8 @@ class LeaderActivitiesBloc
         isLoadingMore: false,
         allPeers: rankedPeers,
         filteredPeers: filteredPeers,
+        topContributors: topContributors,
+        availableFilterTypes: availableFilterTypes,
         allItems: activityItems,
         filteredItems: filteredItems,
         totalActivities: totalActivities,
@@ -251,14 +307,41 @@ class LeaderActivitiesBloc
 
         final combinedItems =
             List<LeaderActivityItemModel>.from(state.allItems)..addAll(newItems);
-
-        final filteredItems = _presenter.filterItems(
-          combinedItems,
-          state.searchQuery,
+        final configType = LeaderActivityCategoryConfig.fromType(state.type).type;
+        final enrichedPeers = _presenter.enrichPeersWithItems(
+          type: configType,
+          peers: state.allPeers,
+          items: combinedItems,
+        );
+        final availableFilterTypes = _presenter.extractFilterTypes(
+          type: configType,
+          items: combinedItems,
+          peers: enrichedPeers,
+        );
+        final filteredPeers = _presenter.applyPeerFilters(
+          peers: enrichedPeers,
+          query: state.searchQuery,
+          sortByRecent: state.sortByRecent,
+          selectedFilterType: state.selectedFilterType,
+        );
+        final filteredItems = _presenter.applyItemFilters(
+          type: configType,
+          items: combinedItems,
+          query: state.searchQuery,
+          sortByRecent: state.sortByRecent,
+          selectedFilterType: state.selectedFilterType,
+        );
+        final topContributors = _presenter.buildTopContributors(
+          peers: enrichedPeers,
+          query: state.searchQuery,
         );
 
         emit(state.copyWith(
           isLoadingMore: false,
+          allPeers: enrichedPeers,
+          filteredPeers: filteredPeers,
+          topContributors: topContributors,
+          availableFilterTypes: availableFilterTypes,
           allItems: combinedItems,
           filteredItems: filteredItems,
           page: newPayload.page > 0 ? newPayload.page : nextPage,
@@ -306,7 +389,7 @@ class LeaderActivitiesBloc
                     peerName: p.name,
                     avatarUrl: p.avatarUrl,
                     city: p.location,
-                    designation: p.designation ?? 'Member',
+                    designation: p.designation ?? 'Peer',
                     company: p.company,
                     category: p.level4Category ?? p.tags,
                     circleName: p.circle,
@@ -317,10 +400,12 @@ class LeaderActivitiesBloc
           }
           break;
         case 'impacts':
+          // Fetch approved impacts from /leader/impacts
           final res =
               await _activitiesRepository.getImpacts(circleId: circleId);
+          final approvedItems = <LeaderActivityItemModel>[];
           if (res.success && res.data != null) {
-            return res.data!
+            approvedItems.addAll(res.data!
                 .map(
                   (m) => LeaderActivityItemModel(
                     id: m.id,
@@ -328,7 +413,9 @@ class LeaderActivitiesBloc
                     title: m.title,
                     subtitle: m.impactType,
                     description: m.description,
-                    status: 'Approved',
+                    // Use real status from model; default to 'Approved' for the
+                    // /leader/impacts endpoint (which only returns published records).
+                    status: m.status.isNotEmpty ? _normalizeImpactStatus(m.status) : 'Approved',
                     date: m.createdAt.length > 10
                         ? m.createdAt.substring(0, 10)
                         : m.createdAt,
@@ -338,15 +425,33 @@ class LeaderActivitiesBloc
                     avatarUrl:
                         m.profileImage.isNotEmpty ? m.profileImage : null,
                     city: m.city,
-                    designation: 'Member',
+                    designation: 'Peer',
                     company: m.businessName,
                     category: m.categoryLevel4,
                     circleName: '',
+                    requestCategory: 'pending_impacts',
                   ),
                 )
-                .toList();
+                .toList());
           }
-          break;
+
+          // Also fetch pending impacts from /leader/pending-requests?category=pending_impacts
+          try {
+            final pendingItems = await _activitiesRepository
+                .getExtendedActivitiesFallback(
+              normalizedType: 'impacts',
+              circleId: circleId,
+            );
+            // Merge: avoid duplicates by id
+            final existingIds = approvedItems.map((e) => e.id).toSet();
+            for (final item in pendingItems) {
+              if (item.id.isNotEmpty && !existingIds.contains(item.id)) {
+                approvedItems.add(item);
+              }
+            }
+          } catch (_) {}
+
+          return approvedItems;
         case 'business-deals':
           final res =
               await _activitiesRepository.getBusinessDeals(circleId: circleId);
@@ -367,7 +472,7 @@ class LeaderActivitiesBloc
                     avatarUrl:
                         m.profileImage.isNotEmpty ? m.profileImage : null,
                     city: m.city,
-                    designation: 'Member',
+                    designation: 'Peer',
                     company: m.businessName,
                     category: m.categoryLevel4,
                     circleName: '',
@@ -399,7 +504,7 @@ class LeaderActivitiesBloc
                     avatarUrl:
                         m.profileImage.isNotEmpty ? m.profileImage : null,
                     city: m.city,
-                    designation: 'Member',
+                    designation: 'Peer',
                     company: m.businessName,
                     category: m.categoryLevel4,
                     circleName: '',
@@ -433,7 +538,7 @@ class LeaderActivitiesBloc
                     avatarUrl:
                         m.profileImage.isNotEmpty ? m.profileImage : null,
                     city: m.city,
-                    designation: 'Member',
+                    designation: 'Peer',
                     company: m.company,
                     category: m.categoryLevel4.isNotEmpty
                         ? m.categoryLevel4
@@ -468,7 +573,7 @@ class LeaderActivitiesBloc
                     avatarUrl:
                         m.profileImage.isNotEmpty ? m.profileImage : null,
                     city: m.city,
-                    designation: 'Member',
+                    designation: 'Peer',
                     company: m.company,
                     category: m.categoryLevel4.isNotEmpty
                         ? m.categoryLevel4
@@ -531,7 +636,7 @@ class LeaderActivitiesBloc
                       avatarUrl:
                           m.profileImage.isNotEmpty ? m.profileImage : null,
                       city: m.city,
-                      designation: 'Member',
+                      designation: 'Peer',
                       company: m.businessName,
                       category: m.categoryLevel4,
                       circleName: '',
@@ -585,7 +690,7 @@ class LeaderActivitiesBloc
                     avatarUrl:
                         m.profileImage.isNotEmpty ? m.profileImage : null,
                     city: m.city,
-                    designation: 'Member',
+                    designation: 'Peer',
                     company: m.company,
                     category: m.categoryLevel4.isNotEmpty
                         ? m.categoryLevel4
@@ -625,7 +730,7 @@ class LeaderActivitiesBloc
                     peerName: p.name,
                     avatarUrl: p.avatarUrl,
                     city: p.location,
-                    designation: p.designation ?? 'Member',
+                    designation: p.designation ?? 'Peer',
                     company: p.company,
                     category: p.level4Category ?? p.tags,
                     circleName: p.circle,
@@ -669,11 +774,28 @@ class LeaderActivitiesBloc
     Emitter<LeaderActivitiesState> emit,
   ) {
     final query = event.query.trim();
-    final filteredPeers = _presenter.filterPeers(state.allPeers, query);
-    final filteredItems = _presenter.filterItems(state.allItems, query);
+    final configType = LeaderActivityCategoryConfig.fromType(state.type).type;
+    final filteredPeers = _presenter.applyPeerFilters(
+      peers: state.allPeers,
+      query: query,
+      sortByRecent: state.sortByRecent,
+      selectedFilterType: state.selectedFilterType,
+    );
+    final filteredItems = _presenter.applyItemFilters(
+      type: configType,
+      items: state.allItems,
+      query: query,
+      sortByRecent: state.sortByRecent,
+      selectedFilterType: state.selectedFilterType,
+    );
+    final topContributors = _presenter.buildTopContributors(
+      peers: state.allPeers,
+      query: query,
+    );
     emit(state.copyWith(
       searchQuery: query,
       filteredPeers: filteredPeers,
+      topContributors: topContributors,
       filteredItems: filteredItems,
     ));
   }
@@ -683,6 +805,59 @@ class LeaderActivitiesBloc
     Emitter<LeaderActivitiesState> emit,
   ) {
     emit(state.copyWith(activeTab: event.tabIndex));
+  }
+
+  void _onChangeLeaderActivitiesFilter(
+    ChangeLeaderActivitiesFilter event,
+    Emitter<LeaderActivitiesState> emit,
+  ) {
+    final nextRecent = event.sortByRecent ?? state.sortByRecent;
+    final nextType = event.clearFilterType
+        ? null
+        : (event.selectedFilterType ?? state.selectedFilterType);
+    final configType = LeaderActivityCategoryConfig.fromType(state.type).type;
+
+    final filteredPeers = _presenter.applyPeerFilters(
+      peers: state.allPeers,
+      query: state.searchQuery,
+      sortByRecent: nextRecent,
+      selectedFilterType: nextType,
+    );
+    final filteredItems = _presenter.applyItemFilters(
+      type: configType,
+      items: state.allItems,
+      query: state.searchQuery,
+      sortByRecent: nextRecent,
+      selectedFilterType: nextType,
+    );
+    emit(state.copyWith(
+      sortByRecent: nextRecent,
+      selectedFilterType: nextType,
+      clearSelectedFilterType: event.clearFilterType,
+      filteredPeers: filteredPeers,
+      filteredItems: filteredItems,
+    ));
+  }
+
+  /// Normalises the raw backend `status` string from `/leader/impacts` into a
+  /// consistent display label used for filter chips and [isActionablePending].
+  static String _normalizeImpactStatus(String raw) {
+    final lower = raw.trim().toLowerCase();
+    if (lower.contains('pending') ||
+        lower.contains('awaiting') ||
+        lower.contains('submitted') ||
+        lower.contains('review')) {
+      return 'Pending';
+    }
+    if (lower.contains('reject') || lower.contains('declin')) return 'Rejected';
+    if (lower.contains('approv') ||
+        lower.contains('publish') ||
+        lower.contains('active')) {
+      return 'Approved';
+    }
+    return raw.isNotEmpty
+        ? '${raw[0].toUpperCase()}${raw.substring(1).toLowerCase()}'
+        : 'Approved';
   }
 
   String? _resolvePendingCategoryForItem(LeaderActivityItemModel item) {
@@ -706,6 +881,12 @@ class LeaderActivitiesBloc
       case 'introduced-peers':
         return 'introduction_requests';
       case 'impacts':
+      case 'impact':
+      case 'life-impact':
+      case 'life_impact':
+      case 'life-impacts':
+      case 'pending_impacts':
+      case 'pending-impacts':
         return 'pending_impacts';
       default:
         return null;
@@ -731,10 +912,15 @@ class LeaderActivitiesBloc
 
     try {
       final category = _resolvePendingCategoryForItem(item);
-      final res = await _activitiesRepository.approvePendingRequest(
-        id: item.id,
-        category: category,
-      );
+      final res = item.isLifeImpact
+          ? await _activitiesRepository.approveImpact(
+              id: item.id,
+              remarks: event.remarks,
+            )
+          : await _activitiesRepository.approvePendingRequest(
+              id: item.id,
+              category: category,
+            );
 
       final doneProcessing = Set<String>.from(state.processingItemIds)
         ..remove(item.id);
@@ -749,8 +935,14 @@ class LeaderActivitiesBloc
                 .map((e) =>
                     e.id == item.id ? e.copyWith(status: 'Approved') : e)
                 .toList();
-        final updatedFiltered =
-            _presenter.filterItems(updatedAll, state.searchQuery);
+        final configType = LeaderActivityCategoryConfig.fromType(state.type).type;
+        final updatedFiltered = _presenter.applyItemFilters(
+          type: configType,
+          items: updatedAll,
+          query: state.searchQuery,
+          sortByRecent: state.sortByRecent,
+          selectedFilterType: state.selectedFilterType,
+        );
 
         final msg = (res.message ?? '').trim();
         emit(state.copyWith(
@@ -796,11 +988,17 @@ class LeaderActivitiesBloc
 
     try {
       final category = _resolvePendingCategoryForItem(item);
-      final res = await _activitiesRepository.rejectPendingRequest(
-        id: item.id,
-        category: category,
-        reason: event.reason,
-      );
+      final reasonText = (event.reason ?? '').trim();
+      final res = item.isLifeImpact
+          ? await _activitiesRepository.rejectImpact(
+              id: item.id,
+              reason: reasonText,
+            )
+          : await _activitiesRepository.rejectPendingRequest(
+              id: item.id,
+              category: category,
+              reason: event.reason,
+            );
 
       final doneProcessing = Set<String>.from(state.processingItemIds)
         ..remove(item.id);
@@ -815,8 +1013,14 @@ class LeaderActivitiesBloc
                 .map((e) =>
                     e.id == item.id ? e.copyWith(status: 'Rejected') : e)
                 .toList();
-        final updatedFiltered =
-            _presenter.filterItems(updatedAll, state.searchQuery);
+        final configType = LeaderActivityCategoryConfig.fromType(state.type).type;
+        final updatedFiltered = _presenter.applyItemFilters(
+          type: configType,
+          items: updatedAll,
+          query: state.searchQuery,
+          sortByRecent: state.sortByRecent,
+          selectedFilterType: state.selectedFilterType,
+        );
 
         final msg = (res.message ?? '').trim();
         emit(state.copyWith(

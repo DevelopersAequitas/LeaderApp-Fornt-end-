@@ -68,8 +68,11 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
             .where((n) => n.isLeaderNotification)
             .toList();
 
-        final unreadCount =
-            serverUnreadCount ?? items.where((n) => n.isUnread).length;
+        final visibleUnread = items.where((n) => n.isUnread).length;
+        final bool filteredOutSome = items.length < rawList.length;
+        final unreadCount = (filteredOutSome && !hasMore)
+            ? visibleUnread
+            : (serverUnreadCount ?? visibleUnread);
         NotificationCountService.instance.updateCount(unreadCount);
 
         emit(state.copyWith(

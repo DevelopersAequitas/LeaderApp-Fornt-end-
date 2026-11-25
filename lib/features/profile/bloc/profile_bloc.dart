@@ -165,7 +165,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         LeaderMilestoneItemModel(
           id: 'cd_scale_50m_90d',
           ruleCode: 'CD_SCALE_50M_90D',
-          title: '50 Active Circle Members',
+          title: '50 Active Circle Peers',
           description: 'Reach 50 active paid peers in circle within 90 days.',
           category: 'growth_milestone',
           currentMetricValue: 0,
@@ -179,7 +179,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         LeaderMilestoneItemModel(
           id: 'cd_scale_100m_180d',
           ruleCode: 'CD_SCALE_100M_180D',
-          title: '100 Active Circle Members',
+          title: '100 Active Circle Peers',
           description: 'Reach 100 active paid peers in circle within 180-day tenure window.',
           category: 'growth_milestone',
           currentMetricValue: 0,
@@ -210,8 +210,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         LeaderMilestoneItemModel(
           id: 'cf_speed_30m_40d',
           ruleCode: 'CF_SPEED_30M_40D',
-          title: '30 members in 40 days',
-          description: 'Momentum bonus: 30 paid members within 40 days.',
+          title: '30 peers in 40 days',
+          description: 'Momentum bonus: 30 paid peers within 40 days.',
           category: 'speed_bonus',
           currentMetricValue: 0,
           targetMetricValue: 30,
@@ -224,8 +224,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         LeaderMilestoneItemModel(
           id: 'cf_speed_50m_75d',
           ruleCode: 'CF_SPEED_50M_75D',
-          title: '50 members in 75 days',
-          description: 'Founder milestone: 50 paid members within 75 days.',
+          title: '50 peers in 75 days',
+          description: 'Founder milestone: 50 paid peers within 75 days.',
           category: 'growth_milestone',
           currentMetricValue: 0,
           targetMetricValue: 50,
@@ -281,6 +281,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     emit(state.copyWith(isLoading: true, errorMessage: ''));
     try {
+      if (SessionManager().isAuthenticated) {
+        try {
+          await ApiClient().delete(ApiEndpoints.leaderPushTokenRegistration);
+        } catch (_) {}
+        try {
+          await ApiClient().post(ApiEndpoints.logout);
+        } catch (_) {}
+      }
       await SessionManager().clearSession();
       emit(state.copyWith(isLoading: false, isSignedOut: true));
     } catch (e) {

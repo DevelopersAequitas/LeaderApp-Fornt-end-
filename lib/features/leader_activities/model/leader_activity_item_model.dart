@@ -152,11 +152,11 @@ class LeaderActivityCategoryConfig {
         return const LeaderActivityCategoryConfig(
           type: 'introduced-peers',
           title: 'Peers Introduced',
-          subtitle: 'All peers ranked top to bottom by members onboarded',
+          subtitle: 'All peers ranked top to bottom by peers onboarded',
           unitLabel: 'Introduced',
           emptyTitle: 'No introduced peers yet',
           emptySubtitle:
-              'Members introduced and onboarded into the community will appear here.',
+              'Peers introduced and onboarded into the community will appear here.',
           icon: Icons.group_add_rounded,
         );
       case 'collaboration-asks':
@@ -374,7 +374,7 @@ class LeaderActivityCategoryConfig {
         return const LeaderActivityCategoryConfig(
           type: 'pending-requests',
           title: 'Pending Approvals',
-          subtitle: 'All pending member and activity approval requests',
+          subtitle: 'All pending peer and activity approval requests',
           unitLabel: 'Requests',
           emptyTitle: 'No pending approvals right now',
           emptySubtitle:
@@ -458,6 +458,47 @@ class LeaderActivityCategoryConfig {
         );
     }
   }
+
+  /// Contribution & output activity streams where Leadership benefits from both
+  /// the participating Peers directory and a dedicated **Top Contributors** tab.
+  bool get supportsTopContributorsTab {
+    const contributorStreams = <String>{
+      'impacts',
+      'business-deals',
+      'p2p-meetings',
+      'referrals',
+      'testimonials',
+      'posts',
+      'coins',
+      'introduced-peers',
+      'peer-recommendations',
+      'event-attendance',
+    };
+    return contributorStreams.contains(type);
+  }
+
+  /// Activity list screens that support sorting by **Recent** and filtering by
+  /// sub-type/category/status in the main list.
+  bool get supportsListFilters {
+    const unfilterableDirectories = <String>{
+      'peers',
+      'circulars',
+      'top-contributors',
+      'highest-givers',
+    };
+    return !unfilterableDirectories.contains(type);
+  }
+}
+
+/// Parses ISO or loose date strings defensively into local [DateTime].
+DateTime? _parseLeaderActivityDateTime(dynamic raw) {
+  final str = raw?.toString().trim() ?? '';
+  if (str.isEmpty) return null;
+  final iso = DateTime.tryParse(str);
+  if (iso != null) return iso;
+  // Support "DD MMM YYYY" or "YYYY-MM-DD HH:mm" fallback if dashes exist.
+  final normalized = str.replaceAll('/', '-');
+  return DateTime.tryParse(normalized);
 }
 
 /// Represents a peer in the top-to-bottom ranked peers list for any activity section.
@@ -468,6 +509,8 @@ class LeaderRankedPeerModel {
   final double metricAmount;
   final String metricLabel;
   final String metricDisplay;
+  final DateTime? latestActivityAt;
+  final List<String> activityTags;
 
   const LeaderRankedPeerModel({
     required this.rank,
@@ -476,6 +519,8 @@ class LeaderRankedPeerModel {
     this.metricAmount = 0.0,
     required this.metricLabel,
     required this.metricDisplay,
+    this.latestActivityAt,
+    this.activityTags = const [],
   });
 
   factory LeaderRankedPeerModel.fromJson(
@@ -505,6 +550,30 @@ class LeaderRankedPeerModel {
         ? json['rank'] as int
         : (int.tryParse(json['rank']?.toString() ?? '') ?? fallbackRank);
 
+    final latestActivityAt = _parseLeaderActivityDateTime(
+      json['last_activity_at'] ??
+          json['latest_activity_at'] ??
+          json['latest_date'] ??
+          json['activity_date'] ??
+          json['updated_at'] ??
+          json['created_at'],
+    );
+
+    final tags = <String>{};
+    for (final key in const [
+      'activity_type',
+      'subtype',
+      'sub_type',
+      'mode',
+      'impact_type',
+      'deal_type',
+      'ask_type',
+      'request_category',
+    ]) {
+      final val = json[key]?.toString().trim() ?? '';
+      if (val.isNotEmpty) tags.add(val);
+    }
+
     return LeaderRankedPeerModel(
       rank: rankVal,
       peer: peer,
@@ -512,6 +581,8 @@ class LeaderRankedPeerModel {
       metricAmount: amt,
       metricLabel: label,
       metricDisplay: display,
+      latestActivityAt: latestActivityAt,
+      activityTags: tags.toList(),
     );
   }
 
@@ -522,6 +593,8 @@ class LeaderRankedPeerModel {
     double? metricAmount,
     String? metricLabel,
     String? metricDisplay,
+    DateTime? latestActivityAt,
+    List<String>? activityTags,
   }) {
     return LeaderRankedPeerModel(
       rank: rank ?? this.rank,
@@ -530,6 +603,8 @@ class LeaderRankedPeerModel {
       metricAmount: metricAmount ?? this.metricAmount,
       metricLabel: metricLabel ?? this.metricLabel,
       metricDisplay: metricDisplay ?? this.metricDisplay,
+      latestActivityAt: latestActivityAt ?? this.latestActivityAt,
+      activityTags: activityTags ?? this.activityTags,
     );
   }
 }
@@ -582,6 +657,14 @@ class LeaderActivityItemModel {
   final String? targetPeerName;
   final String? targetPeerCompany;
   final String? requestCategory;
+  final String? peerCode;
+  final String? districtName;
+  final String? submittedAt;
+  final int attachmentsCount;
+  final bool? canReview;
+  final String? reviewRemarks;
+  final String? reviewerName;
+  final int? livesImpacted;
 
   const LeaderActivityItemModel({
     required this.id,
@@ -605,7 +688,21 @@ class LeaderActivityItemModel {
     this.targetPeerName,
     this.targetPeerCompany,
     this.requestCategory,
+    this.peerCode,
+    this.districtName,
+    this.submittedAt,
+    this.attachmentsCount = 0,
+    this.canReview,
+    this.reviewRemarks,
+    this.reviewerName,
+    this.livesImpacted,
   });
+
+  bool get isLifeImpact =>
+      type == 'impacts' ||
+      type == 'impact' ||
+      type == 'life-impacts' ||
+      requestCategory == 'pending_impacts';
 
   /// Formatted local date string (e.g. "25 Sep 2026" or "25 Sep 2026, 02:19 PM").
   String get formattedDate {
@@ -653,8 +750,15 @@ class LeaderActivityItemModel {
       'speaker-applications',
       'partner-inquiries',
       'stories',
+      'impacts', // Life Impacts require admin approval before publishing
+      'impact',
+      'life-impact',
+      'life_impact',
+      'life-impacts',
+      'pending_impacts',
+      'pending-impacts',
     };
-    return reviewableTypes.contains(type) &&
+    return reviewableTypes.contains(type.trim().toLowerCase()) &&
         (s.contains('pending') ||
             s.contains('awaiting') ||
             s.contains('submitted') ||
@@ -694,10 +798,21 @@ class LeaderActivityItemModel {
       targetPeerName: targetPeerName,
       targetPeerCompany: targetPeerCompany,
       requestCategory: requestCategory,
+      peerCode: peerCode,
+      districtName: districtName,
+      submittedAt: submittedAt,
+      attachmentsCount: attachmentsCount,
+      canReview: canReview,
+      reviewRemarks: reviewRemarks,
+      reviewerName: reviewerName,
+      livesImpacted: livesImpacted,
     );
   }
 
-  factory LeaderActivityItemModel.fromJson(Map<String, dynamic> json) {
+  factory LeaderActivityItemModel.fromJson(
+    Map<String, dynamic> json, {
+    String? fallbackType,
+  }) {
     final fromPeer = json['from_peer'] is Map
         ? Map<String, dynamic>.from(json['from_peer'] as Map)
         : (json['peer'] is Map
@@ -728,7 +843,7 @@ class LeaderActivityItemModel {
             json['peer_name'] ??
             json['author_name'] ??
             json['name'] ??
-            'Peer Member')
+            'Peer')
         .toString();
 
     final avatarUrl = (fromPeer['profile_image'] ??
@@ -744,7 +859,7 @@ class LeaderActivityItemModel {
     final designation = (fromPeer['designation'] ??
             json['designation'] ??
             json['author_role'] ??
-            'Member')
+            'Peer')
         .toString();
 
     final company = (fromPeer['company_name'] ??
@@ -790,9 +905,20 @@ class LeaderActivityItemModel {
         json['value_formatted'] ??
         (json['coins'] != null ? '${json['coins']} Coins' : null);
 
+    final rawType = (json['type'] ?? '').toString().trim();
+    final resolvedType = (fallbackType == 'impacts' &&
+            !rawType.toLowerCase().contains('impact'))
+        ? 'impacts'
+        : (rawType.isNotEmpty ? rawType : (fallbackType ?? ''));
+    final verification = json['verification'] is Map
+        ? Map<String, dynamic>.from(json['verification'] as Map)
+        : <String, dynamic>{};
+    final permissions = json['permissions'] is Map
+        ? Map<String, dynamic>.from(json['permissions'] as Map)
+        : <String, dynamic>{};
     return LeaderActivityItemModel(
       id: (json['id'] ?? '').toString(),
-      type: (json['type'] ?? '').toString(),
+      type: resolvedType,
       title: rawTitle.toString(),
       subtitle: (json['subtitle'] ?? '').toString(),
       description: rawDesc.toString(),
@@ -822,6 +948,25 @@ class LeaderActivityItemModel {
           (toPeer['company_name'] ?? toPeer['business_name'])?.toString(),
       requestCategory:
           (json['request_category'] ?? json['category_slug'])?.toString(),
+      peerCode: (json['peer_code'] ?? fromPeer['peer_code'])?.toString(),
+      districtName:
+          (json['district_name'] ?? fromPeer['district_name'])?.toString(),
+      submittedAt: (json['submitted_at'] ?? json['created_at'])?.toString(),
+      attachmentsCount:
+          int.tryParse((json['attachments_count'] ?? '0').toString()) ??
+              (json['attachments'] is List
+                  ? (json['attachments'] as List).length
+                  : 0),
+      canReview:
+          permissions['can_approve'] as bool? ?? json['can_review'] as bool?,
+      reviewRemarks: verification['review_remarks']?.toString() ??
+          json['review_remarks']?.toString(),
+      reviewerName: (verification['approved_by_name'] ??
+              verification['rejected_by_name'])
+          ?.toString(),
+      livesImpacted: int.tryParse(
+        (json['life_impacted'] ?? json['lives_impacted'] ?? '').toString(),
+      ),
     );
   }
 

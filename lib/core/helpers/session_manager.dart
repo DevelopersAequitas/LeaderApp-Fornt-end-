@@ -57,9 +57,16 @@ class UserSession {
   });
 
   factory UserSession.fromJson(Map<String, dynamic> json) {
-    final rawRole = json['role'] as String? ?? 'circleChair';
-    final customRole = json['custom_role_label'] as String? ?? '';
-    final UserRole resolvedRole = UserRole.fromLabel(customRole.isNotEmpty ? customRole : rawRole) ?? UserRole.fromLabel(rawRole) ?? UserRole.circleChair;
+    final rawRole = (json['role'] as String? ?? '').trim();
+    final customRole = (json['custom_role_label'] as String? ?? '').trim();
+    UserRole? resolvedRole = UserRole.fromLabel(rawRole);
+    if (resolvedRole == null && customRole.isNotEmpty) {
+      final fromCustom = UserRole.fromLabel(customRole);
+      if (fromCustom != null && !fromCustom.isGlobalExecutive) {
+        resolvedRole = fromCustom;
+      }
+    }
+    resolvedRole ??= UserRole.circleChair;
 
     final managedList = <String>[];
     if (json['managed_circles'] is List) {
@@ -238,11 +245,10 @@ class SessionManager {
   /// Gets the current active role.
   UserRole get currentRole => _currentSession.role;
 
-  /// Returns true if current user is Super Admin or Global Administrator.
+  /// Returns true if current user is an authoritative Super Admin or Global Founder.
   bool get isSuperAdmin =>
       _currentSession.role == UserRole.superAdmin ||
-      _currentSession.role.label.toLowerCase().contains('admin') ||
-      (_currentSession.customRoleLabel?.toLowerCase().contains('admin') ?? false);
+      _currentSession.role == UserRole.globalFounder;
 
   /// Clears the session and wipes all secure storage tokens upon sign out.
   Future<void> clearSession() async {
@@ -314,6 +320,24 @@ class SessionManager {
     }
 
     switch (role) {
+      case UserRole.viceChair:
+      case UserRole.secretary:
+        _permissions = const LeaderPermissions(
+          canAccessDashboard: true,
+          canViewOverallRevenue: false,
+          canReviewPendingPeers: false,
+          canAccessPeersTab: true,
+          canAddEditPeer: false,
+          canSendWishes: true,
+          canAccessTeamsTab: false,
+          canViewIndustryClusters: true,
+          canAccessFinanceTab: false,
+          canAccessReportsTab: true,
+          canSubmitReports: true,
+          canAccessRoleManagement: false,
+        );
+        break;
+      case UserRole.committeeLeader:
       case UserRole.chairBusinessGrowth:
       case UserRole.chairEvents:
       case UserRole.circleChair:
@@ -427,6 +451,7 @@ class SessionManager {
           canViewRegionalScope: true,
         );
         break;
+      case UserRole.globalFounder:
       case UserRole.superAdmin:
         _permissions = LeaderPermissions.allGranted;
         break;

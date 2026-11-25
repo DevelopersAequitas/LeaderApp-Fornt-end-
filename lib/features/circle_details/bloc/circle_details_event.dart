@@ -62,3 +62,20 @@ class FilterCirclePeersStatusEvent extends CircleDetailsEvent {
   List<Object?> get props => [status];
 }
 
+class AssignCircleRoleEvent extends CircleDetailsEvent {
+  final String circleId;
+  final String userId;
+  final String role;
+  final String? committeeName;
+
+  const AssignCircleRoleEvent({
+    required this.circleId,
+    required this.userId,
+    required this.role,
+    this.committeeName,
+  });
+
+  @override
+  List<Object?> get props => [circleId, userId, role, committeeName];
+}
+

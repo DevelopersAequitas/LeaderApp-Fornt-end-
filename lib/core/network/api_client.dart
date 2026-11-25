@@ -66,9 +66,13 @@ class ApiClient {
   // --- Console Logging Helpers ---
 
   static void _printRequestLog(RequestOptions options) {
+    final redactedHeaders = Map<String, dynamic>.from(options.headers);
+    if (redactedHeaders.containsKey('Authorization')) {
+      redactedHeaders['Authorization'] = 'Bearer ***REDACTED***';
+    }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('🌐 [DIO REQUEST] ➡️ ${options.method} ${options.uri}');
-    debugPrint('📋 Headers: ${options.headers}');
+    debugPrint('📋 Headers: $redactedHeaders');
     if (options.queryParameters.isNotEmpty) {
       debugPrint('🔍 Query Parameters: ${options.queryParameters}');
     }

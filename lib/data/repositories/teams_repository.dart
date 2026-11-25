@@ -35,6 +35,12 @@ abstract class TeamsRepository {
   });
   Future<ApiResponse<List<String>>> getIndustries();
   Future<ApiResponse<List<IndustryModel>>> getIndustriesList();
+  Future<ApiResponse<Map<String, dynamic>>> assignCircleRole({
+    required String circleId,
+    required String userId,
+    required String role,
+    String? committeeName,
+  });
 }
 
 class TeamsRepositoryImpl implements TeamsRepository {
@@ -124,5 +130,20 @@ class TeamsRepositoryImpl implements TeamsRepository {
   @override
   Future<ApiResponse<List<String>>> getIndustries() async {
     return _remoteDataSource.getIndustries();
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> assignCircleRole({
+    required String circleId,
+    required String userId,
+    required String role,
+    String? committeeName,
+  }) async {
+    return _remoteDataSource.assignCircleRole(
+      circleId: circleId,
+      userId: userId,
+      role: role,
+      committeeName: committeeName,
+    );
   }
 }

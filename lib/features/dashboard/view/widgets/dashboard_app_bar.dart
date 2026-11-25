@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/enums/user_role.dart';
-import '../../model/dashboard_circle_option.dart';
-import 'dashboard_circle_switcher.dart';
+import '../../../../core/helpers/session_manager.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/services/notification_count_service.dart';
 import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../model/dashboard_circle_option.dart';
+import 'dashboard_circle_switcher.dart';
 
-/// Renders a dynamic, tab-aware AppBar matching Peers Global Unity's `AppCommonBar`:
-/// - On the Home/Dashboard tab (`activeTab == 0`), shows the PeersGlobal logo + brand text
-///   and the active leader role name below it as the subtitle.
-/// - On the Peers tab (`activeTab == 1`), shows the `Peers` title (without any circle subtitle),
-///   a search icon button on the right (or an inline search bar when active), and the profile avatar.
-/// - On other tabs (`Circles & Teams`, `Finance`, `Reports`), shows the clean tab title and profile avatar.
+/// Compact, refined Enterprise Top App Bar for the Leadership shell.
+///
+/// - Tab 0 (`Dashboard`): Peers Global architectural brand lockup + quick controls.
+/// - Tab 1 (`Peers`): Clean `Peers` title + inline search toggle.
+/// - Tabs 2–4: Crisp section title + scope switcher, notifications, and profile avatar.
 class DashboardAppBar extends StatelessWidget {
   final int activeTab;
   final String? selectedCircle;
@@ -44,277 +45,305 @@ class DashboardAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = SessionManager().currentSession;
-    final roleSubtitle = (session.customRoleLabel != null &&
-            session.customRoleLabel!.trim().isNotEmpty)
-        ? session.customRoleLabel!.trim()
-        : session.role.label;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? AppColor.darkSurface : AppColor.lightSurface;
+    final borderColor = isDark ? AppColor.darkBorder : AppColor.outline;
+    final textPrimary =
+        isDark ? AppColor.darkTextPrimary : AppColor.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColor.darkTextSecondary : AppColor.lightTextSecondary;
 
-    String tabTitle = 'Dashboard';
-    switch (activeTab) {
-      case 1:
-        tabTitle = 'Peers';
-        break;
-      case 2:
-        tabTitle = 'Circles & Teams';
-        break;
-      case 3:
-        tabTitle = 'Finance';
-        break;
-      case 4:
-        tabTitle = 'Reports';
-        break;
-      default:
-        break;
-    }
+    final tabTitle = switch (activeTab) {
+      1 => 'Peers',
+      2 => 'Circles & Teams',
+      3 => 'Finance',
+      4 => 'Reports',
+      _ => 'Peers Global',
+    };
 
     final showInlineSearch = activeTab == 1 && isSearching;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-        systemNavigationBarColor: Colors.white,
-        systemNavigationBarIconBrightness: Brightness.dark,
-        systemNavigationBarDividerColor: AppColor.lightBorder,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor: surfaceColor,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarDividerColor: borderColor,
       ),
       child: Container(
-        decoration: const BoxDecoration(
-          color: AppColor.lightSurface,
+        decoration: BoxDecoration(
+          color: surfaceColor,
           border: Border(
-            bottom: BorderSide(color: AppColor.lightBorder, width: 1.0),
+            bottom: BorderSide(color: borderColor, width: 1.0),
           ),
         ),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenMargin,
+          6,
+          AppSpacing.screenMargin,
+          8,
+        ),
         child: SafeArea(
           bottom: false,
-          child: showInlineSearch
-              ? Row(
-                  children: [
-                    _buildHeaderIconButton(
-                      icon: Icons.arrow_back_rounded,
-                      onTap: onSearchClose ?? () {},
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        height: 36,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: AppColor.lightSurfaceSubtle,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColor.lightBorder),
-                        ),
-                        alignment: Alignment.center,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.search_rounded,
-                              size: 16,
-                              color: AppColor.lightTextSecondary,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: TextField(
-                                controller: searchController,
-                                autofocus: true,
-                                onChanged: onSearchChanged,
-                                style: const TextStyle(
-                                  color: AppColor.lightTextPrimary,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: showInlineSearch
+                ? _buildInlineSearchRow(
+                    isDark: isDark,
+                    textPrimary: textPrimary,
+                    textSecondary: textSecondary,
+                    borderColor: borderColor,
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: activeTab == 0
+                            ? _buildBrandLockup(
+                                textPrimary: textPrimary,
+                                textSecondary: textSecondary,
+                              )
+                            : Text(
+                                tabTitle,
+                                style: AppTypography.titleLarge.copyWith(
+                                  fontSize: 17,
+                                  color: textPrimary,
                                 ),
-                                decoration: const InputDecoration(
-                                  hintText:
-                                      'Search by name, company, circle...',
-                                  hintStyle: TextStyle(
-                                    color: AppColor.lightTextMuted,
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            if (searchController != null)
-                              ValueListenableBuilder<TextEditingValue>(
-                                valueListenable: searchController!,
-                                builder: (context, value, _) {
-                                  if (value.text.isEmpty) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return GestureDetector(
-                                    onTap: () {
-                                      searchController!.clear();
-                                      onSearchChanged?.call('');
-                                    },
-                                    child: const Icon(
-                                      Icons.close_rounded,
-                                      size: 16,
-                                      color: AppColor.lightTextSecondary,
-                                    ),
-                                  );
-                                },
-                              ),
-                          ],
-                        ),
                       ),
-                    ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    Expanded(
-                      child: activeTab == 0
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Image.asset(
-                                  'assets/icons/AppIcon.png',
-                                  width: 32,
-                                  height: 32,
-                                  fit: BoxFit.contain,
-                                ),
-                                const SizedBox(width: 10),
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      RichText(
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        text: const TextSpan(
-                                          style: TextStyle(
-                                            fontFamily: 'LibreFranklin',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w500,
-                                            letterSpacing: -0.2,
-                                            height: 1.15,
-                                          ),
-                                          children: [
-                                            TextSpan(
-                                              text: 'Peers',
-                                              style: TextStyle(
-                                                color: AppColor.primaryPink,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: 'Global',
-                                              style: TextStyle(
-                                                color: AppColor.primaryBlue,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 1.5),
-                                      Text(
-                                        roleSubtitle,
-                                        style: const TextStyle(
-                                          color: AppColor.lightTextSecondary,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w500,
-                                          height: 1.1,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Text(
-                              tabTitle,
-                              style: const TextStyle(
-                                color: AppColor.lightTextPrimary,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.1,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                    ),
-                    if (activeTab == 1) ...[
-                      _buildHeaderIconButton(
-                        icon: Icons.search_rounded,
-                        onTap: onSearchTap ?? () {},
-                      ),
+                      if (activeTab == 1) ...[
+                        _buildHeaderIconButton(
+                          icon: Icons.search_rounded,
+                          semanticLabel: 'Search peers',
+                          isDark: isDark,
+                          onTap: onSearchTap ?? () {},
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      if (activeTab != 0 && availableCircles.length > 1) ...[
+                        DashboardCircleSwitcher(
+                          circles: availableCircles,
+                          industries: dynamicIndustries,
+                          selectedCircleId: selectedCircle,
+                          isGlobalRole:
+                              session.role == UserRole.superAdmin ||
+                              session.role == UserRole.countryDirector,
+                          onSelected: onCircleSelected,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      _buildNotificationBellButton(context, isDark: isDark),
                       const SizedBox(width: 8),
-                    ],
-                    if (availableCircles.length > 1) ...[
-                      DashboardCircleSwitcher(
-                        circles: availableCircles,
-                        selectedCircleId: selectedCircle,
-                        isGlobalRole:
-                            session.role == UserRole.superAdmin ||
-                                session.role == UserRole.countryDirector,
-                        onSelected: onCircleSelected,
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    _buildNotificationBellButton(context),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () =>
-                          Navigator.of(context).pushNamed(AppRoutes.profile),
-                      child: Container(
-                        width: 34,
-                        height: 34,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: AppColor.brandGradient,
-                        ),
-                        padding: const EdgeInsets.all(1.5),
-                        child: ClipOval(
-                          child: InitialsAvatar(
-                            name: session.name,
-                            imageUrl: session.avatarUrl,
-                            radius: 15.5,
-                            backgroundColor: AppColor.lightSurface,
-                            textColor: AppColor.primaryBlue,
-                            fontSize: 11,
+                      Semantics(
+                        button: true,
+                        label: 'Open leader profile for ${session.name}',
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () =>
+                              Navigator.of(context).pushNamed(AppRoutes.profile),
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            padding: const EdgeInsets.all(1.5),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColor.outlineStrong,
+                                width: 1.2,
+                              ),
+                            ),
+                            child: ClipOval(
+                              child: InitialsAvatar(
+                                name: session.name,
+                                imageUrl: session.avatarUrl,
+                                radius: 17,
+                                backgroundColor: AppColor.primaryContainer,
+                                textColor: AppColor.onPrimaryContainer,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
   }
 
+  Widget _buildBrandLockup({
+    required Color textPrimary,
+    required Color textSecondary,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: AppColor.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(color: AppColor.outline),
+          ),
+          child: Image.asset(
+            'assets/icons/AppIcon.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Peers Global',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.titleMedium.copyWith(
+                  fontSize: 16,
+                  color: textPrimary,
+                  letterSpacing: -0.25,
+                ),
+              ),
+              Text(
+                'Leadership Platform',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.labelSmall.copyWith(
+                  fontSize: 11.5,
+                  color: textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInlineSearchRow({
+    required bool isDark,
+    required Color textPrimary,
+    required Color textSecondary,
+    required Color borderColor,
+  }) {
+    return Row(
+      children: [
+        _buildHeaderIconButton(
+          icon: Icons.arrow_back_rounded,
+          semanticLabel: 'Close search',
+          isDark: isDark,
+          onTap: onSearchClose ?? () {},
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColor.darkSurfaceSubtle
+                  : AppColor.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              border: Border.all(color: borderColor),
+            ),
+            alignment: Alignment.center,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.search_rounded,
+                  size: 17,
+                  color: textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: searchController,
+                    autofocus: true,
+                    onChanged: onSearchChanged,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search by name, company, circle...',
+                      hintStyle: AppTypography.bodyMedium.copyWith(
+                        color: AppColor.lightTextMuted,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+                if (searchController != null)
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: searchController!,
+                    builder: (context, value, _) {
+                      if (value.text.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return GestureDetector(
+                        onTap: () {
+                          searchController!.clear();
+                          onSearchChanged?.call('');
+                        },
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 16,
+                          color: textSecondary,
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildHeaderIconButton({
     required IconData icon,
+    required String semanticLabel,
+    required bool isDark,
     required VoidCallback onTap,
   }) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: AppColor.lightSurfaceSubtle,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColor.lightBorder,
-          width: 0.5,
+    final bg =
+        isDark ? AppColor.darkSurfaceSubtle : AppColor.surfaceContainerLow;
+    final stroke = isDark ? AppColor.darkBorder : AppColor.outline;
+    final fg = isDark ? AppColor.darkTextPrimary : AppColor.lightTextPrimary;
+
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          border: Border.all(color: stroke, width: 1.0),
         ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: onTap,
-          child: Center(
-            child: Icon(
-              icon,
-              size: 18,
-              color: AppColor.lightTextPrimary,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            onTap: onTap,
+            child: Center(
+              child: Icon(icon, size: 19, color: fg),
             ),
           ),
         ),
@@ -322,97 +351,99 @@ class DashboardAppBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNotificationBellButton(BuildContext context) {
+  Widget _buildNotificationBellButton(
+    BuildContext context, {
+    required bool isDark,
+  }) {
+    final bg =
+        isDark ? AppColor.darkSurfaceSubtle : AppColor.surfaceContainerLow;
+    final stroke = isDark ? AppColor.darkBorder : AppColor.outline;
+    final fg = isDark ? AppColor.darkTextPrimary : AppColor.lightTextPrimary;
+
     return ValueListenableBuilder<int>(
       valueListenable: NotificationCountService.instance.unreadCount,
       builder: (context, unreadCount, _) {
         final hasUnread = unreadCount > 0;
         final countText = unreadCount > 99 ? '99+' : '$unreadCount';
 
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColor.lightSurfaceSubtle,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColor.lightBorder,
-                  width: 0.5,
+        return Semantics(
+          button: true,
+          label: hasUnread
+              ? 'Notifications, $unreadCount unread'
+              : 'Notifications',
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  border: Border.all(color: stroke, width: 1.0),
                 ),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () async {
-                    await Navigator.of(context)
-                        .pushNamed(AppRoutes.notifications);
-                    // Refresh count after returning from notifications screen
-                    NotificationCountService.instance.fetchUnreadCount();
-                  },
-                  child: const Center(
-                    child: Icon(
-                      Icons.notifications_outlined,
-                      size: 19,
-                      color: AppColor.lightTextPrimary,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    onTap: () async {
+                      await Navigator.of(context)
+                          .pushNamed(AppRoutes.notifications);
+                      NotificationCountService.instance.fetchUnreadCount();
+                    },
+                    child: Center(
+                      child: Icon(
+                        Icons.notifications_none_rounded,
+                        size: 20,
+                        color: fg,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            if (hasUnread)
-              Positioned(
-                top: -5,
-                right: -5,
-                child: IgnorePointer(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 1.5,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+              if (hasUnread)
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1.5,
                       ),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 1.5,
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              const Color(0xFFE11D48).withValues(alpha: 0.35),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1.5),
+                      decoration: BoxDecoration(
+                        color: AppColor.secondary,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusPill),
+                        border: Border.all(
+                          color: isDark
+                              ? AppColor.darkSurface
+                              : AppColor.lightSurface,
+                          width: 1.5,
                         ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      countText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                        height: 1.0,
-                        letterSpacing: -0.3,
                       ),
-                      textAlign: TextAlign.center,
+                      alignment: Alignment.center,
+                      child: Text(
+                        countText,
+                        style: const TextStyle(
+                          fontFamily: AppTypography.fontFamily,
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          height: 1.0,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         );
       },
     );

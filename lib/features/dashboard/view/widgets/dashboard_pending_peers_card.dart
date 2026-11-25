@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/widgets.dart';
 
-/// Renders a dynamic pending peers approval banner.
+/// Restyled pending approvals banner preserved for component compatibility.
 class DashboardPendingPeersCard extends StatelessWidget {
   final int count;
   final VoidCallback onReviewTap;
@@ -18,38 +20,29 @@ class DashboardPendingPeersCard extends StatelessWidget {
     if (count <= 0) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFFFE082)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.amber.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screenMargin,
+        vertical: 6,
+      ),
+      child: EnterpriseSurfaceCard(
+        padding: const EdgeInsets.all(14),
+        borderColor: AppColor.pendingBorder,
+        onTap: onReviewTap,
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFA000),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColor.pendingBg,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                border: Border.all(color: AppColor.pendingBorder),
               ),
               alignment: Alignment.center,
-              child: Text(
-                '$count',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
-                ),
+              child: const Icon(
+                Icons.fact_check_outlined,
+                color: AppColor.pending,
+                size: 18,
               ),
             ),
             const SizedBox(width: 12),
@@ -59,33 +52,24 @@ class DashboardPendingPeersCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '$count pending peers',
-                    style: const TextStyle(
-                      color: AppColors.text,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    '$count pending ${count == 1 ? 'request' : 'requests'}',
+                    style: AppTypography.titleSmall,
                   ),
-                  const SizedBox(height: 1),
-                  const Text(
-                    'Awaiting review & approval',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                  const SizedBox(height: 2),
+                  Text(
+                    'Awaiting executive review & approval',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColor.lightTextSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(
-              width: 84,
-              child: PrimaryButton(
-                label: 'Review',
-                height: 34,
-                borderRadius: 8,
-                onPressed: onReviewTap,
-              ),
+            const SizedBox(width: 10),
+            EnterpriseStatusBadge(
+              label: 'Review',
+              tone: EnterpriseStatusTone.pending,
+              icon: Icons.arrow_forward_rounded,
             ),
           ],
         ),

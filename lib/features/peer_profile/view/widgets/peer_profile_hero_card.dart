@@ -1,276 +1,387 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/helpers/session_manager.dart';
+import '../../../../core/theme/app_color.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../peers/model/peer_model.dart';
+import '../../model/peer_profile_model.dart';
+import '../../presenter/peer_profile_presenter.dart';
 
-/// Renders the luxury dark hero banner for Peer Profile with mandatory key peer information:
-/// 1. Peer Profile Name (Uppercase, max w500 font weight)
-/// 2. City / Location
-/// 3. Designation
-/// 4. Company Name
-/// 5. Category (Level 4 Category / Specialization)
-/// 6. Lives Impacted Count
+/// Founder-level Peer Identity Header answering:
+/// Who is this peer, what do they do, and where do they belong?
 class PeerProfileHeroCard extends StatelessWidget {
   final PeerModel peer;
+  final PeerProfileDetailModel? details;
 
-  const PeerProfileHeroCard({super.key, required this.peer});
+  const PeerProfileHeroCard({
+    super.key,
+    required this.peer,
+    this.details,
+  });
 
-  Color _getStatusBg(String status) {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return const Color(0xFFDCFCE7);
-      case 'at risk':
-        return const Color(0xFFFEE2E2);
-      case 'needs attention':
-        return const Color(0xFFFEF3C7);
-      case 'pending':
-        return const Color(0xFFE0E7FF);
-      default:
-        return const Color(0xFFF3F4F6);
+  EnterpriseStatusTone _toneForStatus(String status) {
+    final s = status.toLowerCase().trim();
+    if (s == 'active' || s == 'approved') return EnterpriseStatusTone.active;
+    if (s == 'at risk' || s == 'expired' || s == 'rejected' || s == 'inactive') {
+      return EnterpriseStatusTone.rejected;
     }
+    if (s == 'pending' || s == 'needs attention') {
+      return EnterpriseStatusTone.pending;
+    }
+    return EnterpriseStatusTone.inactive;
   }
 
-  Color _getStatusText(String status) {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return const Color(0xFF16A34A);
-      case 'at risk':
-        return const Color(0xFFDC2626);
-      case 'needs attention':
-        return const Color(0xFFD97706);
-      case 'pending':
-        return const Color(0xFF4F46E5);
-      default:
-        return const Color(0xFF4B5563);
-    }
+  Future<void> _launch(BuildContext context, String uriStr) async {
+    final uri = Uri.tryParse(uriStr);
+    if (uri == null) return;
+    try {
+      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to launch application.')),
+        );
+      }
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    final statusBg = _getStatusBg(peer.status);
-    final statusText = _getStatusText(peer.status);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final idInfo = details?.identity;
+    final fullName =
+        (idInfo?.fullName.isNotEmpty == true ? idInfo!.fullName : peer.name)
+            .trim();
+    final designation = (idInfo?.designation.isNotEmpty == true
+            ? idInfo!.designation
+            : (peer.designation ?? ''))
+        .trim();
+    final company = (idInfo?.companyName.isNotEmpty == true
+            ? idInfo!.companyName
+            : peer.company)
+        .trim();
+    final primaryCategory = (idInfo?.level4Category.isNotEmpty == true
+            ? idInfo!.level4Category
+            : (idInfo?.primaryCategory.isNotEmpty == true
+                ? idInfo!.primaryCategory
+                : (peer.level4Category?.isNotEmpty == true
+                    ? peer.level4Category!
+                    : (peer.industry ?? ''))))
+        .trim();
+    final city =
+        (idInfo?.city.isNotEmpty == true ? idInfo!.city : peer.location).trim();
+    final district = (idInfo?.districtName ?? '').trim();
+    final circle = (idInfo?.circleName.isNotEmpty == true
+            ? idInfo!.circleName
+            : peer.circle)
+        .trim();
+    final status = (idInfo?.accountStatus.isNotEmpty == true
+            ? idInfo!.accountStatus
+            : peer.status)
+        .trim();
+    final leadershipRole = (idInfo?.currentLeadershipRole ?? '').trim();
+    final peerCode = (idInfo?.peerCode ?? '').trim();
+    final isVerified = idInfo?.isVerified ?? peer.isVerified;
 
-    final displayCategory = peer.level4Category != null &&
-            peer.level4Category!.trim().isNotEmpty
-        ? peer.level4Category!.trim()
-        : (peer.tags.isNotEmpty
-            ? peer.tags
-            : (peer.industry ?? 'Specialist'));
+    final subtitleParts = <String>[
+      if (designation.isNotEmpty) designation,
+      if (company.isNotEmpty) company,
+    ];
+    final locationParts = <String>[
+      if (city.isNotEmpty) city,
+      if (district.isNotEmpty && district.toLowerCase() != city.toLowerCase())
+        district,
+    ];
 
-    final displayDesignation = peer.designation != null &&
-            peer.designation!.trim().isNotEmpty
-        ? peer.designation!.trim()
-        : '';
-    final displayCompany = peer.company.trim();
+    final canShowContact = PeerProfilePresenter.canShowContactActions(
+      peer,
+      details,
+      hasPermission: SessionManager().permissions.canViewPeerContactInfo ||
+          SessionManager().isSuperAdmin,
+    );
 
-    String subtitle = '';
-    if (displayDesignation.isNotEmpty && displayCompany.isNotEmpty) {
-      subtitle = '$displayDesignation · $displayCompany';
-    } else if (displayDesignation.isNotEmpty) {
-      subtitle = displayDesignation;
-    } else {
-      subtitle = displayCompany;
-    }
+    final phone = (idInfo?.phone ?? details?.phone ?? peer.phone ?? '').trim();
+    final whatsapp =
+        (idInfo?.whatsapp ?? details?.whatsapp ?? peer.whatsapp ?? '').trim();
+    final email = (idInfo?.email ?? details?.email ?? peer.email ?? '').trim();
+    final linkedin =
+        (idInfo?.linkedin ?? details?.linkedin ?? peer.linkedin ?? '').trim();
+    final website = (details?.business?.website ?? '').trim();
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        gradient: AppColors.brandGradient,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.22),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.screenMargin,
+        8,
+        AppSpacing.screenMargin,
+        4,
       ),
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColor.darkSurface : AppColor.lightSurface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(
+          color: isDark ? AppColor.darkBorder : AppColor.outline,
+        ),
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x0A0F172A),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
+              ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Avatar with image / initials fallback
               InitialsAvatar(
-                name: peer.name.toUpperCase(),
+                name: fullName.isNotEmpty ? fullName : 'Peer',
                 imageUrl: peer.avatarUrl,
-                radius: 28,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.35),
-                  width: 1.5,
-                ),
-                backgroundColor: Colors.white.withValues(alpha: 0.15),
-                fontSize: 16,
+                radius: 30,
+                backgroundColor: AppColor.primaryContainer,
+                textColor: AppColor.onPrimaryContainer,
+                fontSize: 17,
               ),
               const SizedBox(width: 12),
-              // Name (Uppercase, max w500), Verified Badge, Designation & Company Name
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: [
                         Flexible(
                           child: Text(
-                            peer.name.toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.3,
+                            fullName.isNotEmpty ? fullName : 'Peer',
+                            style: AppTypography.titleLarge.copyWith(
+                              color: isDark
+                                  ? AppColor.darkTextPrimary
+                                  : AppColor.lightTextPrimary,
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (peer.isVerified) ...[
+                        if (isVerified) ...[
                           const SizedBox(width: 5),
                           const Icon(
                             Icons.verified_rounded,
-                            color: Color(0xFF60A5FA),
-                            size: 16,
+                            color: AppColor.primary,
+                            size: 17,
                           ),
                         ],
                       ],
                     ),
-                    if (subtitle.isNotEmpty) ...[
+                    if (subtitleParts.isNotEmpty) ...[
                       const SizedBox(height: 3),
                       Text(
-                        subtitle,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
+                        subtitleParts.join(' · '),
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: isDark
+                              ? AppColor.darkTextSecondary
+                              : AppColor.lightTextSecondary,
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (peerCode.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        'Peer ID: $peerCode',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: isDark
+                              ? AppColor.darkTextTertiary
+                              : AppColor.lightTextMuted,
+                        ),
                       ),
                     ],
                   ],
                 ),
               ),
-              // Status Pill
-              if (peer.status.isNotEmpty)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusBg,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    peer.status,
-                    style: TextStyle(
-                      color: statusText,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+              if (status.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                EnterpriseStatusBadge(
+                  label: status,
+                  tone: _toneForStatus(status),
+                  compact: true,
                 ),
+              ],
             ],
           ),
-          const SizedBox(height: 14),
-          // Badges Row: Lives Impacted, Level 4 Category & City
+          const SizedBox(height: 12),
           Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
-              // 1. Lives Impacted Count
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD97706),
-                  borderRadius: BorderRadius.circular(12),
+              if (leadershipRole.isNotEmpty)
+                EnterpriseStatusBadge(
+                  label: leadershipRole,
+                  tone: EnterpriseStatusTone.info,
+                  compact: true,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.favorite_rounded,
-                      color: Colors.white,
-                      size: 13,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      '${peer.impactCount} Lives Impacted',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+              if (circle.isNotEmpty)
+                _InfoChip(
+                  icon: Icons.groups_outlined,
+                  label: circle,
                 ),
-              ),
-              // 2. Level 4 Category / Specialization
-              if (displayCategory.isNotEmpty)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.category_outlined,
-                        color: Colors.white.withValues(alpha: 0.9),
-                        size: 13,
-                      ),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          displayCategory,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+              if (primaryCategory.isNotEmpty)
+                _InfoChip(
+                  icon: Icons.category_outlined,
+                  label: primaryCategory,
                 ),
-              // 3. City / Location
-              if (peer.location.isNotEmpty)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.white.withValues(alpha: 0.9),
-                        size: 13,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        peer.location,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
+              if (locationParts.isNotEmpty)
+                _InfoChip(
+                  icon: Icons.location_on_outlined,
+                  label: locationParts.join(', '),
                 ),
             ],
           ),
+          if (canShowContact) ...[
+            const SizedBox(height: 12),
+            Divider(
+              height: 1,
+              color: isDark ? AppColor.darkDivider : AppColor.divider,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (phone.isNotEmpty && !phone.contains('***'))
+                  _ContactPill(
+                    icon: Icons.call_outlined,
+                    label: 'Call',
+                    onTap: () => _launch(context, 'tel:$phone'),
+                  ),
+                if (whatsapp.isNotEmpty && !whatsapp.contains('***'))
+                  _ContactPill(
+                    icon: Icons.chat_bubble_outline_rounded,
+                    label: 'WhatsApp',
+                    onTap: () {
+                      final digits = whatsapp.replaceAll(RegExp(r'[^0-9+]'), '');
+                      _launch(context, 'https://wa.me/$digits');
+                    },
+                  ),
+                if (email.isNotEmpty && !email.contains('***'))
+                  _ContactPill(
+                    icon: Icons.mail_outline_rounded,
+                    label: 'Email',
+                    onTap: () => _launch(context, 'mailto:$email'),
+                  ),
+                if (linkedin.isNotEmpty)
+                  _ContactPill(
+                    icon: Icons.link_rounded,
+                    label: 'LinkedIn',
+                    onTap: () => _launch(
+                      context,
+                      linkedin.startsWith('http')
+                          ? linkedin
+                          : 'https://$linkedin',
+                    ),
+                  ),
+                if (website.isNotEmpty)
+                  _ContactPill(
+                    icon: Icons.language_rounded,
+                    label: 'Website',
+                    onTap: () => _launch(
+                      context,
+                      website.startsWith('http') ? website : 'https://$website',
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _InfoChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color:
+            isDark ? AppColor.darkSurfaceElevated : AppColor.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+        border: Border.all(
+          color: isDark ? AppColor.darkBorder : AppColor.outline,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColor.primary),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              style: AppTypography.labelSmall.copyWith(
+                color: isDark
+                    ? AppColor.darkTextSecondary
+                    : AppColor.lightTextSecondary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContactPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ContactPill({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: isDark ? AppColor.darkSurfaceSubtle : AppColor.primaryContainer,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: AppColor.primary),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: AppTypography.labelMedium.copyWith(
+                  color: isDark
+                      ? AppColor.darkTextPrimary
+                      : AppColor.onPrimaryContainer,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

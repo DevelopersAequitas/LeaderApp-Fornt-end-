@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/routes/app_routes.dart';
+import '../../../../core/notifications/app_notification_navigator.dart';
 import '../../../../core/services/notification_count_service.dart';
 import '../../../../core/theme/app_color.dart';
 import '../bloc/notifications_bloc.dart';
@@ -70,25 +70,13 @@ class _NotificationsViewState extends State<NotificationsView>
   void onNotificationTapped(String screen, Map<String, dynamic> data) {
     if (!mounted) return;
 
-    final target = screen.toLowerCase().trim();
-    final type = (data['type'] ?? data['notification_type'] ?? '').toString().toLowerCase().trim();
-    final category = (data['category'] ?? '').toString().toLowerCase().trim();
-
-    if (target.contains('role') || type.contains('role') || type.contains('tenure') || type.contains('appointed')) {
-      Navigator.of(context).pushNamed(AppRoutes.roleManagement);
-    } else if (target.contains('team') || target.contains('circle') || type.contains('circle') || category.contains('circle')) {
-      Navigator.of(context).pushNamed(AppRoutes.home, arguments: {'tab': 2});
-    } else if (target.contains('finance') || type.contains('finance') || type.contains('withdrawal') || type.contains('payout') || type.contains('payment') || category.contains('finance')) {
-      Navigator.of(context).pushNamed(AppRoutes.home, arguments: {'tab': 3});
-    } else if (target.contains('report') || type.contains('report') || type.contains('attendance') || type.contains('compliance') || category.contains('reports')) {
-      Navigator.of(context).pushNamed(AppRoutes.home, arguments: {'tab': 4});
-    } else if (target.contains('peer') || type.contains('peer') || type.contains('referral') || type.contains('p2p') || category.contains('peers')) {
-      Navigator.of(context).pushNamed(AppRoutes.peers);
-    } else if (target.contains('profile')) {
-      Navigator.of(context).pushNamed(AppRoutes.profile);
-    }
-    // If target is empty or '/dashboard', the item is marked read in place
-    // without forcing the user out of the notifications list.
+    // Same typed routing as push taps (role/circle/finance/report/peer/profile,
+    // plus entity ids when the payload carries them). With no destination the
+    // item is just marked read in place, without leaving the list.
+    AppNotificationNavigator.instance.handle(
+      {...data, 'screen': screen},
+      openFeedWhenUnknown: false,
+    );
   }
 
   @override

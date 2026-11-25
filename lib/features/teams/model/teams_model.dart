@@ -262,11 +262,23 @@ class CircleCadenceModel {
     // 3. calendar settings fallback
     final calendar = json['calendar'] is Map ? json['calendar'] as Map : null;
     final calSettings = calendar?['settings'] is Map ? calendar!['settings'] as Map : null;
+    final calRepeat = calSettings?['meeting_repeat'] is Map
+        ? calSettings!['meeting_repeat'] as Map
+        : null;
+    final calSchedule = (calendar?['meeting_schedule'] is List && (calendar!['meeting_schedule'] as List).isNotEmpty)
+        ? (calendar!['meeting_schedule'] as List).first as Map
+        : ((calendar?['meetings'] is List && (calendar!['meetings'] as List).isNotEmpty)
+            ? (calendar!['meetings'] as List).first as Map
+            : ((calendar?['calendar_meetings'] is List && (calendar!['calendar_meetings'] as List).isNotEmpty)
+                ? (calendar!['calendar_meetings'] as List).first as Map
+                : null));
 
     final freqRaw = data['frequency']?.toString() ??
         data['meeting_frequency']?.toString() ??
+        json['meeting_frequency']?.toString() ??
         repeat?['frequency']?.toString() ??
         calSettings?['meeting_frequency']?.toString() ??
+        calendar?['frequency']?.toString() ??
         'Monthly';
     final freq = freqRaw.isNotEmpty
         ? (freqRaw[0].toUpperCase() + freqRaw.substring(1).toLowerCase())
@@ -274,6 +286,7 @@ class CircleCadenceModel {
 
     final modeRaw = data['mode']?.toString() ??
         data['meeting_mode']?.toString() ??
+        json['meeting_mode']?.toString() ??
         calSettings?['meeting_mode']?.toString() ??
         'Offline';
     final mode = modeRaw.toLowerCase().contains('online')
@@ -296,19 +309,29 @@ class CircleCadenceModel {
 
     final rawDay = data['day']?.toString() ??
         data['meeting_day']?.toString() ??
+        json['meeting_day']?.toString() ??
         repeat?['weekday']?.toString() ??
         repeat?['day_of_week']?.toString() ??
+        repeat?['day']?.toString() ??
+        calRepeat?['weekday']?.toString() ??
+        calRepeat?['day_of_week']?.toString() ??
+        calSchedule?['day_of_week']?.toString() ??
+        calSchedule?['weekday']?.toString() ??
         calendar?['default_meet_day']?.toString() ??
+        calendar?['day_of_week']?.toString() ??
+        calendar?['weekday']?.toString() ??
         '';
     final day = normDay(rawDay);
 
     String normOrdinal(String raw) {
       final s = raw.trim().toLowerCase();
-      if (s == 'first' || s == '1' || s == 'week_1') return '1st';
-      if (s == 'second' || s == '2' || s == 'week_2') return '2nd';
-      if (s == 'third' || s == '3' || s == 'week_3') return '3rd';
-      if (s == 'fourth' || s == '4' || s == 'week_4') return '4th';
+      if (s == 'first' || s == '1' || s == 'week_1' || s == 'week 1') return '1st';
+      if (s == 'second' || s == '2' || s == 'week_2' || s == 'week 2') return '2nd';
+      if (s == 'third' || s == '3' || s == 'week_3' || s == 'week 3') return '3rd';
+      if (s == 'fourth' || s == '4' || s == 'week_4' || s == 'week 4') return '4th';
       if (s == 'fifth' || s == '5' || s == 'last') return '5th';
+      if (s == 'week_4_provisional') return '4th';
+      if (s == 'every_week') return 'Every';
       if (s.endsWith('st') || s.endsWith('nd') || s.endsWith('rd') || s.endsWith('th')) {
         return raw.trim();
       }
@@ -317,44 +340,89 @@ class CircleCadenceModel {
 
     final rawOrd = data['ordinal']?.toString() ??
         data['meeting_ordinal']?.toString() ??
+        json['meeting_ordinal']?.toString() ??
+        json['ordinal']?.toString() ??
         repeat?['ordinal_text']?.toString() ??
+        repeat?['ordinal']?.toString() ??
+        repeat?['nth_week']?.toString() ??
+        calRepeat?['ordinal_text']?.toString() ??
+        calRepeat?['ordinal']?.toString() ??
+        calSchedule?['ordinal_text']?.toString() ??
+        calSchedule?['ordinal']?.toString() ??
+        calSchedule?['week_number']?.toString() ??
+        calSchedule?['nth_week']?.toString() ??
         calendar?['monthly_rule']?.toString() ??
+        calendar?['week_number']?.toString() ??
+        calendar?['ordinal']?.toString() ??
         '';
-    final ordinal = normOrdinal(rawOrd);
 
     String normWeekLabel(String raw) {
       final s = raw.trim().toLowerCase();
-      if (s == 'week_1' || s == '1') return 'Week 1';
-      if (s == 'week_2' || s == '2') return 'Week 2';
-      if (s == 'week_3' || s == '3') return 'Week 3';
-      if (s == 'week_4' || s == '4') return 'Week 4';
+      if (s == 'week_1' || s == '1' || s == '1st') return 'Week 1';
+      if (s == 'week_2' || s == '2' || s == '2nd') return 'Week 2';
+      if (s == 'week_3' || s == '3' || s == '3rd') return 'Week 3';
+      if (s == 'week_4' || s == '4' || s == '4th') return 'Week 4';
       if (s == 'week_4_provisional') return 'Week 4 (provisional)';
-      if (s == 'every_week') return 'Every Week';
+      if (s == 'every_week' || s == 'every') return 'Every Week';
       return raw.trim();
     }
 
     final rawWeek = data['week_of_month']?.toString() ??
         data['meeting_week_of_month']?.toString() ??
+        json['meeting_week_of_month']?.toString() ??
+        json['week_of_month']?.toString() ??
         repeat?['week_of_month']?.toString() ??
+        calRepeat?['week_of_month']?.toString() ??
+        calSchedule?['week_of_month']?.toString() ??
         calendar?['week_of_month']?.toString() ??
         '';
+
+    final ordinal = normOrdinal(rawOrd.isNotEmpty ? rawOrd : rawWeek);
     final weekOfMonth = rawWeek.isNotEmpty ? rawWeek : (ordinal.isNotEmpty ? ordinal : 'week_1');
-    final weekLabel = normWeekLabel(weekOfMonth);
+    final weekLabel = normWeekLabel(weekOfMonth.isNotEmpty ? weekOfMonth : ordinal);
 
     String startTime = data['start_time']?.toString() ??
         data['meeting_time']?.toString() ??
         data['meeting_start_time']?.toString() ??
+        json['meeting_time']?.toString() ??
+        json['meeting_start_time']?.toString() ??
+        json['start_time']?.toString() ??
         repeat?['start_time_local']?.toString() ??
         repeat?['time_local']?.toString() ??
         repeat?['start_time']?.toString() ??
+        repeat?['time']?.toString() ??
+        calRepeat?['start_time_local']?.toString() ??
+        calRepeat?['time_local']?.toString() ??
+        calRepeat?['start_time']?.toString() ??
+        calSchedule?['start_time_local']?.toString() ??
+        calSchedule?['time_local']?.toString() ??
+        calSchedule?['default_meet_time_local']?.toString() ??
+        calSchedule?['start_time']?.toString() ??
+        calSchedule?['default_meet_time']?.toString() ??
+        calSchedule?['time']?.toString() ??
         calendar?['start_time_local']?.toString() ??
+        calendar?['default_meet_time']?.toString() ??
+        calendar?['start_time']?.toString() ??
         '';
 
     String endTime = data['end_time']?.toString() ??
         data['meeting_end_time']?.toString() ??
+        json['meeting_end_time']?.toString() ??
+        json['end_time']?.toString() ??
         repeat?['end_time_local']?.toString() ??
+        repeat?['time_end_local']?.toString() ??
         repeat?['end_time']?.toString() ??
+        calRepeat?['end_time_local']?.toString() ??
+        calRepeat?['time_end_local']?.toString() ??
+        calRepeat?['end_time']?.toString() ??
+        calSchedule?['end_time_local']?.toString() ??
+        calSchedule?['time_end_local']?.toString() ??
+        calSchedule?['default_meet_end_time_local']?.toString() ??
+        calSchedule?['end_time']?.toString() ??
+        calSchedule?['default_meet_end_time']?.toString() ??
         calendar?['end_time_local']?.toString() ??
+        calendar?['default_meet_end_time']?.toString() ??
+        calendar?['end_time']?.toString() ??
         '';
 
     // Format 12-hour strings if needed
@@ -482,6 +550,8 @@ class CircleTeamModel {
   final String name;
   final String category;
   final String location;
+  final String country;
+  final String district;
   final int peersCount;
   final int healthPercentage;
   final String revenue;
@@ -507,6 +577,8 @@ class CircleTeamModel {
     required this.name,
     required this.category,
     required this.location,
+    this.country = '',
+    this.district = '',
     required this.peersCount,
     required this.healthPercentage,
     required this.revenue,
@@ -551,12 +623,12 @@ class CircleTeamModel {
   /// Returns the effective cover banner image URL if available and distinct from circle logo.
   String? get effectiveCoverUrl {
     final c = coverImageUrl?.trim();
-    if (c != null && c.isNotEmpty) {
-      return c;
-    }
     final l = circleImageUrl?.trim();
-    if (l != null && l.isNotEmpty) {
-      return l;
+    if (c != null && c.isNotEmpty) {
+      if (l != null && l.isNotEmpty && c == l) {
+        return null;
+      }
+      return c;
     }
     return null;
   }
@@ -683,12 +755,22 @@ class CircleTeamModel {
     } else {
       coverImg = json['cover_image_url']?.toString() ??
           json['cover_url']?.toString() ??
-          json['banner_url']?.toString();
+          json['banner_url']?.toString() ??
+          json['cover_photo_url']?.toString();
     }
     if ((coverImg == null || coverImg.isEmpty) && json['cover_file_id'] != null) {
       final fid = json['cover_file_id'].toString().trim();
       if (fid.isNotEmpty) {
         coverImg = 'https://dev.peersunity.com/api/v1/files/$fid';
+      }
+    }
+    final cal = json['calendar'] is Map ? json['calendar'] as Map : null;
+    if ((coverImg == null || coverImg.isEmpty) && cal != null) {
+      final calCover = cal['cover'] ?? cal['banner'] ?? cal['cover_image'] ?? cal['settings']?['cover_image'];
+      if (calCover is Map) {
+        coverImg = calCover['url']?.toString();
+      } else if (calCover is String && calCover.trim().isNotEmpty) {
+        coverImg = calCover.trim();
       }
     }
 
@@ -710,12 +792,53 @@ class CircleTeamModel {
         circleImg = 'https://dev.peersunity.com/api/v1/files/$fid';
       }
     }
+    if ((circleImg == null || circleImg.isEmpty) && cal != null) {
+      final calLogo = cal['circle_image'] ?? cal['circle_logo'] ?? cal['logo'] ?? cal['settings']?['circle_image'];
+      if (calLogo is Map) {
+        circleImg = calLogo['url']?.toString();
+      } else if (calLogo is String && calLogo.trim().isNotEmpty) {
+        circleImg = calLogo.trim();
+      }
+    }
+
+    // If coverImg equals circleImg, it is NOT an actual cover banner, it is the logo echoed
+    if (coverImg != null && circleImg != null && coverImg.trim() == circleImg.trim()) {
+      coverImg = null;
+    }
+
+    final geo = json['geography'] is Map ? json['geography'] as Map : null;
+    String extractNamed(dynamic raw) {
+      if (raw is Map) {
+        return (raw['name'] ?? raw['label'] ?? raw['title'] ?? '')
+            .toString()
+            .trim();
+      }
+      return (raw ?? '').toString().trim();
+    }
+
+    final rawCountry = extractNamed(
+      json['country_name'] ??
+          json['country'] ??
+          geo?['country_name'] ??
+          geo?['country'],
+    );
+    final rawLocation = (json['location'] as String? ?? '').trim();
+    final rawDistrict = extractNamed(
+      json['district_name'] ??
+          json['district'] ??
+          geo?['district_name'] ??
+          geo?['district'] ??
+          json['city'] ??
+          geo?['city'],
+    );
 
     return CircleTeamModel(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       category: json['category'] as String? ?? '',
-      location: json['location'] as String? ?? '',
+      location: rawLocation,
+      country: rawCountry,
+      district: rawDistrict.isNotEmpty ? rawDistrict : rawLocation,
       peersCount: json['peers_count'] as int? ?? 0,
       healthPercentage: json['health_percentage'] as int? ?? 0,
       revenue: json['revenue']?.toString() ?? '₹0.0',
@@ -743,6 +866,8 @@ class CircleTeamModel {
     String? name,
     String? category,
     String? location,
+    String? country,
+    String? district,
     int? peersCount,
     int? healthPercentage,
     String? revenue,
@@ -768,6 +893,8 @@ class CircleTeamModel {
       name: name ?? this.name,
       category: category ?? this.category,
       location: location ?? this.location,
+      country: country ?? this.country,
+      district: district ?? this.district,
       peersCount: peersCount ?? this.peersCount,
       healthPercentage: healthPercentage ?? this.healthPercentage,
       revenue: revenue ?? this.revenue,
@@ -795,6 +922,8 @@ class CircleTeamModel {
         'name': name,
         'category': category,
         'location': location,
+        'country': country,
+        'district': district,
         'peers_count': peersCount,
         'health_percentage': healthPercentage,
         'revenue': revenue,

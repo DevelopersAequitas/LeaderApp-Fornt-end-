@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 
 class SegmentedControl extends StatelessWidget {
   final List<String> labels;
@@ -19,6 +21,8 @@ class SegmentedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final animDuration = AppMotion.duration(context, AppMotion.indicator);
+
     return Container(
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(3),
@@ -34,9 +38,16 @@ class SegmentedControl extends StatelessWidget {
 
           return Expanded(
             child: InkWell(
-              onTap: () => onSegmentChanged(index),
+              onTap: () {
+                if (!isSelected) {
+                  HapticFeedback.selectionClick();
+                  onSegmentChanged(index);
+                }
+              },
               borderRadius: BorderRadius.circular(10),
-              child: Container(
+              child: AnimatedContainer(
+                duration: animDuration,
+                curve: AppMotion.easeOut,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected ? Colors.white : Colors.transparent,
@@ -44,8 +55,8 @@ class SegmentedControl extends StatelessWidget {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 4,
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 5,
                             offset: const Offset(0, 1),
                           ),
                         ]
@@ -73,7 +84,7 @@ class SegmentedControl extends StatelessWidget {
                             : const Color(0xFF64748B),
                         fontSize: 12,
                         fontWeight:
-                            isSelected ? FontWeight.w500 : FontWeight.w400,
+                            isSelected ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
                   ],

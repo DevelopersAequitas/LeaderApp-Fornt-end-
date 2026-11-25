@@ -12,41 +12,19 @@ class NotificationFilterChips extends StatelessWidget {
   });
 
   static const List<Map<String, dynamic>> categories = [
-    {
-      'key': 'all',
-      'label': 'All',
-      'icon': Icons.all_inbox_rounded,
-    },
-    {
-      'key': 'circle',
-      'label': 'Circle',
-      'icon': Icons.groups_rounded,
-    },
-    {
-      'key': 'peers',
-      'label': 'Peers',
-      'icon': Icons.person_search_rounded,
-    },
-    {
-      'key': 'finance',
-      'label': 'Finance',
-      'icon': Icons.account_balance_wallet_rounded,
-    },
-    {
-      'key': 'reports',
-      'label': 'Reports',
-      'icon': Icons.assessment_rounded,
-    },
-    {
-      'key': 'milestones',
-      'label': 'Milestones',
-      'icon': Icons.emoji_events_rounded,
-    },
-    {
-      'key': 'system',
-      'label': 'System',
-      'icon': Icons.notifications_active_rounded,
-    },
+    {'key': 'all', 'label': 'All', 'icon': Icons.all_inbox_rounded},
+    {'key': 'unread', 'label': 'Unread', 'icon': Icons.mark_email_unread_rounded},
+    {'key': 'action_required', 'label': 'Action Required', 'icon': Icons.pending_actions_rounded},
+    {'key': 'critical', 'label': 'Critical', 'icon': Icons.priority_high_rounded},
+    {'key': 'governance', 'label': 'Governance', 'icon': Icons.gavel_rounded},
+    {'key': 'membership', 'label': 'Membership', 'icon': Icons.people_alt_rounded},
+    {'key': 'finance', 'label': 'Finance', 'icon': Icons.account_balance_wallet_rounded},
+    {'key': 'performance', 'label': 'Performance', 'icon': Icons.trending_up_rounded},
+    {'key': 'events', 'label': 'Events', 'icon': Icons.event_available_rounded},
+    {'key': 'industry', 'label': 'Industry & Business', 'icon': Icons.business_center_rounded},
+    {'key': 'compliance', 'label': 'Compliance', 'icon': Icons.verified_user_rounded},
+    {'key': 'security', 'label': 'Security', 'icon': Icons.security_rounded},
+    {'key': 'system', 'label': 'System', 'icon': Icons.notifications_active_rounded},
   ];
 
   @override
